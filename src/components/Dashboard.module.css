@@ -1,0 +1,1343 @@
+.dashboard {
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding-bottom: 100px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
+  background: var(--color-bg);
+}
+
+.avatarButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  font-family: var(--font-body);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(193, 125, 74, 0.25);
+}
+
+.avatarButton:hover {
+  transform: scale(1.08);
+  box-shadow: 0 3px 12px rgba(193, 125, 74, 0.35);
+}
+
+.avatarButton:active {
+  transform: scale(0.95);
+}
+
+.storeButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface-warm);
+  color: var(--color-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.storeButton:hover {
+  transform: scale(1.08);
+  background: var(--color-primary);
+  color: white;
+}
+
+.storeButton:active {
+  transform: scale(0.95);
+}
+
+.logo { height: 50px; object-fit: contain; }
+
+/* Task Cards (Baseline & Follow-up) */
+.taskCard {
+  margin: 12px 20px;
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  display: flex;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-out);
+  animation: slideDown 0.4s ease;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.taskCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.taskCard:active {
+  transform: scale(0.98);
+}
+
+.taskCardBorderBaseline {
+  width: 4px;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #FF9800, #F57C00);
+}
+
+.taskCardBorderFollowUp {
+  width: 4px;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, #9C27B0, #7B1FA2);
+}
+
+.taskCardBorderOverdue {
+  background: linear-gradient(180deg, #E53935, #C62828);
+}
+
+.taskCardContent {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.taskCardIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.taskCardText {
+  flex: 1;
+  min-width: 0;
+}
+
+.taskCardText h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 2px;
+}
+
+.taskCardText p {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.taskCardButton {
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.taskCardButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(193, 125, 74, 0.3);
+}
+
+.taskCardOverdue {
+  border-color: #E53935;
+  box-shadow: 0 2px 12px rgba(229, 57, 53, 0.15);
+}
+
+.taskCardOverdue .taskCardIcon {
+  color: var(--color-danger);
+}
+
+.taskCardOverdue .taskCardButton {
+  background: linear-gradient(135deg, #E53935 0%, #C62828 100%);
+}
+
+/* Greeting Section */
+.greetingSection {
+  padding: 24px 20px 16px;
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.greeting { 
+  font-size: 24px; 
+  font-weight: 700; 
+  color: #4A3F35;
+  margin-bottom: 8px;
+}
+
+.quote {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+/* Dose Section - Compact */
+.doseSection {
+  background: var(--color-surface);
+  margin: 16px 20px;
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.97); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.doseRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.doseStatusIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-surface-warm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.doseIconSuccess {
+  background: #E8F5E9;
+  color: var(--color-success);
+}
+
+.doseIconPending {
+  background: #FFF3E0;
+  color: var(--color-warning);
+}
+
+.doseIconDanger {
+  background: #FFEBEE;
+  color: var(--color-danger);
+  animation: dangerPulse 2s ease-in-out infinite;
+}
+
+@keyframes dangerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.doseStatusText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.doseStatusTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doseStatusSub {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doseSubDanger {
+  color: var(--color-danger);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.doseActionButton {
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(193, 125, 74, 0.25);
+}
+
+.doseActionButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(193, 125, 74, 0.35);
+}
+
+.doseActionButton:active {
+  transform: scale(0.96);
+}
+
+.doseActionButtonOutline {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.doseActionButtonOutline:hover {
+  background: var(--color-surface-warm);
+}
+
+.doseChipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.doseChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #E8F5E9;
+  color: var(--color-success);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Next Dose Info */
+.nextDoseInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 16px;
+  border-radius: 16px;
+  margin: 16px 0;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+}
+
+.nextDoseInfo.overdue {
+  background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+}
+
+.nextDoseInfo.first {
+  background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+}
+
+.clockIcon { font-size: 32px; margin-bottom: 8px; }
+.nextDoseInfo strong { font-size: 16px; color: var(--color-success); }
+.nextDoseInfo.overdue strong { color: var(--color-danger-dark); }
+.nextDoseInfo.first strong { color: #1565C0; }
+.nextDoseInfo p { font-size: 14px; margin-top: 4px; color: inherit; }
+
+.setupButton { 
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%); 
+  color: white; 
+  border: none; 
+  padding: 12px 24px; 
+  border-radius: var(--radius-md); 
+  font-size: 15px; 
+  font-weight: 600; 
+  cursor: pointer; 
+  margin-top: 12px;
+  transition: all 0.3s;
+}
+.setupButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(193, 125, 74, 0.3);
+}
+
+.takeDoseButton { 
+  width: 100%; 
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%); 
+  color: white; 
+  border: none; 
+  padding: 18px; 
+  border-radius: 16px; 
+  font-size: 18px; 
+  font-weight: 700; 
+  cursor: pointer; 
+  margin-top: 20px; 
+  box-shadow: 0 4px 16px rgba(193, 125, 74, 0.3); 
+  transition: all 0.3s ease;
+}
+.takeDoseButton:hover:not(:disabled) { 
+  transform: translateY(-3px); 
+  box-shadow: 0 6px 24px rgba(193, 125, 74, 0.4); 
+}
+.takeDoseButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+.takeDoseButton:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.doseTaken { text-align: center; }
+.doseTakenHeader { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 12px; 
+  margin-bottom: 16px;
+}
+.checkmark { 
+  font-size: 32px; 
+  color: #4CAF50;
+  animation: checkBounce 0.5s ease;
+}
+
+@keyframes checkBounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.doseTaken h2 { font-size: 20px; font-weight: 700; color: #4A3F35; }
+.doseItem { 
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); 
+  padding: 14px; 
+  border-radius: var(--radius-md); 
+  margin-bottom: 8px;
+}
+.doseItem p { font-size: 15px; color: var(--color-success); margin: 0; font-weight: 500; }
+
+.addDoseButton { 
+  width: 100%; 
+  background: white; 
+  color: #C17D4A; 
+  border: 2px solid #C17D4A; 
+  padding: 14px; 
+  border-radius: var(--radius-md); 
+  font-size: 15px; 
+  font-weight: 600; 
+  cursor: pointer; 
+  margin-top: 16px; 
+  transition: all 0.3s ease;
+}
+.addDoseButton:hover { 
+  background: #FFF8F0;
+  transform: scale(1.02);
+}
+
+.streak { 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px; 
+  font-size: 18px; 
+  font-weight: 700; 
+  color: #FF6F00;
+}
+.streakFire {
+  animation: firePulse 1s infinite;
+}
+
+@keyframes firePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Quick Actions */
+.quickActions {
+  display: flex;
+  gap: 12px;
+  padding: 0 20px;
+  margin-top: 20px;
+}
+
+.quickAction {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 16px 12px;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.quickAction:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.quickAction span:first-child {
+  font-size: 24px;
+}
+
+.quickAction span:last-child {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4A3F35;
+}
+
+/* Modal — Bottom Sheet */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: var(--z-modal-backdrop);
+  padding: 0;
+  animation: fadeIn 0.2s ease;
+}
+
+.modalContent {
+  background: white;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 12px 24px calc(24px + var(--safe-area-bottom));
+  max-width: 100%;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUpSheet 0.35s var(--ease-out);
+  -webkit-overflow-scrolling: touch;
+}
+
+.dragHandle {
+  width: 36px;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  margin: 0 auto 16px;
+  flex-shrink: 0;
+}
+
+@keyframes modalSlideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modalIcon {
+  font-size: 48px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.modalContent h2 { 
+  font-size: 22px; 
+  font-weight: 700; 
+  color: #4A3F35; 
+  margin-bottom: 16px; 
+  text-align: center; 
+  text-transform: capitalize;
+}
+
+.modalDoseInfo { 
+  background: linear-gradient(135deg, #F5EDE4 0%, #E8C9A1 100%); 
+  padding: 16px; 
+  border-radius: var(--radius-md); 
+  font-weight: 700; 
+  color: #C17D4A; 
+  font-size: 24px; 
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.customDoseInputs { display: flex; gap: 12px; margin: 16px 0; }
+.doseInput { 
+  flex: 2; 
+  padding: 14px; 
+  border: 2px solid #E8C9A1; 
+  border-radius: var(--radius-md); 
+  font-size: 18px; 
+  text-align: center;
+  transition: border-color 0.2s;
+}
+.doseInput:focus { border-color: #C17D4A; outline: none; }
+.unitSelect { 
+  flex: 1; 
+  padding: 14px; 
+  border: 2px solid #E8C9A1; 
+  border-radius: var(--radius-md); 
+  font-size: 16px; 
+  background: white;
+}
+
+.modalButtons { display: flex; gap: 12px; margin-top: 20px; }
+.cancelButton, .confirmButton { 
+  flex: 1; 
+  padding: 16px; 
+  border: none; 
+  border-radius: 14px; 
+  font-size: 16px; 
+  font-weight: 600; 
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cancelButton { background: #F5F5F5; color: #666; }
+.cancelButton:hover { background: #E0E0E0; }
+.confirmButton { background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%); color: white; }
+.confirmButton:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(193, 125, 74, 0.3); }
+
+/* Day Detail Modal */
+.daySection { 
+  margin: 20px 0; 
+  padding-bottom: 16px; 
+  border-bottom: 1px solid #E8C9A1;
+}
+.daySection:last-of-type { border-bottom: none; }
+.daySection h3 { font-size: 16px; font-weight: 700; color: #4A3F35; margin-bottom: 12px; }
+
+.followUpDayIndicator {
+  background: linear-gradient(135deg, #E1BEE7 0%, #CE93D8 100%);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #6A1B9A;
+}
+.followUpDayIndicator button {
+  background: #7B1FA2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.followUpDayIndicator.followUpCompleted {
+  background: linear-gradient(135deg, #C8E6C9 0%, #A5D6A7 100%);
+  color: #2E7D32;
+}
+.followUpDayIndicator.followUpCompleted button {
+  background: #2E7D32;
+}
+
+.dayDoseItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #F5EDE4;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.dayDoseItem span { font-size: 14px; font-weight: 600; color: #4A3F35; }
+
+.doseChipWithDelete {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.deleteChipButton {
+  background: rgba(255, 82, 82, 0.15);
+  color: #FF5252;
+  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.deleteChipButton:hover { background: #FF5252; color: white; }
+.deleteButton { 
+  background: #FF5252; 
+  color: white; 
+  border: none; 
+  width: 32px; 
+  height: 32px; 
+  border-radius: 50%; 
+  font-size: 16px; 
+  cursor: pointer; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  transition: all 0.2s;
+}
+.deleteButton:hover { background: var(--color-danger); transform: scale(1.1); }
+
+.emptyText { color: #999; font-style: italic; font-size: 14px; text-align: center; padding: 12px; }
+
+.addDoseInline { display: flex; gap: 8px; margin-top: 12px; }
+.smallInput { 
+  flex: 1; 
+  padding: 12px; 
+  border: 2px solid #E8C9A1; 
+  border-radius: 10px; 
+  font-size: 15px; 
+  text-align: center;
+}
+.smallInput:focus { border-color: #C17D4A; outline: none; }
+.smallSelect { 
+  padding: 12px; 
+  border: 2px solid #E8C9A1; 
+  border-radius: 10px; 
+  font-size: 15px; 
+  background: white; 
+}
+.addButton { 
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%); 
+  color: white; 
+  border: none; 
+  padding: 12px 20px; 
+  border-radius: 10px; 
+  font-size: 14px; 
+  font-weight: 600; 
+  cursor: pointer; 
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.addButton:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(193, 125, 74, 0.3); }
+
+/* Checkin Summary */
+.checkinSummary { background: #F5EDE4; padding: 16px; border-radius: var(--radius-md); }
+.checkinStats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.checkinStats span { 
+  font-size: 13px; 
+  color: #4A3F35; 
+  background: white; 
+  padding: 8px 12px; 
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+.checkinNotes { font-size: 14px; color: var(--color-text-secondary); font-style: italic; margin: 12px 0; line-height: 1.4; }
+.checkinActions { display: flex; gap: 10px; margin-top: 12px; }
+.editCheckinButton, .deleteCheckinButton { 
+  flex: 1; 
+  padding: 10px; 
+  border: none; 
+  border-radius: var(--radius-sm); 
+  font-size: 14px; 
+  font-weight: 600; 
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.editCheckinButton { background: #C17D4A; color: white; }
+.editCheckinButton:hover { background: #A66939; }
+.deleteCheckinButton { background: #FFCDD2; color: var(--color-danger-dark); }
+.deleteCheckinButton:hover { background: #EF9A9A; }
+
+.noCheckin { text-align: center; padding: 16px; }
+.noCheckin p { color: #999; margin-bottom: 12px; }
+.addCheckinButton { 
+  background: white; 
+  color: #C17D4A; 
+  border: 2px solid #C17D4A; 
+  padding: 10px 20px; 
+  border-radius: var(--radius-sm); 
+  font-size: 14px; 
+  font-weight: 600; 
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.addCheckinButton:hover { background: #FFF8F0; }
+
+.closeButton { 
+  width: 100%; 
+  background: #F5F5F5; 
+  color: #666; 
+  border: none; 
+  padding: 14px; 
+  border-radius: var(--radius-md); 
+  font-size: 15px; 
+  font-weight: 600; 
+  cursor: pointer; 
+  margin-top: 16px;
+  transition: all 0.2s;
+}
+.closeButton:hover { background: #E0E0E0; }
+
+/* Loading */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 16px;
+  color: var(--color-text-secondary);
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #DBC4A8;
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Next Dose Card */
+.nextDoseCard {
+  background: #F5EDE4;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+}
+
+.nextDoseLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.nextDoseDate {
+  font-size: 16px;
+  font-weight: 700;
+  color: #4A3F35;
+  margin-bottom: 2px;
+}
+
+.nextDoseSubstance {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+/* Modal Header */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modalHeader h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #4A3F35;
+  text-transform: capitalize;
+  margin: 0;
+}
+
+/* Edit Mode Button */
+.editModeButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  color: #C17D4A;
+  border: 2px solid #C17D4A;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editModeButton:hover {
+  background: #FFF8F0;
+}
+
+.viewModeButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.viewModeButton:hover {
+  background: #43A047;
+}
+
+/* Mini Gauges Grid (in modal) */
+.miniGaugesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Journal Items */
+.journalItem {
+  background: white;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.journalItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.journalItemTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4A3F35;
+}
+
+.journalItemPreview {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.deleteJournalButton {
+  background: #FFCDD2;
+  color: var(--color-danger-dark);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.deleteJournalButton:hover {
+  background: #EF9A9A;
+}
+
+.addJournalButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  background: white;
+  color: #C17D4A;
+  border: 2px dashed #C17D4A;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s;
+}
+
+.addJournalButton:hover {
+  background: #FFF8F0;
+  border-style: solid;
+}
+
+/* Fix Mini Gauges Grid */
+.miniGaugesGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.miniGauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 55px;
+}
+
+.miniGaugeCircle {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.miniGaugeCircle svg {
+  transform: rotate(-90deg);
+}
+
+.miniGaugeEmoji {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+.miniGaugeLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #4A3F35;
+  text-align: center;
+}
+
+.miniGaugeValue {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+}
+
+.miniGaugeTooltip {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4A3F35;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 100;
+}
+
+/* Mini Gauge Item - Fix */
+.miniGaugeItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  cursor: pointer;
+}
+
+.miniGaugeCircle {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.miniGaugeCircle svg {
+  transform: rotate(-90deg);
+}
+
+.miniGaugeEmoji {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+.miniGaugeTooltip {
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4A3F35;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.miniGaugeTooltip::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #4A3F35;
+}
+
+/* Fix Mini Gauge - Override */
+.miniGaugesGrid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  justify-content: center !important;
+  grid-template-columns: unset !important;
+}
+
+.miniGaugeItem {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 2px !important;
+  position: relative !important;
+  cursor: pointer !important;
+  width: 48px !important;
+}
+
+.miniGaugeCircle {
+  position: relative !important;
+  width: 44px !important;
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.miniGaugeEmoji {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+
+.miniGaugeTooltip {
+  position: absolute !important;
+  bottom: -38px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: #4A3F35 !important;
+  color: white !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  white-space: nowrap !important;
+  z-index: var(--z-nav) !important;
+  pointer-events: none !important;
+  text-align: center !important;
+}
+
+/* Countdown Styles */
+.countdownContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border-radius: 16px;
+}
+
+.countdownContainer.overdue {
+  background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+}
+
+.countdownItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.countdownNumber {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-success);
+  line-height: 1;
+}
+
+.countdownContainer.overdue .countdownNumber {
+  color: var(--color-danger-dark);
+}
+
+.countdownLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.countdownSeparator {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: 16px;
+}
+
+/* Intuitive Mode Styles */
+.intuitiveHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.intuitiveIcon {
+  color: #9C27B0;
+}
+
+.intuitiveText {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.lastDoseInfo {
+  background: #F5EDE4;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.lastDoseLabel {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.lastDoseDate {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4A3F35;
+}
+
+.doseTakenToday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.takeDoseButtonSecondary {
+  width: 100%;
+  background: white;
+  color: #C17D4A;
+  border: 2px solid #C17D4A;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: all 0.3s ease;
+}
+
+.takeDoseButtonSecondary:hover {
+  background: #FFF8F0;
+  transform: translateY(-2px);
+}
+
+.doseSubtext {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+}
+
+.doseContent {
+  text-align: center;
+}
+
+.doseContent h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4A3F35;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Efecto titilante para dosis atrasada */
+.countdownContainer.overdue {
+  animation: overduePulse 2s ease-in-out infinite;
+}
+
+@keyframes overduePulse {
+  0%, 100% {
+    background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+    box-shadow: 0 0 0 0 rgba(198, 40, 40, 0.2);
+  }
+  50% {
+    background: linear-gradient(135deg, #FFCDD2 0%, #EF9A9A 100%);
+    box-shadow: 0 0 20px 4px rgba(198, 40, 40, 0.3);
+  }
+}
+
+/* Efecto onda expansiva para dosis atrasada */
+.countdownContainer.overdue {
+  position: relative;
+  animation: none;
+}
+
+.countdownContainer.overdue::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 16px;
+  border: 2px solid var(--color-danger-dark);
+  animation: rippleExpand 2s ease-out infinite;
+}
+
+@keyframes rippleExpand {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.08);
+    opacity: 0;
+  }
+}
+

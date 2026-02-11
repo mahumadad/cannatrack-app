@@ -1,0 +1,351 @@
+.calendar {
+  padding: 0 12px;
+  margin-bottom: 20px;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--color-text-secondary);
+}
+
+/* Toggle de vista - más sutil */
+.viewToggle {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.toggleButton {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #9E9E9E;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggleButton.active {
+  background: var(--color-surface-warm);
+  color: var(--color-primary);
+}
+
+/* Título de navegación (semana/mes) */
+.navTitle {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+/* Contenedor con flechas laterales */
+.calendarWrapper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.sideArrow {
+  background: none;
+  border: none;
+  color: #BDBDBD;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sideArrow:hover {
+  color: var(--color-primary);
+}
+
+.sideArrow:active {
+  color: var(--color-primary);
+}
+
+/* Vista semanal con transición - RESPONSIVE */
+.weekDays {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 8px 0;
+  touch-action: pan-x;
+  user-select: none;
+  flex: 1;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.weekDays.sliding {
+  opacity: 0.5;
+  transform: scale(0.98);
+}
+
+/* Vista mensual con transición */
+.monthContainer {
+  flex: 1;
+  touch-action: pan-x;
+  user-select: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.monthContainer.sliding {
+  opacity: 0.5;
+  transform: scale(0.98);
+}
+
+.weekHeaders {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.weekHeader {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9E9E9E;
+  padding: 6px 0;
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+/* Tarjeta de día base - RESPONSIVE */
+.dayCard {
+  background: #F5F5F5;
+  border-radius: 10px;
+  padding: 8px 4px;
+  text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 0;
+}
+
+.monthDayCard {
+  padding: 6px 2px;
+  border-radius: var(--radius-sm);
+}
+
+.dayCard.clickable {
+  cursor: pointer;
+}
+
+.dayCard.clickable:hover {
+  background: #EEEEEE;
+  transform: translateY(-2px);
+}
+
+.dayCard.clickable:active {
+  transform: scale(0.95);
+}
+
+/* Día actual - destacado con colores cálidos */
+.dayCard.today {
+  background: linear-gradient(135deg, #FFF8F0 0%, #FFE5D9 100%);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(193, 125, 74, 0.2);
+}
+
+.dayCard.future {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dayCard.otherMonth {
+  opacity: 0.3;
+}
+
+/* Follow-up - más visible con fondo lavanda */
+.dayCard.followUpDay {
+  background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%);
+  border-color: #9C27B0;
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
+}
+
+.dayCard.followUpDay .weekday,
+.dayCard.followUpDay .dayNumber {
+  color: #7B1FA2;
+}
+
+.dayCard.followUpCompletedDay {
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border-color: #4CAF50;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+}
+
+.dayCard.followUpCompletedDay .weekday,
+.dayCard.followUpCompletedDay .dayNumber {
+  color: #2E7D32;
+}
+
+/* Textos - RESPONSIVE */
+.weekday {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9E9E9E;
+  text-transform: capitalize;
+  margin-bottom: 2px;
+}
+
+.dayCard.today .weekday {
+  color: var(--color-primary);
+}
+
+.dayNumber {
+  font-size: 16px;
+  font-weight: 700;
+  color: #4A3F35;
+  margin-bottom: 4px;
+}
+
+.monthDayCard .dayNumber {
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.dayCard.today .dayNumber {
+  color: var(--color-primary);
+}
+
+.dayCard.future .dayNumber {
+  color: #BDBDBD;
+}
+
+/* Indicadores - RESPONSIVE */
+.indicators {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  min-height: 16px;
+  flex-wrap: wrap;
+}
+
+.monthDayCard .indicators {
+  min-height: 12px;
+}
+
+/* Iconos de indicadores con colores semánticos */
+.doseIcon {
+  color: #4CAF50;
+  font-size: 12px;
+}
+
+.doseIconMissed {
+  color: #EF5350;
+  font-size: 12px;
+}
+
+.doseIconScheduled {
+  color: #BDBDBD;
+  font-size: 12px;
+}
+
+.checkinIcon {
+  color: var(--color-primary);
+  font-size: 10px;
+}
+
+.followUpIcon {
+  color: #9C27B0;
+  font-size: 12px;
+}
+
+.followUpCompletedIcon {
+  color: #4CAF50;
+  font-size: 12px;
+}
+
+.monthDayCard .doseIcon,
+.monthDayCard .doseIconMissed,
+.monthDayCard .doseIconScheduled,
+.monthDayCard .checkinIcon,
+.monthDayCard .followUpIcon,
+.monthDayCard .followUpCompletedIcon {
+  font-size: 9px;
+}
+
+/* Media queries para pantallas pequeñas */
+@media (max-width: 380px) {
+  .calendar {
+    padding: 0 8px;
+  }
+  
+  .weekDays {
+    gap: 2px;
+  }
+  
+  .dayCard {
+    padding: 6px 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  .weekday {
+    font-size: 9px;
+  }
+  
+  .dayNumber {
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  
+  .indicators {
+    min-height: 14px;
+  }
+  
+  .doseIcon,
+  .doseIconMissed,
+  .doseIconScheduled,
+  .followUpIcon,
+  .followUpCompletedIcon {
+    font-size: 10px;
+  }
+
+  .checkinIcon {
+    font-size: 8px;
+  }
+
+  .sideArrow {
+    padding: 2px;
+  }
+}
+
+@media (max-width: 320px) {
+  .dayCard {
+    padding: 4px 1px;
+    border-width: 1px;
+  }
+
+  .weekday {
+    font-size: 8px;
+  }
+
+  .dayNumber {
+    font-size: 12px;
+  }
+
+  .doseIcon,
+  .doseIconMissed,
+  .doseIconScheduled,
+  .followUpIcon,
+  .followUpCompletedIcon {
+    font-size: 9px;
+  }
+
+  .checkinIcon {
+    font-size: 7px;
+  }
+}

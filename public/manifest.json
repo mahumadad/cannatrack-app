@@ -1,0 +1,18 @@
+{
+  "name": "Camellos & Dromedarios",
+  "short_name": "Camellos",
+  "description": "Tu compañero de microdosificación",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F6F2",
+  "theme_color": "#A68050",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo-camellos.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,290 @@
+.insights {
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding-bottom: 100px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.backButton { background: none; border: none; font-size: 16px; font-weight: 600; color: var(--color-primary); cursor: pointer; }
+.title { font-size: 20px; font-weight: 700; color: #4A3F35; }
+
+.periodToggle { display: flex; justify-content: center; gap: 8px; margin: 16px 20px; }
+.periodButton { padding: 6px 16px; border: none; background: transparent; border-radius: 16px; font-size: 13px; font-weight: 500; color: #9E9E9E; cursor: pointer; transition: all 0.3s ease; }
+.periodButton.active { background: var(--color-surface-warm); color: var(--color-primary); }
+
+.loading { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 16px; color: var(--color-text-secondary); }
+.loadingSpinner { width: 40px; height: 40px; border: 4px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.noData { text-align: center; padding: 60px 20px; }
+.noDataIcon { font-size: 64px; margin-bottom: 16px; }
+.noData h2 { font-size: 20px; color: #4A3F35; margin-bottom: 8px; }
+.noData p { color: var(--color-text-secondary); margin-bottom: 24px; }
+.startButton { padding: 14px 32px; background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%); color: white; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; cursor: pointer; }
+
+.content { padding: 0 20px 20px; }
+.card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); }
+.cardTitle { font-size: 18px; font-weight: 700; color: #4A3F35; margin-bottom: 4px; }
+.cardSubtitle { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 16px; }
+.chartContainer { width: 100%; margin-left: -10px; margin-right: -10px; padding-right: 10px; }
+
+/* Field Selector con tooltip */
+.fieldSelectorContainer { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.fieldSelectorActions { display: flex; justify-content: center; gap: 8px; margin-bottom: 4px; }
+.fieldActionBtn {
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-secondary);
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.fieldActionBtn:hover { background: var(--color-surface-warm); color: var(--color-primary); border-color: var(--color-primary); }
+.fieldActionBtnActive { background: var(--color-surface-warm); color: var(--color-primary); border-color: var(--color-primary); }
+.fieldSelectorRow { display: flex; justify-content: center; gap: 8px; }
+
+.fieldChipWrapper { position: relative; }
+
+.fieldChip {
+  width: 40px;
+  height: 40px;
+  border: 2px solid;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fieldChip:hover { transform: scale(1.1); }
+
+.fieldChipTooltip {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4A3F35;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.fieldChipTooltip::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #4A3F35;
+}
+
+/* Tooltip general */
+.tooltip { background: white; padding: 12px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); font-size: 13px; }
+.tooltipLabel { font-weight: 600; color: #4A3F35; margin-bottom: 6px; }
+
+/* Legend */
+.legend, .radarLegend { display: flex; justify-content: center; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.legendItem { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); }
+.legendDot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* Period Gauge */
+.periodGaugeContainer { display: flex; justify-content: center; padding: 10px 0; }
+
+/* Gauges Grid */
+.gaugesGrid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.gaugeItem { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.gaugeCircle { position: relative; display: flex; align-items: center; justify-content: center; }
+.gaugeValue { position: absolute; font-weight: 700; color: #4A3F35; }
+.gaugeLabel { font-size: 10px; color: var(--color-text-secondary); font-weight: 500; text-align: center; }
+.gaugeSubtitle { font-size: 9px; color: #999; }
+
+.summaryDivider { height: 1px; background: var(--color-border-light); margin: 16px 0 8px; }
+
+/* Compare Gauges */
+.compareGauges { display: flex; justify-content: center; gap: 40px; padding: 20px 0; }
+.compareGaugeItem { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.compareGaugeLabel { font-size: 14px; font-weight: 600; color: #4A3F35; }
+.compareGaugeDays { font-size: 12px; color: var(--color-text-secondary); background: var(--color-surface-warm); padding: 4px 10px; border-radius: var(--radius-md); }
+
+/* Mini Gauges Grid con tooltip */
+.miniGaugesGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(55px, 1fr)); gap: 12px; }
+.miniGaugeItem { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; position: relative; }
+.miniGaugeCircle { position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+.miniGaugeEmoji { position: absolute; font-size: 20px; }
+.miniGaugeValue { font-size: 11px; font-weight: 700; color: #4A3F35; }
+
+.miniGaugeTooltip {
+  position: absolute;
+  bottom: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4A3F35;
+  color: white;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 100;
+  text-align: center;
+  pointer-events: none;
+}
+
+.miniGaugeTooltip::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #4A3F35;
+}
+
+/* Radar Chart */
+.radarWrapper { display: flex; justify-content: center; padding: 10px 0; }
+.radarContainer { position: relative; margin: 0 auto; }
+.radarLabels { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+.radarLabel { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; pointer-events: auto; }
+.radarLabelEmoji { font-size: 16px; transition: transform 0.2s; }
+.radarLabel:hover .radarLabelEmoji { transform: scale(1.3); }
+
+.radarTooltip {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4A3F35;
+  color: white;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 100;
+  text-align: center;
+  pointer-events: none;
+}
+
+.radarTooltip::before {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #4A3F35;
+}
+
+/* ===== Clinical Evolution Card ===== */
+.evolutionChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.evolutionChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1.5px solid #E8C9A1;
+  border-radius: 16px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6B5E50;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.evolutionChip:hover {
+  border-color: #C17D4A;
+}
+
+.evolutionChipActive {
+  font-weight: 600;
+  color: #4A3F35;
+}
+
+.evolutionChipLabel {
+  font-size: 11px;
+}
+
+.evolutionChanges {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #F0E6DC;
+}
+
+.evolutionChangesTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4A3F35;
+  margin: 0 0 12px 0;
+}
+
+.evolutionChangeRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #F5F0EB;
+}
+
+.evolutionChangeRow:last-child {
+  border-bottom: none;
+}
+
+.evolutionChangeEmoji {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.evolutionChangeLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4A3F35;
+  flex: 1;
+  min-width: 0;
+}
+
+.evolutionChangeValues {
+  font-size: 12px;
+  color: #6B5E50;
+  white-space: nowrap;
+}
+
+.evolutionChangeArrow {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  min-width: 50px;
+  text-align: right;
+}

@@ -1,0 +1,101 @@
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  padding: 10px 8px calc(10px + var(--safe-area-bottom));
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.04), 0 -4px 20px rgba(0, 0, 0, 0.06);
+  z-index: var(--z-nav);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+}
+
+/* Nav buttons */
+.navButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  transition: all 0.2s var(--ease-out);
+  min-width: 48px;
+}
+
+.navButton:active {
+  transform: scale(0.9);
+}
+
+.navButton.active {
+  background: var(--color-surface-warm);
+  padding: 6px 16px;
+}
+
+.navIcon {
+  font-size: 24px;
+  color: var(--color-text-secondary);
+  transition: color 0.2s ease;
+}
+
+.navButton.active .navIcon {
+  color: var(--color-primary);
+}
+
+.navLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.02em;
+  animation: labelFadeIn 0.2s ease;
+}
+
+@keyframes labelFadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* FAB Container */
+.fabContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 56px;
+  margin-top: -28px;
+}
+
+.fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(193, 125, 74, 0.35), 0 2px 6px rgba(193, 125, 74, 0.2);
+  transition: all 0.25s var(--ease-spring);
+  z-index: calc(var(--z-nav) + 1);
+}
+
+.fab:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 24px rgba(193, 125, 74, 0.45), 0 3px 8px rgba(193, 125, 74, 0.25);
+}
+
+.fab:active {
+  transform: translateY(0) scale(0.95);
+  box-shadow: 0 2px 8px rgba(193, 125, 74, 0.3);
+}
+

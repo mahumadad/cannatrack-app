@@ -1,0 +1,602 @@
+.store {
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding-bottom: 100px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.backButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface-warm);
+  color: var(--color-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  transform: scale(1.08);
+  background: var(--color-primary);
+  color: white;
+}
+
+.backButton:active {
+  transform: scale(0.95);
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #4A3F35;
+}
+
+/* ============ RECETA BANNER ============ */
+.recetaBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 20px 0;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #FFF8F0 0%, #FDEBD0 100%);
+  border-radius: 14px;
+  border: 1.5px solid rgba(193, 125, 74, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recetaBanner:active { transform: scale(0.98); }
+
+.recetaBannerContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+}
+
+.recetaBannerIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.recetaBannerTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4A3F35;
+  margin: 0;
+}
+
+.recetaBannerSubtitle {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 2px 0 0;
+}
+
+.recetaBannerArrow {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.recetaNewOrderBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.recetaNewOrderBtn:active { transform: scale(0.95); }
+
+/* Mini saldo bars */
+.miniSaldoRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.miniSaldoLabel {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.miniSaldoBar {
+  flex: 1;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.miniSaldoFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.miniSaldoCount {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4A3F35;
+  width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ============ TAB TOGGLE ============ */
+.tabToggle {
+  display: flex;
+  background: white;
+  margin: 16px 20px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tabButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.tabActive {
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  color: white;
+}
+
+/* ============ CONTENT ============ */
+.content {
+  padding: 0 20px;
+}
+
+/* ============ ORDER CARD ============ */
+.orderList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.orderCard {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.orderCard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.orderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.orderName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #4A3F35;
+}
+
+.orderDate {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.orderRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.orderTotal {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* ============ DRAFT ORDER CARD ============ */
+.draftOrderCard {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid var(--color-primary);
+}
+
+.draftOrderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.draftOrderItems {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #FFF8F0;
+  border-radius: 10px;
+}
+
+.draftItemLabel {
+  font-size: 13px;
+  color: #4A3F35;
+  font-weight: 500;
+}
+
+.draftItemMore {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.statusPendingPayment {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.paymentButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.paymentButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(193, 125, 74, 0.4);
+}
+
+.paymentButton:active {
+  transform: scale(0.98);
+}
+
+/* ============ STATUS BADGES ============ */
+.statusBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.statusFulfilled { background: #E8F5E9; color: #2E7D32; }
+.statusUnfulfilled { background: #FFF3E0; color: #E65100; }
+.statusPartial { background: #E3F2FD; color: #1976D2; }
+.statusPaid { background: #E8F5E9; color: #2E7D32; }
+.statusPending { background: #FFF3E0; color: #E65100; }
+.statusActive { background: #E8F5E9; color: #2E7D32; }
+.statusPaused { background: #FFF3E0; color: #E65100; }
+.statusCancelled { background: #FFEBEE; color: #C62828; }
+.statusInTransit { background: #E3F2FD; color: #1976D2; }
+.statusDefault { background: #F5F5F5; color: #757575; }
+
+/* ============ TRACKING BAR ============ */
+.trackingBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-top: 12px;
+  background: #FFF8F0;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.deliveryDate {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  margin-left: auto;
+}
+
+.trackingLink {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: underline;
+  margin-left: auto;
+}
+
+/* ============ LINE ITEMS ============ */
+.lineItems {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(193, 125, 74, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lineItem,
+.subLine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lineItemImage {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #F5F5F5;
+  flex-shrink: 0;
+}
+
+.lineItemImagePlaceholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: var(--color-surface-warm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.lineItemInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lineItemName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4A3F35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lineItemVariant {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.lineItemQty {
+  font-size: 12px;
+  color: #8B7D72;
+}
+
+.lineItemPrice {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* ============ ORDER SUMMARY ============ */
+.orderSummary {
+  margin-top: 4px;
+  padding: 12px;
+  background: #FAFAFA;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  gap: 6px;
+}
+
+.summaryRow .discountLabel {
+  flex: 1;
+}
+
+.summaryRow .discountAmount {
+  color: #2E7D32;
+  font-weight: 600;
+}
+
+.summaryTotal {
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-weight: 700;
+  color: #4A3F35;
+  font-size: 14px;
+}
+
+/* ============ DETAIL ROW ============ */
+.detailRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  padding: 4px 0;
+}
+
+/* ============ SHIPPING SECTION ============ */
+.shippingSection {
+  margin-top: 4px;
+  padding: 12px;
+  background: #FFF8F0;
+  border-radius: 10px;
+}
+
+.shippingSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.shippingAddress {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: #4A3F35;
+  padding-left: 22px;
+}
+
+/* ============ SUBSCRIPTION CARD ============ */
+.subscriptionList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subscriptionCard {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.subHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.subIcon {
+  color: var(--color-primary);
+}
+
+.nextBilling {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-top: 12px;
+  background: #FFF8F0;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* ============ EMPTY STATE ============ */
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.emptyState svg {
+  display: block;
+  margin: 0 auto 16px;
+  opacity: 0.5;
+  color: var(--color-text-secondary);
+}
+
+.emptyState p {
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  margin: 0;
+}
+
+.emptySubtext {
+  font-size: 14px !important;
+  margin-top: 8px !important;
+  opacity: 0.7;
+}
+
+/* ============ LOADING ============ */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 16px;
+  color: var(--color-text-secondary);
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

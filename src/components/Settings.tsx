@@ -1,0 +1,559 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Clock, Trash, ClipboardText, Bell, BellRinging, User, SignOut, Warning, CaretRight, PencilSimple, Phone, MapPin, Tag, CalendarBlank, SpinnerGap, Envelope } from '@phosphor-icons/react';
+import styles from './Settings.module.css';
+import { useToast } from './Toast';
+import api from '../utils/api';
+import { requestNotificationPermission, getNotificationPermission, startNotificationScheduler, stopNotificationScheduler } from '../utils/notifications';
+import type { User as UserType, Protocol, Baseline, ShopifyCustomerProfile } from '../types';
+
+const Settings: React.FC = () => {
+  const navigate = useNavigate();
+  const toast = useToast();
+  const [user, setUser] = useState<UserType | null>(null);
+  const [protocol, setProtocol] = useState<Protocol | null>(null);
+  const [baseline, setBaseline] = useState<Baseline | null>(null);
+
+  // Preferences
+  const [doseReminder, setDoseReminder] = useState<string>('09:00');
+  const [reflectionReminder, setReflectionReminder] = useState<string>('21:00');
+
+  // Notifications
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
+  const [doseNotification, setDoseNotification] = useState<boolean>(true);
+  const [reflectionNotification, setReflectionNotification] = useState<boolean>(true);
+  const [protocolNotification, setProtocolNotification] = useState<boolean>(true);
+  const [notificationPermission, setNotificationPermission] = useState<string>('default');
+
+  // Modals
+  const [showEndProtocolModal, setShowEndProtocolModal] = useState<boolean>(false);
+  const [showTimeModal, setShowTimeModal] = useState<string | null>(null);
+  const [tempTime, setTempTime] = useState<string>('');
+
+  // Shopify profile
+  const [shopifyProfile, setShopifyProfile] = useState<ShopifyCustomerProfile | null>(null);
+  const [loadingShopify, setLoadingShopify] = useState<boolean>(false);
+  const [editingName, setEditingName] = useState<boolean>(false);
+  const [editFirstName, setEditFirstName] = useState<string>('');
+  const [editLastName, setEditLastName] = useState<string>('');
+  const [savingName, setSavingName] = useState<boolean>(false);
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    setUser(userData);
+    if (userData.id) {
+      loadProtocol(userData.id);
+      loadBaseline(userData.id);
+      loadShopifyProfile(userData.id);
+    }
+    
+    // Load saved preferences
+    const savedPrefs = JSON.parse(localStorage.getItem('preferences') || '{}');
+    if (savedPrefs.doseReminder) setDoseReminder(savedPrefs.doseReminder);
+    if (savedPrefs.reflectionReminder) setReflectionReminder(savedPrefs.reflectionReminder);
+    if (savedPrefs.notificationsEnabled !== undefined) setNotificationsEnabled(savedPrefs.notificationsEnabled);
+    if (savedPrefs.doseNotification !== undefined) setDoseNotification(savedPrefs.doseNotification);
+    if (savedPrefs.reflectionNotification !== undefined) setReflectionNotification(savedPrefs.reflectionNotification);
+    if (savedPrefs.protocolNotification !== undefined) setProtocolNotification(savedPrefs.protocolNotification);
+    setNotificationPermission(getNotificationPermission());
+  }, []);
+
+  const savePreferences = (newPrefs: Record<string, any>) => {
+    const currentPrefs = JSON.parse(localStorage.getItem('preferences') || '{}');
+    const updated = { ...currentPrefs, ...newPrefs };
+    localStorage.setItem('preferences', JSON.stringify(updated));
+  };
+
+  const loadProtocol = async (userId: string) => {
+    try {
+      const data = await api.get(`/api/protocol/${userId}`);
+      setProtocol(data);
+      if (data.dose_time) setDoseReminder(data.dose_time);
+    } catch (error) {
+      toast!.error('Error al cargar protocolo');
+    }
+  };
+
+  const loadBaseline = async (userId: string) => {
+    try {
+      const data = await api.get(`/api/baseline/${userId}`);
+      setBaseline(data);
+    } catch (error) {
+      toast!.error('Error al cargar baseline');
+    }
+  };
+
+  const loadShopifyProfile = async (userId: string) => {
+    setLoadingShopify(true);
+    try {
+      const data = await api.get(`/api/shopify/profile/${userId}`, { skipAuthRedirect: true });
+      setShopifyProfile(data);
+    } catch {
+      // Silently fail — Shopify data is supplementary
+    } finally {
+      setLoadingShopify(false);
+    }
+  };
+
+  const handleEditName = () => {
+    setEditFirstName(shopifyProfile?.firstName || '');
+    setEditLastName(shopifyProfile?.lastName || '');
+    setEditingName(true);
+  };
+
+  const handleSaveName = async () => {
+    if (!editFirstName.trim() && !editLastName.trim()) {
+      toast!.warning('Ingresa al menos un nombre');
+      return;
+    }
+    setSavingName(true);
+    try {
+      await api.put(`/api/shopify/profile/${user!.id}`, {
+        firstName: editFirstName.trim(),
+        lastName: editLastName.trim()
+      });
+      const newName = [editFirstName.trim(), editLastName.trim()].filter(Boolean).join(' ');
+      const updatedUser = { ...user!, name: newName };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      await loadShopifyProfile(user!.id);
+      setEditingName(false);
+      toast!.success('Nombre actualizado');
+    } catch {
+      toast!.error('Error al actualizar nombre');
+    } finally {
+      setSavingName(false);
+    }
+  };
+
+  const handleEndProtocol = async () => {
+    try {
+      await api.delete(`/api/protocol/${user!.id}`);
+      setProtocol(null);
+      setShowEndProtocolModal(false);
+    } catch (error) {
+      toast!.error('Error al terminar protocolo');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/api/auth/logout', {});
+    } catch (e) {
+      // Proceed with local cleanup even if server call fails
+    }
+    localStorage.removeItem('user');
+    localStorage.removeItem('session');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('theme');
+    navigate('/login');
+  };
+
+  const handleTimeChange = (type: string) => {
+    if (type === 'dose') {
+      setDoseReminder(tempTime);
+      savePreferences({ doseReminder: tempTime });
+    } else {
+      setReflectionReminder(tempTime);
+      savePreferences({ reflectionReminder: tempTime });
+    }
+    setShowTimeModal(null);
+  };
+
+  const handleNotificationToggle = async (type: string, value: boolean) => {
+    switch (type) {
+      case 'enabled':
+        if (value) {
+          const permission = await requestNotificationPermission();
+          setNotificationPermission(permission);
+          if (permission === 'granted') {
+            setNotificationsEnabled(true);
+            savePreferences({ notificationsEnabled: true });
+            startNotificationScheduler();
+          } else {
+            toast!.warning('Notificaciones bloqueadas. Activalas en la configuracion de tu navegador.');
+            setNotificationsEnabled(false);
+            savePreferences({ notificationsEnabled: false });
+          }
+        } else {
+          setNotificationsEnabled(false);
+          savePreferences({ notificationsEnabled: false });
+          stopNotificationScheduler();
+        }
+        break;
+      case 'dose':
+        setDoseNotification(value);
+        savePreferences({ doseNotification: value });
+        break;
+      case 'reflection':
+        setReflectionNotification(value);
+        savePreferences({ reflectionNotification: value });
+        break;
+      case 'protocol':
+        setProtocolNotification(value);
+        savePreferences({ protocolNotification: value });
+        break;
+    }
+  };
+
+  const formatTime = (time: string): string => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':');
+    const h = parseInt(hours);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${minutes} ${ampm}`;
+  };
+
+  return (
+    <div className={styles.settings}>
+      <div className={styles.header}>
+        <button className={styles.backButton} onClick={() => navigate('/dashboard')}><ArrowLeft size={24} weight="bold" /></button>
+        <h1 className={styles.title}>Configuración</h1>
+        <div style={{ width: '40px' }}></div>
+      </div>
+
+      <div className={styles.content}>
+        {/* Account Section — Profile first */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionLabel}>Cuenta</h2>
+          <div className={styles.card}>
+            {/* Profile header with avatar */}
+            <div className={styles.profileHeader}>
+              {shopifyProfile?.imageUrl ? (
+                <img
+                  src={shopifyProfile.imageUrl}
+                  alt="Avatar"
+                  className={styles.avatar}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove(styles.hidden); }}
+                />
+              ) : null}
+              <div className={`${styles.avatarPlaceholder} ${shopifyProfile?.imageUrl ? styles.hidden : ''}`}>
+                <User size={28} weight="bold" />
+              </div>
+              <div className={styles.profileInfo}>
+                <span className={styles.profileName}>
+                  {shopifyProfile?.displayName || user?.name || 'Usuario'}
+                </span>
+                {shopifyProfile?.creationDate && (
+                  <span className={styles.profileSince}>
+                    <CalendarBlank size={12} weight="bold" />
+                    Cliente desde {new Date(shopifyProfile.creationDate).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                  </span>
+                )}
+              </div>
+              {shopifyProfile && (
+                <button className={styles.editButton} onClick={handleEditName}>
+                  <PencilSimple size={18} weight="bold" />
+                </button>
+              )}
+            </div>
+
+            {/* Email */}
+            <div className={styles.profileDetail}>
+              <Envelope size={18} weight="regular" className={styles.detailIcon} />
+              <div className={styles.detailContent}>
+                <span className={styles.detailLabel}>Correo electrónico</span>
+                <span className={styles.detailValue}>
+                  {shopifyProfile?.emailAddress?.emailAddress || user?.email || 'No disponible'}
+                </span>
+              </div>
+            </div>
+
+            {/* Phone */}
+            <div className={styles.profileDetail}>
+              <Phone size={18} weight="regular" className={styles.detailIcon} />
+              <div className={styles.detailContent}>
+                <span className={styles.detailLabel}>Teléfono</span>
+                <span className={styles.detailValue}>
+                  {shopifyProfile?.phoneNumber?.phoneNumber || 'No registrado'}
+                </span>
+              </div>
+            </div>
+
+            {/* Name details */}
+            <div className={styles.profileDetail}>
+              <User size={18} weight="regular" className={styles.detailIcon} />
+              <div className={styles.detailContent}>
+                <span className={styles.detailLabel}>Nombre</span>
+                <span className={styles.detailValue}>
+                  {shopifyProfile ? [shopifyProfile.firstName, shopifyProfile.lastName].filter(Boolean).join(' ') || 'No registrado' : user?.name || 'No registrado'}
+                </span>
+              </div>
+            </div>
+
+            {/* Tags */}
+            {shopifyProfile?.tags && shopifyProfile.tags.length > 0 && (
+              <div className={styles.profileDetail}>
+                <Tag size={18} weight="regular" className={styles.detailIcon} />
+                <div className={styles.detailContent}>
+                  <span className={styles.detailLabel}>Etiquetas</span>
+                  <div className={styles.tagList}>
+                    {shopifyProfile.tags.map((tag, i) => (
+                      <span key={i} className={styles.tag}>{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Addresses */}
+            {shopifyProfile?.addresses?.nodes && shopifyProfile.addresses.nodes.length > 0 && (
+              <div className={styles.profileDetail}>
+                <MapPin size={18} weight="regular" className={styles.detailIcon} />
+                <div className={styles.detailContent}>
+                  <span className={styles.detailLabel}>
+                    {shopifyProfile.addresses.nodes.length === 1 ? 'Dirección' : 'Direcciones'}
+                  </span>
+                  <div className={styles.addressList}>
+                    {shopifyProfile.addresses.nodes.map((addr, i) => (
+                      <div key={i} className={styles.addressCard}>
+                        {shopifyProfile.defaultAddress?.id === addr.id && (
+                          <span className={styles.defaultBadge}>Principal</span>
+                        )}
+                        <span className={styles.addressLine}>
+                          {addr.formatted.join(', ')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Loading Shopify */}
+            {loadingShopify && (
+              <div className={styles.profileLoading}>
+                <SpinnerGap size={18} weight="bold" className={styles.spinner} />
+                <span>Cargando datos...</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Protocol Section */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionLabel}>Protocolo</h2>
+          <div className={styles.card}>
+            <div className={styles.menuItem} onClick={() => navigate('/protocol')}>
+              <Clock size={24} weight="regular" className={styles.menuIcon} />
+              <div className={styles.menuContent}>
+                <span className={styles.menuTitle}>Protocolo</span>
+                <span className={styles.menuSubtitle}>{protocol ? 'Modificar protocolo' : 'Crear nuevo protocolo'}</span>
+              </div>
+              <CaretRight size={20} weight="bold" className={styles.menuArrow} />
+            </div>
+
+            {protocol && (
+              <div className={styles.menuItem} onClick={() => setShowEndProtocolModal(true)}>
+                <Trash size={24} weight="regular" className={styles.menuIcon} />
+                <div className={styles.menuContent}>
+                  <span className={styles.menuTitleDanger}>Terminar protocolo</span>
+                  <span className={styles.menuSubtitle}>Finalizar protocolo actual</span>
+                </div>
+                <CaretRight size={20} weight="bold" className={styles.menuArrow} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Baseline Section */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionLabel}>Evaluación</h2>
+          <div className={styles.card}>
+            <div className={styles.menuItem} onClick={() => navigate('/baseline')}>
+              <ClipboardText size={24} weight="regular" className={styles.menuIcon} />
+              <div className={styles.menuContent}>
+                <span className={styles.menuTitle}>Baseline</span>
+                <span className={styles.menuSubtitle}>
+                  {baseline ? 'Ver o editar evaluación inicial' : 'Completar evaluación inicial'}
+                </span>
+              </div>
+              <CaretRight size={20} weight="bold" className={styles.menuArrow} />
+            </div>
+          </div>
+        </div>
+
+        {/* Preferences Section */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionLabel}>Preferencias</h2>
+          <div className={styles.card}>
+            <div className={styles.menuItem} onClick={() => { setTempTime(doseReminder); setShowTimeModal('dose'); }}>
+              <Bell size={24} weight="regular" className={styles.menuIcon} />
+              <div className={styles.menuContent}>
+                <span className={styles.menuTitle}>Recordatorio de dosis</span>
+                <span className={styles.menuSubtitle}>{formatTime(doseReminder)}</span>
+              </div>
+              <CaretRight size={20} weight="bold" className={styles.menuArrow} />
+            </div>
+
+            <div className={styles.menuItem} onClick={() => { setTempTime(reflectionReminder); setShowTimeModal('reflection'); }}>
+              <BellRinging size={24} weight="regular" className={styles.menuIcon} />
+              <div className={styles.menuContent}>
+                <span className={styles.menuTitle}>Recordatorio de reflexión</span>
+                <span className={styles.menuSubtitle}>{formatTime(reflectionReminder)}</span>
+              </div>
+              <CaretRight size={20} weight="bold" className={styles.menuArrow} />
+            </div>
+          </div>
+        </div>
+
+        {/* Notifications Section */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionLabel}>Notificaciones</h2>
+          <div className={styles.card}>
+            <div className={styles.toggleItem}>
+              <div className={styles.toggleContent}>
+                <span className={styles.toggleTitle}>Activadas</span>
+                <span className={styles.toggleSubtitle}>Activar o desactivar todas las notificaciones</span>
+              </div>
+              <label className={styles.toggle}>
+                <input 
+                  type="checkbox" 
+                  checked={notificationsEnabled} 
+                  onChange={(e) => handleNotificationToggle('enabled', e.target.checked)} 
+                />
+                <span className={styles.toggleSlider}></span>
+              </label>
+            </div>
+
+            <div className={styles.toggleItem}>
+              <div className={styles.toggleContent}>
+                <span className={styles.toggleTitle}>Dosis</span>
+                <span className={styles.toggleSubtitle}>Recibir notificación para tomar tu dosis</span>
+              </div>
+              <label className={styles.toggle}>
+                <input 
+                  type="checkbox" 
+                  checked={doseNotification && notificationsEnabled} 
+                  onChange={(e) => handleNotificationToggle('dose', e.target.checked)}
+                  disabled={!notificationsEnabled}
+                />
+                <span className={styles.toggleSlider}></span>
+              </label>
+            </div>
+
+            <div className={styles.toggleItem}>
+              <div className={styles.toggleContent}>
+                <span className={styles.toggleTitle}>Reflexión</span>
+                <span className={styles.toggleSubtitle}>Recibir notificación para hacer tu reflexión</span>
+              </div>
+              <label className={styles.toggle}>
+                <input 
+                  type="checkbox" 
+                  checked={reflectionNotification && notificationsEnabled} 
+                  onChange={(e) => handleNotificationToggle('reflection', e.target.checked)}
+                  disabled={!notificationsEnabled}
+                />
+                <span className={styles.toggleSlider}></span>
+              </label>
+            </div>
+
+            <div className={styles.toggleItem}>
+              <div className={styles.toggleContent}>
+                <span className={styles.toggleTitle}>Protocolo</span>
+                <span className={styles.toggleSubtitle}>Recibir notificación cuando termine tu protocolo</span>
+              </div>
+              <label className={styles.toggle}>
+                <input 
+                  type="checkbox" 
+                  checked={protocolNotification && notificationsEnabled} 
+                  onChange={(e) => handleNotificationToggle('protocol', e.target.checked)}
+                  disabled={!notificationsEnabled}
+                />
+                <span className={styles.toggleSlider}></span>
+              </label>
+            </div>
+          </div>
+          {(notificationPermission === 'denied' || notificationPermission === 'unsupported') && (
+            <div className={styles.notificationWarning}>
+              <Warning size={18} weight="fill" />
+              <span>{notificationPermission === 'unsupported' ? 'Tu navegador no soporta notificaciones.' : 'Las notificaciones estan bloqueadas. Activalas en la configuracion de tu navegador.'}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Logout Section */}
+        <div className={styles.section}>
+          <div className={styles.card}>
+            <div className={styles.menuItem} onClick={handleLogout}>
+              <SignOut size={24} weight="regular" className={styles.menuIcon} />
+              <div className={styles.menuContent}>
+                <span className={styles.menuTitleDanger}>Cerrar sesión</span>
+                <span className={styles.menuSubtitle}>Salir de tu cuenta</span>
+              </div>
+              <CaretRight size={20} weight="bold" className={styles.menuArrow} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* End Protocol Modal */}
+      {showEndProtocolModal && (
+        <div className={styles.modal} onClick={() => setShowEndProtocolModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <Warning size={48} weight="fill" className={styles.modalIcon} />
+            <h2>¿Terminar protocolo?</h2>
+            <p>Esta acción finalizará tu protocolo actual. Podrás crear uno nuevo cuando quieras.</p>
+            <div className={styles.modalButtons}>
+              <button className={styles.cancelButton} onClick={() => setShowEndProtocolModal(false)}>Cancelar</button>
+              <button className={styles.dangerButton} onClick={handleEndProtocol}>Sí, terminar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Time Picker Modal */}
+      {showTimeModal && (
+        <div className={styles.modal} onClick={() => setShowTimeModal(null)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h2>{showTimeModal === 'dose' ? 'Recordatorio de dosis' : 'Recordatorio de reflexión'}</h2>
+            <input 
+              type="time" 
+              value={tempTime} 
+              onChange={(e) => setTempTime(e.target.value)}
+              className={styles.timeInput}
+            />
+            <div className={styles.modalButtons}>
+              <button className={styles.cancelButton} onClick={() => setShowTimeModal(null)}>Cancelar</button>
+              <button className={styles.confirmButton} onClick={() => handleTimeChange(showTimeModal)}>Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Name Modal */}
+      {editingName && (
+        <div className={styles.modal} onClick={() => setEditingName(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h2>Editar nombre</h2>
+            <div className={styles.nameFields}>
+              <input
+                type="text"
+                value={editFirstName}
+                onChange={(e) => setEditFirstName(e.target.value)}
+                placeholder="Nombre"
+                className={styles.nameInput}
+              />
+              <input
+                type="text"
+                value={editLastName}
+                onChange={(e) => setEditLastName(e.target.value)}
+                placeholder="Apellido"
+                className={styles.nameInput}
+              />
+            </div>
+            <div className={styles.modalButtons}>
+              <button className={styles.cancelButton} onClick={() => setEditingName(false)}>Cancelar</button>
+              <button className={styles.confirmButton} onClick={handleSaveName} disabled={savingName}>
+                {savingName ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Settings;

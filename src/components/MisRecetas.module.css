@@ -1,0 +1,202 @@
+.page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding-bottom: 40px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.backButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface-warm);
+  color: var(--color-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.backButton:active { transform: scale(0.95); }
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4A3F35;
+}
+
+.content {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ============ RECETA CARD ============ */
+.recetaCard {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.recetaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.recetaDoctor {
+  font-size: 15px;
+  font-weight: 700;
+  color: #4A3F35;
+}
+
+.recetaDate {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.estadoBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.estadoActiva { background: #E8F5E9; color: #2E7D32; }
+.estadoVencida { background: #FFEBEE; color: #C62828; }
+.estadoCompletada { background: #F5F5F5; color: #757575; }
+
+/* ============ SALDO BARS ============ */
+.saldoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.saldoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.saldoLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.saldoName {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.saldoCount {
+  font-weight: 700;
+  color: #4A3F35;
+}
+
+.saldoBar {
+  height: 8px;
+  background: var(--color-border-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.saldoFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.saldoHigh { background: var(--color-success); }
+.saldoMedium { background: var(--color-warning); }
+.saldoLow { background: var(--color-danger); }
+
+/* ============ RECETA META ============ */
+.recetaMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.metaChip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+/* ============ EMPTY STATE ============ */
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.emptyState svg {
+  display: block;
+  margin: 0 auto 16px;
+  opacity: 0.5;
+  color: var(--color-text-secondary);
+}
+
+.emptyState p {
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  margin: 0;
+}
+
+.emptySubtext {
+  font-size: 14px !important;
+  margin-top: 8px !important;
+  opacity: 0.7;
+}
+
+/* ============ LOADING ============ */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 16px;
+  color: var(--color-text-secondary);
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

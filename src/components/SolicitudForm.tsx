@@ -1,0 +1,478 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
+import { useToast } from './Toast';
+import { useUser } from '../hooks/useUser';
+import { ArrowLeft, Check, UploadSimple, ShoppingCart, Trash, CheckCircle } from '@phosphor-icons/react';
+import styles from './SolicitudForm.module.css';
+import type { ProductCatalog, MicrodosisOption, MacrodosisOption, CartItem } from '../types';
+
+type Step = 'micro' | 'macro' | 'recetas' | 'resumen';
+const STEPS: Step[] = ['micro', 'macro', 'recetas', 'resumen'];
+
+const STEP_LABELS: Record<Step, string> = {
+  micro: 'Microdosis',
+  macro: 'Macrodosis',
+  recetas: 'Recetas y contacto',
+  resumen: 'Resumen'
+};
+
+const formatCLP = (n: number): string =>
+  new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n);
+
+const SolicitudForm: React.FC = () => {
+  const navigate = useNavigate();
+  const toast = useToast()!;
+  const { user } = useUser();
+
+  const [catalog, setCatalog] = useState<ProductCatalog | null>(null);
+  const [step, setStep] = useState<Step>('micro');
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Micro selection state
+  const [selectedGramaje, setSelectedGramaje] = useState<string | null>(null);
+  const [selectedCapsulas, setSelectedCapsulas] = useState<string | null>(null);
+
+  // Macro selection state
+  const [selectedMacro, setSelectedMacro] = useState<string | null>(null);
+
+  // Recetas & contact
+  const [recipeMicro, setRecipeMicro] = useState<string | null>(null);
+  const [recipeMicroName, setRecipeMicroName] = useState('');
+  const [recipeMacro, setRecipeMacro] = useState<string | null>(null);
+  const [recipeMacroName, setRecipeMacroName] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [notas, setNotas] = useState('');
+
+  const microFileRef = useRef<HTMLInputElement>(null);
+  const macroFileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadCatalog();
+    if (user?.email) setEmail(user.email);
+  }, [user]);
+
+  const loadCatalog = async () => {
+    try {
+      const data = await api.get('/api/catalog/products');
+      setCatalog(data);
+    } catch {
+      toast.error('Error al cargar catálogo');
+    }
+  };
+
+  const hasMicro = cart.some(i => i.category === 'Microdosis');
+  const hasMacro = cart.some(i => i.category === 'Macrodosis');
+  const cartTotal = cart.reduce((sum, i) => sum + i.lineTotal, 0);
+
+  // ─── Add to cart ───────────────────────
+
+  const addMicroToCart = () => {
+    if (!selectedGramaje || !selectedCapsulas || !catalog) return;
+    const gramaje = catalog.microdosis.find(m => m.gramaje === selectedGramaje);
+    const option = gramaje?.options.find(o => o.capsulas === selectedCapsulas);
+    if (!gramaje || !option) return;
+
+    const item: CartItem = {
+      id: `micro-${selectedGramaje}-${selectedCapsulas}-${Date.now()}`,
+      category: 'Microdosis',
+      gramaje: selectedGramaje,
+      capsulas: selectedCapsulas,
+      displayLabel: `${gramaje.label} x ${selectedCapsulas} caps`,
+      unitPrice: option.price,
+      quantity: 1,
+      lineTotal: option.price
+    };
+
+    setCart(prev => [...prev, item]);
+    setSelectedGramaje(null);
+    setSelectedCapsulas(null);
+    toast.success('Agregado al carrito');
+  };
+
+  const addMacroToCart = () => {
+    if (!selectedMacro || !catalog) return;
+    const producto = catalog.macrodosis.find(m => m.key === selectedMacro);
+    if (!producto) return;
+
+    const item: CartItem = {
+      id: `macro-${selectedMacro}-${Date.now()}`,
+      category: 'Macrodosis',
+      producto: selectedMacro,
+      displayLabel: producto.label,
+      unitPrice: producto.price,
+      quantity: 1,
+      lineTotal: producto.price
+    };
+
+    setCart(prev => [...prev, item]);
+    setSelectedMacro(null);
+    toast.success('Agregado al carrito');
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart(prev => prev.filter(i => i.id !== id));
+  };
+
+  // ─── File upload ───────────────────────
+
+  const handleFileSelect = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (v: string | null) => void,
+    nameSetter: (v: string) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!allowed.includes(file.type)) {
+      toast.error('Solo se aceptan JPG, PNG, WebP o PDF');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('El archivo no puede superar 10 MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setter(reader.result as string);
+      nameSetter(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ─── Submit ────────────────────────────
+
+  const handleSubmit = async () => {
+    if (cart.length === 0) {
+      toast.error('El carrito está vacío');
+      return;
+    }
+    if (!email) {
+      toast.error('Email es requerido');
+      return;
+    }
+    if (hasMicro && !recipeMicro) {
+      toast.error('Sube la receta de microdosis');
+      return;
+    }
+    if (hasMacro && !recipeMacro) {
+      toast.error('Sube la receta de macrodosis');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await api.post('/api/solicitudes', {
+        cart,
+        email,
+        telefono: telefono || null,
+        notas: notas || null,
+        recipeMicro,
+        recipeMacro
+      });
+      setSuccess(result.submission_id);
+    } catch (error: any) {
+      toast.error(error.message || 'Error al enviar solicitud');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ─── Navigation ────────────────────────
+
+  const stepIndex = STEPS.indexOf(step);
+  const canGoNext = () => {
+    if (step === 'recetas') {
+      if (hasMicro && !recipeMicro) return false;
+      if (hasMacro && !recipeMacro) return false;
+      return !!email;
+    }
+    return true;
+  };
+
+  const goNext = () => {
+    const idx = STEPS.indexOf(step);
+    if (idx < STEPS.length - 1) setStep(STEPS[idx + 1]);
+  };
+
+  const goBack = () => {
+    const idx = STEPS.indexOf(step);
+    if (idx > 0) setStep(STEPS[idx - 1]);
+    else navigate('/store');
+  };
+
+  // ─── Renders ───────────────────────────
+
+  if (!catalog) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <button className={styles.backButton} onClick={() => navigate('/store')}>
+            <ArrowLeft size={20} weight="bold" />
+          </button>
+          <h1 className={styles.title}>Nueva Solicitud</h1>
+          <div style={{ width: 36 }} />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 100 }}>
+          <div className={styles.loadingSpinner} />
+        </div>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.successScreen}>
+          <div className={styles.successIcon}>
+            <CheckCircle size={40} weight="bold" />
+          </div>
+          <h2 className={styles.successTitle}>Solicitud enviada</h2>
+          <p className={styles.successSubtitle}>Tu solicitud ha sido recibida y está en revisión</p>
+          <div className={styles.successId}>{success}</div>
+          <button className={styles.btnPrimary} style={{ width: 'auto', padding: '12px 32px' }} onClick={() => navigate('/store/solicitudes')}>
+            Ver mis solicitudes
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const selectedGramajeData = catalog.microdosis.find(m => m.gramaje === selectedGramaje);
+
+  return (
+    <div className={styles.page}>
+      {submitting && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingSpinner} />
+          <p className={styles.loadingText}>Enviando solicitud...</p>
+        </div>
+      )}
+
+      <div className={styles.header}>
+        <button className={styles.backButton} onClick={goBack}>
+          <ArrowLeft size={20} weight="bold" />
+        </button>
+        <h1 className={styles.title}>Nueva Solicitud</h1>
+        <div style={{ width: 36 }} />
+      </div>
+
+      {/* Stepper */}
+      <div className={styles.stepper}>
+        {STEPS.map((s, i) => (
+          <div key={s} className={`${styles.step} ${i === stepIndex ? styles.stepActive : ''} ${i < stepIndex ? styles.stepCompleted : ''}`} />
+        ))}
+      </div>
+      <p className={styles.stepLabel}>{STEP_LABELS[step]}</p>
+
+      <div className={styles.content}>
+        {/* ─── Step: Micro ─── */}
+        {step === 'micro' && (
+          <>
+            <h2 className={styles.sectionTitle}>Microdosis</h2>
+            <p className={styles.sectionSubtitle}>Selecciona gramaje y cantidad de cápsulas</p>
+
+            <div className={styles.productGrid}>
+              {catalog.microdosis.map((m: MicrodosisOption) => (
+                <div
+                  key={m.gramaje}
+                  className={`${styles.productCard} ${selectedGramaje === m.gramaje ? styles.productCardSelected : ''}`}
+                  onClick={() => { setSelectedGramaje(m.gramaje); setSelectedCapsulas(null); }}
+                >
+                  <div className={styles.productCardInfo}>
+                    <span className={styles.productCardName}>{m.label}</span>
+                    <span className={styles.productCardPrice}>
+                      desde {formatCLP(Math.min(...m.options.map(o => o.price)))}
+                    </span>
+                  </div>
+                  <div className={`${styles.productCardCheck} ${selectedGramaje === m.gramaje ? styles.productCardCheckSelected : ''}`}>
+                    {selectedGramaje === m.gramaje && <Check size={14} weight="bold" />}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {selectedGramajeData && (
+              <>
+                <p className={styles.sectionSubtitle}>Cantidad de cápsulas</p>
+                <div className={styles.capsulasGrid}>
+                  {selectedGramajeData.options.map(opt => (
+                    <button
+                      key={opt.capsulas}
+                      className={`${styles.capsulaChip} ${selectedCapsulas === opt.capsulas ? styles.capsulaChipSelected : ''}`}
+                      onClick={() => setSelectedCapsulas(opt.capsulas)}
+                    >
+                      {opt.capsulas} caps · {formatCLP(opt.price)}
+                    </button>
+                  ))}
+                </div>
+
+                {selectedCapsulas && (
+                  <button className={styles.addToCartBtn} onClick={addMicroToCart}>
+                    <ShoppingCart size={16} weight="bold" /> Agregar al carrito
+                  </button>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {/* ─── Step: Macro ─── */}
+        {step === 'macro' && (
+          <>
+            <h2 className={styles.sectionTitle}>Macrodosis</h2>
+            <p className={styles.sectionSubtitle}>Selecciona el producto</p>
+
+            <div className={styles.productGrid}>
+              {catalog.macrodosis.map((m: MacrodosisOption) => (
+                <div
+                  key={m.key}
+                  className={`${styles.productCard} ${selectedMacro === m.key ? styles.productCardSelected : ''}`}
+                  onClick={() => setSelectedMacro(m.key)}
+                >
+                  <div className={styles.productCardInfo}>
+                    <span className={styles.productCardName}>{m.label}</span>
+                    <span className={styles.productCardPrice}>{formatCLP(m.price)}</span>
+                  </div>
+                  <div className={`${styles.productCardCheck} ${selectedMacro === m.key ? styles.productCardCheckSelected : ''}`}>
+                    {selectedMacro === m.key && <Check size={14} weight="bold" />}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {selectedMacro && (
+              <button className={styles.addToCartBtn} onClick={addMacroToCart}>
+                <ShoppingCart size={16} weight="bold" /> Agregar al carrito
+              </button>
+            )}
+          </>
+        )}
+
+        {/* ─── Step: Recetas & Contacto ─── */}
+        {step === 'recetas' && (
+          <>
+            {hasMicro && (
+              <>
+                <h2 className={styles.sectionTitle}>Receta Microdosis</h2>
+                <p className={styles.sectionSubtitle}>Sube la foto o PDF de tu receta</p>
+                <input ref={microFileRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => handleFileSelect(e, setRecipeMicro, setRecipeMicroName)} />
+                <div
+                  className={`${styles.uploadArea} ${recipeMicro ? styles.uploadAreaFilled : ''}`}
+                  onClick={() => microFileRef.current?.click()}
+                >
+                  <UploadSimple size={32} weight="light" className={styles.uploadIcon} />
+                  <p className={styles.uploadText}>{recipeMicro ? 'Cambiar archivo' : 'Toca para subir'}</p>
+                  {recipeMicroName && <p className={styles.uploadFileName}>{recipeMicroName}</p>}
+                </div>
+              </>
+            )}
+
+            {hasMacro && (
+              <>
+                <h2 className={styles.sectionTitle}>Receta Macrodosis</h2>
+                <p className={styles.sectionSubtitle}>Sube la foto o PDF de tu receta</p>
+                <input ref={macroFileRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => handleFileSelect(e, setRecipeMacro, setRecipeMacroName)} />
+                <div
+                  className={`${styles.uploadArea} ${recipeMacro ? styles.uploadAreaFilled : ''}`}
+                  onClick={() => macroFileRef.current?.click()}
+                >
+                  <UploadSimple size={32} weight="light" className={styles.uploadIcon} />
+                  <p className={styles.uploadText}>{recipeMacro ? 'Cambiar archivo' : 'Toca para subir'}</p>
+                  {recipeMacroName && <p className={styles.uploadFileName}>{recipeMacroName}</p>}
+                </div>
+              </>
+            )}
+
+            <h2 className={styles.sectionTitle}>Contacto</h2>
+            <div className={styles.formField}>
+              <label className={styles.formLabel}>Email</label>
+              <input className={styles.formInput} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" />
+            </div>
+            <div className={styles.formField}>
+              <label className={styles.formLabel}>Teléfono (opcional)</label>
+              <input className={styles.formInput} type="tel" value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="+56 9 1234 5678" />
+            </div>
+            <div className={styles.formField}>
+              <label className={styles.formLabel}>Notas (opcional)</label>
+              <textarea className={styles.formTextarea} value={notas} onChange={e => setNotas(e.target.value)} placeholder="Indicaciones especiales..." />
+            </div>
+          </>
+        )}
+
+        {/* ─── Step: Resumen ─── */}
+        {step === 'resumen' && (
+          <>
+            <h2 className={styles.sectionTitle}>Resumen del pedido</h2>
+            <div className={styles.cartSummary}>
+              {cart.map(item => (
+                <div key={item.id} className={styles.cartItem}>
+                  <span className={styles.cartItemLabel}>{item.displayLabel}</span>
+                  <span className={styles.cartItemPrice}>{formatCLP(item.lineTotal)}</span>
+                  <button className={styles.cartItemRemove} onClick={() => removeFromCart(item.id)}>
+                    <Trash size={16} weight="bold" />
+                  </button>
+                </div>
+              ))}
+              <div className={styles.cartTotal}>
+                <span className={styles.cartTotalLabel}>Total</span>
+                <span className={styles.cartTotalPrice}>{formatCLP(cartTotal)}</span>
+              </div>
+            </div>
+
+            <p className={styles.sectionSubtitle}>
+              Email: {email}
+              {telefono && <><br />Teléfono: {telefono}</>}
+              {notas && <><br />Notas: {notas}</>}
+            </p>
+          </>
+        )}
+
+        {/* ─── Cart preview (floating) ─── */}
+        {cart.length > 0 && step !== 'resumen' && (
+          <div className={styles.cartSummary} style={{ marginTop: 16 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#4A3F35', margin: '0 0 8px' }}>
+              <ShoppingCart size={14} weight="bold" /> Carrito ({cart.length})
+            </p>
+            {cart.map(item => (
+              <div key={item.id} className={styles.cartItem}>
+                <span className={styles.cartItemLabel}>{item.displayLabel}</span>
+                <span className={styles.cartItemPrice}>{formatCLP(item.lineTotal)}</span>
+                <button className={styles.cartItemRemove} onClick={() => removeFromCart(item.id)}>
+                  <Trash size={16} weight="bold" />
+                </button>
+              </div>
+            ))}
+            <div className={styles.cartTotal}>
+              <span className={styles.cartTotalLabel}>Total</span>
+              <span className={styles.cartTotalPrice}>{formatCLP(cartTotal)}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ─── Bottom buttons ─── */}
+      <div className={styles.buttonRow}>
+        {stepIndex > 0 && (
+          <button className={styles.btnSecondary} onClick={goBack}>Atrás</button>
+        )}
+        {step === 'resumen' ? (
+          <button className={styles.btnPrimary} onClick={handleSubmit} disabled={submitting || cart.length === 0}>
+            Enviar Solicitud
+          </button>
+        ) : (
+          <button className={styles.btnPrimary} onClick={goNext} disabled={step === 'recetas' && !canGoNext()}>
+            {cart.length === 0 && (step === 'micro' || step === 'macro') ? 'Omitir' : 'Siguiente'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default SolicitudForm;
