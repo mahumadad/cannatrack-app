@@ -439,7 +439,7 @@ const Dashboard: React.FC = () => {
         </button>
       </div>
 
-      {!baseline && (
+      {(!baseline || !baseline.is_locked) && (
         <div className={styles.taskCard} onClick={() => navigate('/baseline')}>
           <div className={styles.taskCardBorderBaseline} />
           <div className={styles.taskCardContent}>
