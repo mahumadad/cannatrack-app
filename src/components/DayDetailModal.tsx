@@ -1,9 +1,9 @@
 import React from 'react';
-import { BookOpen, Notebook, Pill, Plus, X, PencilSimple, Trash, Lock, Calendar, CheckCircle } from '@phosphor-icons/react';
+import { BookOpen, Pill, Plus, X, PencilSimple, Trash, Lock, Calendar, CheckCircle } from '@phosphor-icons/react';
 import DosePicker from './DosePicker';
 import MiniGauge from './MiniGauge';
 import styles from './Dashboard.module.css';
-import type { CalendarDay, JournalEntry, FieldLabelsMap, FollowUpInfo, CustomDoseState } from '../types';
+import type { CalendarDay, FieldLabelsMap, FollowUpInfo, CustomDoseState } from '../types';
 import type { NavigateFunction } from 'react-router-dom';
 
 interface DayDetailModalProps {
@@ -12,12 +12,10 @@ interface DayDetailModalProps {
   setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>;
   customDose: CustomDoseState;
   setCustomDose: React.Dispatch<React.SetStateAction<CustomDoseState>>;
-  dayJournalEntries: JournalEntry[];
   fieldLabels: FieldLabelsMap;
   followUpInfo: FollowUpInfo | null;
   handleDeleteDose: (doseId: string) => void;
   handleDeleteCheckin: (checkinId: string) => void;
-  handleDeleteJournalEntry: (entryId: string) => void;
   handleEditCheckin: (dateString: string) => void;
   handleAddDoseForDay: () => void;
   onClose: () => void;
@@ -30,12 +28,10 @@ const DayDetailModal: React.FC<DayDetailModalProps> = ({
   setIsEditMode,
   customDose,
   setCustomDose,
-  dayJournalEntries,
   fieldLabels,
   followUpInfo,
   handleDeleteDose,
   handleDeleteCheckin,
-  handleDeleteJournalEntry,
   handleEditCheckin,
   handleAddDoseForDay,
   onClose,
@@ -128,24 +124,6 @@ const DayDetailModal: React.FC<DayDetailModalProps> = ({
               {isEditMode && <button className={styles.addCheckinButton} onClick={() => handleEditCheckin(selectedDay.dateString)}><Plus size={14} /> Agregar reflexión</button>}
             </div>
           )}
-        </div>
-
-        <div className={styles.daySection}>
-          <h3><Notebook size={18} weight="regular" /> Bitácora</h3>
-          {dayJournalEntries.length > 0 ? (
-            dayJournalEntries.map((entry) => (
-              <div key={entry.id} className={styles.journalItem}>
-                <div className={styles.journalItemHeader}>
-                  <span className={styles.journalItemTitle}>{entry.title || 'Sin título'}</span>
-                  {isEditMode && <button className={styles.deleteJournalButton} onClick={() => handleDeleteJournalEntry(entry.id)}><X size={14} weight="bold" /></button>}
-                </div>
-                <p className={styles.journalItemPreview}>{entry.content.substring(0, 80)}{entry.content.length > 80 ? '...' : ''}</p>
-              </div>
-            ))
-          ) : (
-            <p className={styles.emptyText}>Sin entradas de bitácora</p>
-          )}
-          {isEditMode && <button className={styles.addJournalButton} onClick={() => navigate(`/journal?date=${selectedDay.dateString}`)}><Plus size={14} /> Agregar entrada</button>}
         </div>
 
         <button onClick={onClose} className={styles.closeButton}>Cerrar</button>

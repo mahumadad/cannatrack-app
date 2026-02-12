@@ -4,6 +4,7 @@ import api from '../utils/api';
 import { useToast } from './Toast';
 import { Package, Truck, ArrowsClockwise, Receipt, ShoppingBag, ArrowLeft, MapPin, Tag, CurrencyDollar, Prescription, ClipboardText, Plus, CreditCard } from '@phosphor-icons/react';
 import styles from './ShopifyStore.module.css';
+import BottomNav from './BottomNav';
 import { useUser } from '../hooks/useUser';
 import type { ShopifyOrder, ShopifySubscription, ShopifyStoreData, Receta, Solicitud } from '../types';
 
@@ -14,7 +15,8 @@ const ShopifyStore: React.FC = () => {
   const toast = useToast();
   const { user } = useUser();
   const [storeData, setStoreData] = useState<ShopifyStoreData | null>(null);
-  const [recetaActiva, setRecetaActiva] = useState<Receta | null>(null);
+  const [recetasActivas, setRecetasActivas] = useState<Receta[]>([]);
+  const [recetasPasadas, setRecetasPasadas] = useState<Receta[]>([]);
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<Tab>('orders');
@@ -23,7 +25,7 @@ const ShopifyStore: React.FC = () => {
   useEffect(() => {
     if (user?.id) {
       loadStoreData(user.id);
-      loadRecetaActiva(user.id);
+      loadRecetasActivas(user.id);
       loadSolicitudes(user.id);
     }
   }, [user]);
@@ -40,11 +42,12 @@ const ShopifyStore: React.FC = () => {
     }
   };
 
-  const loadRecetaActiva = async (userId: string) => {
+  const loadRecetasActivas = async (userId: string) => {
     try {
       const data = await api.get(`/api/recetas/${userId}`);
-      const activa = data?.find((r: Receta) => r.estado === 'activa');
-      setRecetaActiva(activa || null);
+      const activas = (data || []).filter((r: Receta) => r.estado === 'activa');
+      setRecetasActivas(activas);
+      setRecetasPasadas((data || []).filter((r: Receta) => r.estado !== 'activa'));
     } catch {
       // Silencioso — la receta es opcional
     }
@@ -63,9 +66,10 @@ const ShopifyStore: React.FC = () => {
     new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n);
 
   const formatPrice = (amount: string, currency: string): string => {
-    return new Intl.NumberFormat('es-MX', {
+    return new Intl.NumberFormat('es-CL', {
       style: 'currency',
-      currency: currency || 'MXN'
+      currency: currency || 'CLP',
+      maximumFractionDigits: 0
     }).format(parseFloat(amount));
   };
 
@@ -94,7 +98,7 @@ const ShopifyStore: React.FC = () => {
   };
 
   const renderRecetaBanner = () => {
-    if (!recetaActiva) {
+    if (recetasActivas.length === 0) {
       return (
         <div className={styles.recetaBanner} onClick={() => navigate('/store/solicitud')}>
           <div className={styles.recetaBannerContent}>
@@ -109,35 +113,37 @@ const ShopifyStore: React.FC = () => {
       );
     }
 
-    const microPct = recetaActiva.total_micro_autorizado > 0
-      ? Math.round((recetaActiva.saldo_micro / recetaActiva.total_micro_autorizado) * 100)
-      : 0;
-    const macroPct = recetaActiva.total_macro_autorizado > 0
-      ? Math.round((recetaActiva.saldo_macro / recetaActiva.total_macro_autorizado) * 100)
-      : 0;
+    // Aggregate saldos across all active recetas
+    const totalMicroAutorizado = recetasActivas.reduce((sum, r) => sum + (r.total_micro_autorizado || 0), 0);
+    const totalMicroSaldo = recetasActivas.reduce((sum, r) => sum + (r.saldo_micro || 0), 0);
+    const totalMacroAutorizado = recetasActivas.reduce((sum, r) => sum + (r.total_macro_autorizado || 0), 0);
+    const totalMacroSaldo = recetasActivas.reduce((sum, r) => sum + (r.saldo_macro || 0), 0);
+
+    const microPct = totalMicroAutorizado > 0 ? Math.round((totalMicroSaldo / totalMicroAutorizado) * 100) : 0;
+    const macroPct = totalMacroAutorizado > 0 ? Math.round((totalMacroSaldo / totalMacroAutorizado) * 100) : 0;
 
     return (
       <div className={styles.recetaBanner} onClick={() => navigate('/store/recetas')}>
         <div className={styles.recetaBannerContent}>
           <Prescription size={24} weight="bold" className={styles.recetaBannerIcon} />
           <div style={{ flex: 1 }}>
-            <p className={styles.recetaBannerTitle}>Mi Receta</p>
-            {recetaActiva.total_micro_autorizado > 0 && (
+            <p className={styles.recetaBannerTitle}>{recetasActivas.length > 1 ? 'Mis Recetas' : 'Mi Receta'}</p>
+            {totalMicroAutorizado > 0 && (
               <div className={styles.miniSaldoRow}>
                 <span className={styles.miniSaldoLabel}>Micro</span>
                 <div className={styles.miniSaldoBar}>
                   <div className={styles.miniSaldoFill} style={{ width: `${microPct}%`, background: microPct > 20 ? 'var(--color-success)' : 'var(--color-danger)' }} />
                 </div>
-                <span className={styles.miniSaldoCount}>{recetaActiva.saldo_micro}/{recetaActiva.total_micro_autorizado}</span>
+                <span className={styles.miniSaldoCount}>{totalMicroSaldo}/{totalMicroAutorizado}</span>
               </div>
             )}
-            {recetaActiva.total_macro_autorizado > 0 && (
+            {totalMacroAutorizado > 0 && (
               <div className={styles.miniSaldoRow}>
                 <span className={styles.miniSaldoLabel}>Macro</span>
                 <div className={styles.miniSaldoBar}>
                   <div className={styles.miniSaldoFill} style={{ width: `${macroPct}%`, background: macroPct > 20 ? 'var(--color-success)' : 'var(--color-danger)' }} />
                 </div>
-                <span className={styles.miniSaldoCount}>{recetaActiva.saldo_macro}/{recetaActiva.total_macro_autorizado}</span>
+                <span className={styles.miniSaldoCount}>{totalMacroSaldo}/{totalMacroAutorizado}</span>
               </div>
             )}
           </div>
@@ -427,6 +433,13 @@ const ShopifyStore: React.FC = () => {
           <ArrowsClockwise size={16} weight="bold" />
           Suscripciones
         </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'recetas' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('recetas')}
+        >
+          <Prescription size={16} weight="bold" />
+          Recetas
+        </button>
       </div>
 
       <div className={styles.content}>
@@ -446,15 +459,49 @@ const ShopifyStore: React.FC = () => {
         )}
 
         {activeTab === 'solicitudes' && (
-          <div style={{ paddingTop: 8 }}>
-            <button
-              className={styles.tabButton}
-              style={{ width: '100%', padding: 14, background: 'white', borderRadius: 14, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', justifyContent: 'center', fontWeight: 600, color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: 8, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14 }}
-              onClick={() => navigate('/store/solicitudes')}
-            >
-              <ClipboardText size={18} weight="bold" />
-              Ver todas mis solicitudes
-            </button>
+          <div className={styles.orderList}>
+            {solicitudes.length === 0 ? (
+              <div className={styles.emptyState}>
+                <ClipboardText size={48} weight="light" />
+                <p>No hay solicitudes aun</p>
+                <p className={styles.emptySubtext}>Crea tu primer pedido con receta</p>
+              </div>
+            ) : (
+              solicitudes.map(sol => {
+                const items = sol.cart_json || [];
+                const firstItem = items[0];
+                const moreCount = items.length - 1;
+                const statusMap: Record<string, { text: string; cls: string }> = {
+                  pendiente: { text: 'Pendiente', cls: styles.statusPending },
+                  pre_aprobado: { text: 'Pre-aprobado', cls: styles.statusInTransit },
+                  aprobado: { text: 'Aprobado', cls: styles.statusFulfilled },
+                  rechazado: { text: 'Rechazado', cls: styles.statusCancelled },
+                  cancelado: { text: 'Cancelado', cls: styles.statusCancelled },
+                  pagado: { text: 'Pagado', cls: styles.statusPaid },
+                  despachado: { text: 'Despachado', cls: styles.statusInTransit },
+                  entregado: { text: 'Entregado', cls: styles.statusFulfilled }
+                };
+                const status = statusMap[sol.estado] || { text: sol.estado, cls: '' };
+
+                return (
+                  <div key={sol.id} className={styles.orderCard} onClick={() => navigate(`/store/solicitudes/${sol.id}`)}>
+                    <div className={styles.orderHeader}>
+                      <div className={styles.orderInfo}>
+                        <span className={styles.orderName}>{sol.submission_id}</span>
+                        <span className={styles.orderDate}>{formatDate(sol.created_at)}</span>
+                      </div>
+                      <div className={styles.orderRight}>
+                        <span className={styles.orderTotal}>{formatCLP(sol.total_estimado)}</span>
+                        <span className={`${styles.statusBadge} ${status.cls}`}>{status.text}</span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+                      {firstItem?.displayLabel}{moreCount > 0 ? ` +${moreCount} más` : ''}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
 
@@ -471,7 +518,134 @@ const ShopifyStore: React.FC = () => {
             </div>
           )
         )}
+
+        {activeTab === 'recetas' && (
+          <div>
+            {/* Boton subir/actualizar receta */}
+            <div className={styles.recetaUploadBanner} onClick={() => navigate('/store/recetas')}>
+              <Plus size={18} weight="bold" />
+              <span>Subir o actualizar receta</span>
+            </div>
+
+            {recetasActivas.length > 0 ? (
+              recetasActivas.map(receta => (
+                <div key={receta.id} className={styles.recetaDetailCard} style={{ marginBottom: 12 }}>
+                  <div className={styles.recetaCardHeader}>
+                    <Prescription size={24} weight="duotone" />
+                    <h3>Receta Activa{receta.medico_nombre ? ` — ${receta.medico_nombre}` : ''}</h3>
+                  </div>
+
+                  {receta.total_micro_autorizado > 0 && (
+                    <div className={styles.recetaSaldoRow}>
+                      <div className={styles.recetaSaldoLabel}>
+                        <span>Microdosis</span>
+                        {receta.gramaje_micro && <span className={styles.recetaGramaje}>{receta.gramaje_micro}</span>}
+                      </div>
+                      <div className={styles.recetaSaldoBar}>
+                        <div
+                          className={styles.recetaSaldoFill}
+                          style={{
+                            width: `${Math.round((receta.saldo_micro / receta.total_micro_autorizado) * 100)}%`,
+                            background: receta.saldo_micro > receta.total_micro_autorizado * 0.2 ? 'var(--color-success)' : 'var(--color-danger)'
+                          }}
+                        />
+                      </div>
+                      <span className={styles.recetaSaldoCount}>
+                        {receta.saldo_micro}/{receta.total_micro_autorizado} caps
+                      </span>
+                    </div>
+                  )}
+
+                  {receta.total_macro_autorizado > 0 && (
+                    <div className={styles.recetaSaldoRow}>
+                      <div className={styles.recetaSaldoLabel}>
+                        <span>Macrodosis</span>
+                        {receta.gramaje_macro && <span className={styles.recetaGramaje}>{receta.gramaje_macro}</span>}
+                      </div>
+                      <div className={styles.recetaSaldoBar}>
+                        <div
+                          className={styles.recetaSaldoFill}
+                          style={{
+                            width: `${Math.round((receta.saldo_macro / receta.total_macro_autorizado) * 100)}%`,
+                            background: receta.saldo_macro > receta.total_macro_autorizado * 0.2 ? 'var(--color-success)' : 'var(--color-danger)'
+                          }}
+                        />
+                      </div>
+                      <span className={styles.recetaSaldoCount}>
+                        {receta.saldo_macro}/{receta.total_macro_autorizado}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className={styles.recetaMetaGrid}>
+                    {receta.paciente_nombre && (
+                      <div className={styles.recetaMetaItem}>
+                        <span className={styles.recetaMetaLabel}>Paciente</span>
+                        <span className={styles.recetaMetaValue}>{receta.paciente_nombre}</span>
+                      </div>
+                    )}
+                    {receta.fecha_emision && (
+                      <div className={styles.recetaMetaItem}>
+                        <span className={styles.recetaMetaLabel}>Emitida</span>
+                        <span className={styles.recetaMetaValue}>{formatDate(receta.fecha_emision)}</span>
+                      </div>
+                    )}
+                    {receta.fecha_vencimiento && (
+                      <div className={styles.recetaMetaItem}>
+                        <span className={styles.recetaMetaLabel}>Vencimiento</span>
+                        <span className={styles.recetaMetaValue}>{formatDate(receta.fecha_vencimiento)}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <button className={styles.recetaDetailBtn} onClick={() => navigate('/store/recetas')}>
+                    Ver detalles completos
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className={styles.emptyState}>
+                <Prescription size={48} weight="light" />
+                <p>No hay receta activa</p>
+                <p className={styles.emptySubtext}>Sube una receta desde "Mis Recetas" o al hacer un pedido</p>
+              </div>
+            )}
+
+            {recetasActivas.length > 0 && (
+              <button className={styles.recetaOrderBtn} onClick={() => navigate('/store/solicitud')} style={{ margin: '0 0 12px' }}>
+                <Plus size={16} weight="bold" /> Hacer nuevo pedido
+              </button>
+            )}
+
+            {/* Recetas pasadas */}
+            {recetasPasadas.length > 0 && (
+              <div className={styles.recetasPasadasSection}>
+                <h4 className={styles.recetasPasadasTitle}>Recetas anteriores</h4>
+                {recetasPasadas.map(r => (
+                  <div key={r.id} className={styles.recetaPasadaCard} onClick={() => navigate('/store/recetas')}>
+                    <div className={styles.recetaPasadaHeader}>
+                      <span className={styles.recetaPasadaDoctor}>{r.medico_nombre || 'Medico no registrado'}</span>
+                      <span className={`${styles.recetaPasadaEstado} ${
+                        r.estado === 'completada' ? styles.recetaPasadaCompletada :
+                        r.estado === 'vencida' ? styles.recetaPasadaVencida :
+                        styles.recetaPasadaCancelada
+                      }`}>
+                        {r.estado === 'completada' ? 'Completada' : r.estado === 'vencida' ? 'Vencida' : 'Cancelada'}
+                      </span>
+                    </div>
+                    <div className={styles.recetaPasadaMeta}>
+                      {r.fecha_emision && <span>Emitida: {formatDate(r.fecha_emision)}</span>}
+                      {r.total_micro_autorizado > 0 && <span>Micro: {r.saldo_micro}/{r.total_micro_autorizado}</span>}
+                      {r.total_macro_autorizado > 0 && <span>Macro: {r.saldo_macro}/{r.total_macro_autorizado}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+      <BottomNav activePage="store" />
     </div>
   );
 };

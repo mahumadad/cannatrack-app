@@ -178,6 +178,33 @@
   background: linear-gradient(135deg, #E53935 0%, #C62828 100%);
 }
 
+.taskCardDismiss {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.taskCardDismiss:hover {
+  background: rgba(0, 0, 0, 0.12);
+  color: var(--color-text);
+}
+
+.taskCardDismiss:active {
+  transform: scale(0.9);
+}
+
 /* Greeting Section */
 .greetingSection {
   padding: 24px 20px 16px;
@@ -916,75 +943,6 @@
   grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
   gap: 8px;
   margin-bottom: 12px;
-}
-
-/* Journal Items */
-.journalItem {
-  background: white;
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 8px;
-}
-
-.journalItemHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.journalItemTitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: #4A3F35;
-}
-
-.journalItemPreview {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  margin: 0;
-  line-height: 1.4;
-}
-
-.deleteJournalButton {
-  background: #FFCDD2;
-  color: var(--color-danger-dark);
-  border: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.deleteJournalButton:hover {
-  background: #EF9A9A;
-}
-
-.addJournalButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  background: white;
-  color: #C17D4A;
-  border: 2px dashed #C17D4A;
-  padding: 10px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 12px;
-  transition: all 0.2s;
-}
-
-.addJournalButton:hover {
-  background: #FFF8F0;
-  border-style: solid;
 }
 
 /* Fix Mini Gauges Grid */

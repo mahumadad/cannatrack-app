@@ -12,6 +12,7 @@ const STATUS_MAP: Record<SolicitudEstado, { text: string; className: string }> =
   pre_aprobado: { text: 'Pre-aprobado', className: styles.statusPreAprobado },
   aprobado: { text: 'Aprobado', className: styles.statusAprobado },
   rechazado: { text: 'Rechazado', className: styles.statusRechazado },
+  cancelado: { text: 'Cancelado', className: styles.statusCancelado },
   pagado: { text: 'Pagado', className: styles.statusPagado },
   despachado: { text: 'Despachado', className: styles.statusDespachado },
   entregado: { text: 'Entregado', className: styles.statusEntregado }

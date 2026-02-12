@@ -450,3 +450,68 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ============ RECETA INFO BANNER ============ */
+.recetaBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #FFF8F0, #FFF3E0);
+  border: 1.5px solid #FFCC80;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.recetaBannerIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #FFF3E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.recetaBannerText {
+  flex: 1;
+  font-size: 12px;
+  color: #6B5B4E;
+  line-height: 1.4;
+}
+
+.recetaBannerLabel {
+  font-weight: 700;
+  color: #4A3F35;
+  font-size: 13px;
+}
+
+.recetaBannerSaldo {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* ============ PRE-SELECT PULSE ============ */
+.productCardRecommended {
+  border-color: var(--color-primary);
+  background: #FFF8F0;
+  animation: softPulse 2s ease-in-out 3;
+}
+
+.capsulaChipRecommended {
+  border-color: var(--color-primary);
+  background: #FFF8F0;
+  color: var(--color-primary);
+  animation: softPulse 2s ease-in-out 3;
+}
+
+@keyframes softPulse {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  50% {
+    box-shadow: 0 2px 16px rgba(166, 128, 80, 0.35);
+  }
+}

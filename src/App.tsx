@@ -8,7 +8,6 @@ import Register from './components/Register';
 import AuthCallback from './components/AuthCallback';
 import Dashboard from './components/Dashboard';
 import Reflect from './components/Reflect';
-import Journal from './components/Journal';
 import Insights from './components/Insights';
 import Settings from './components/Settings';
 import ProtocolConfig from './components/ProtocolConfig';
@@ -79,7 +78,6 @@ function App() {
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/reflect" element={<ProtectedRoute><Reflect /></ProtectedRoute>} />
-          <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
           <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/protocol" element={<ProtectedRoute><ProtocolConfig /></ProtectedRoute>} />

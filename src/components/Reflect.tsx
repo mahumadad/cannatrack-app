@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import { calcWellbeingPercent } from '../utils/wellbeing';
 import { useToast } from './Toast';
-import { ArrowLeft, Calendar, CheckCircle, PencilSimple, Warning, Pill } from '@phosphor-icons/react';
+import { ArrowLeft, Calendar, PencilSimple, Warning, Pill } from '@phosphor-icons/react';
 import BottomNav from './BottomNav';
 import styles from './Reflect.module.css';
 import sharedFieldLabels from '../utils/fieldLabels';
@@ -46,7 +46,6 @@ const Reflect: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<string>(dateParam || toLocalDateString());
-  const [showJournalPrompt, setShowJournalPrompt] = useState<boolean>(false);
   const [hoveredField, setHoveredField] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<ReflectFormData>({
@@ -136,7 +135,6 @@ const Reflect: React.FC = () => {
       setExistingCheckin(data);
       setIsEditing(false);
       setCurrentSection(0);
-      setShowJournalPrompt(true);
     } catch (error) {
       toast!.error('Error al guardar');
     } finally {
@@ -150,7 +148,6 @@ const Reflect: React.FC = () => {
   };
 
   const goBack = () => {
-    if (showJournalPrompt) { setShowJournalPrompt(false); return; }
     if (currentSection > 0) { setCurrentSection(prev => prev - 1); window.scrollTo(0, 0); }
     else navigate('/dashboard');
   };
@@ -307,21 +304,6 @@ const Reflect: React.FC = () => {
     );
   };
 
-  const renderJournalPrompt = () => (
-    <div className={styles.journalPromptContainer}>
-      <div className={styles.journalPromptCard}>
-        <CheckCircle size={48} weight="fill" className={styles.journalPromptIcon} />
-        <h2>¡Check-in completado!</h2>
-        <p>¿Te gustaría agregar algo a tu bitácora?</p>
-        <p className={styles.journalPromptSubtext}>Pensamientos, reflexiones, sueños...</p>
-        <div className={styles.journalPromptButtons}>
-          <button className={styles.journalPromptYes} onClick={() => navigate(`/journal?date=${selectedDate}`)}>📝 Sí, escribir entrada</button>
-          <button className={styles.journalPromptNo} onClick={() => setShowJournalPrompt(false)}>Ahora no</button>
-        </div>
-      </div>
-    </div>
-  );
-
   const renderCheckinSummary = () => {
     const data = existingCheckin!;
     const wellbeing = calcWellbeingPercent(data as unknown as Record<string, string | number | undefined>);
@@ -387,9 +369,9 @@ const Reflect: React.FC = () => {
     <div className={styles.reflect}>
       <div className={styles.header}><button className={styles.backButtonHeader} onClick={goBack}><ArrowLeft size={20} weight="bold" /> Volver</button><h1 className={styles.title}>Seguimiento</h1><div style={{ width: 60 }}></div></div>
       
-      {showJournalPrompt ? renderJournalPrompt() : existingCheckin && !isEditing ? (<><div className={styles.dateDisplaySummary}><Calendar size={18} /> {formatDate(selectedDate)}</div>{renderCheckinSummary()}</>) : renderCheckinEditor()}
+      {existingCheckin && !isEditing ? (<><div className={styles.dateDisplaySummary}><Calendar size={18} /> {formatDate(selectedDate)}</div>{renderCheckinSummary()}</>) : renderCheckinEditor()}
 
-      {existingCheckin && !isEditing && !showJournalPrompt && <BottomNav activePage="reflect" />}
+      {existingCheckin && !isEditing && <BottomNav activePage="reflect" />}
     </div>
   );
 };

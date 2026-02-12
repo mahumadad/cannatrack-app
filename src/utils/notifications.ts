@@ -1,5 +1,4 @@
 import { toLocalDateString } from './dateHelpers';
-import type {} from '../types';
 
 /**
  * Notification utilities for browser-based reminders.
@@ -31,6 +30,7 @@ export const showNotification = (title: string, options: NotificationOptions = {
 
 export const startNotificationScheduler = (): void => {
   stopNotificationScheduler();
+  cleanupFiredNotifications(); // Limpiar entradas antiguas al iniciar
   window.__notificationIntervalId = setInterval(checkAndFireNotifications, 30000);
   checkAndFireNotifications();
 };

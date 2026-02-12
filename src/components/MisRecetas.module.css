@@ -40,6 +40,39 @@
   color: #4A3F35;
 }
 
+/* ============ NEW RECETA BANNER ============ */
+.newRecetaBanner {
+  margin: 12px 20px 0;
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  border-radius: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.newRecetaBanner:active { transform: scale(0.98); }
+
+.newRecetaBannerContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+
+.newRecetaBannerTitle {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.newRecetaBannerSubtitle {
+  font-size: 12px;
+  margin: 2px 0 0;
+  opacity: 0.85;
+  color: white;
+}
+
 .content {
   padding: 16px 20px;
   display: flex;
@@ -60,18 +93,31 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 12px;
+  cursor: pointer;
 }
 
 .recetaDoctor {
   font-size: 15px;
   font-weight: 700;
   color: #4A3F35;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .recetaDate {
   font-size: 12px;
   color: var(--color-text-secondary);
   margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .estadoBadge {
@@ -107,6 +153,9 @@
 .saldoName {
   color: var(--color-text-secondary);
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .saldoCount {
@@ -150,6 +199,199 @@
   background: var(--color-bg);
   padding: 4px 10px;
   border-radius: 8px;
+}
+
+/* ============ EXPANDED DETAILS ============ */
+.detailsSection {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detailGroup {
+  background: var(--color-bg);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.detailGroupTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #4A3F35;
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.detailLabel {
+  color: var(--color-text-secondary);
+}
+
+.detailValue {
+  font-weight: 600;
+  color: #4A3F35;
+  text-align: right;
+  max-width: 60%;
+}
+
+.metaFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding-top: 8px;
+}
+
+.confianzaBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.confianzaAlta { background: #E8F5E9; color: #2E7D32; }
+.confianzaMedia { background: #FFF3E0; color: #E65100; }
+.confianzaBaja { background: #FFEBEE; color: #C62828; }
+
+.metaTimestamp {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ============ RECETA IMAGES ============ */
+.recetaImages {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.recetaImageWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.recetaThumbnail {
+  width: 100%;
+  max-height: 160px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-light);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.recetaThumbnail:active {
+  transform: scale(0.97);
+}
+
+.recetaImageBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.recetaImageBtn:active {
+  background: var(--color-surface-warm);
+}
+
+/* ============ ORDER WITH RECETA BUTTON ============ */
+.orderWithRecetaBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.orderWithRecetaBtn:active {
+  transform: scale(0.98);
+}
+
+/* ============ LIGHTBOX ============ */
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: lightboxIn 0.2s ease;
+}
+
+@keyframes lightboxIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.lightboxClose {
+  position: absolute;
+  top: max(16px, var(--safe-area-top));
+  right: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  z-index: 10000;
+}
+
+.lightboxClose:active {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.lightboxImage {
+  max-width: 92vw;
+  max-height: 85vh;
+  border-radius: 8px;
+  object-fit: contain;
+  animation: lightboxZoom 0.25s ease;
+}
+
+@keyframes lightboxZoom {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 /* ============ EMPTY STATE ============ */
@@ -199,4 +441,91 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* ── Upload form ── */
+.uploadForm {
+  margin: 0 20px 16px;
+  padding: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.uploadTypeLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+
+.uploadTypeRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.uploadTypeBtn {
+  flex: 1;
+  padding: 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.uploadTypeBtnActive {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: white;
+}
+
+.uploadFileLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1.5px dashed var(--color-border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.uploadFileLabel:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.uploadFileInput {
+  display: none;
+}
+
+.uploadSubmitBtn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.uploadSubmitBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.uploadSubmitBtn:active:not(:disabled) {
+  transform: scale(0.98);
 }

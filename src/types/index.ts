@@ -275,31 +275,6 @@ export interface FollowUpInfo {
   allMonths?: FollowUpMonthSummary[];
 }
 
-// ===== Journal =====
-export interface JournalEntry {
-  id: string;
-  user_id: string;
-  date: string;
-  title: string | null;
-  content: string;
-  mood?: string | null;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface JournalPagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasMore: boolean;
-}
-
-export interface JournalResponse {
-  entries: JournalEntry[];
-  pagination: JournalPagination;
-}
-
 // ===== Insights =====
 export interface EmotionalDataPoint {
   day: string;
@@ -405,7 +380,7 @@ export interface ToastItem {
 }
 
 // ===== Solicitudes & Recetas =====
-export type SolicitudEstado = 'pendiente' | 'pre_aprobado' | 'aprobado' | 'rechazado' | 'pagado' | 'despachado' | 'entregado';
+export type SolicitudEstado = 'pendiente' | 'pre_aprobado' | 'aprobado' | 'rechazado' | 'cancelado' | 'pagado' | 'despachado' | 'entregado';
 
 export interface CartItem {
   id: string;
@@ -434,6 +409,9 @@ export interface Solicitud {
   total_estimado: number;
   draft_order_url?: string;
   observaciones?: string;
+  cancelado_por?: string;
+  cancelado_razon?: string;
+  aprobado_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -443,6 +421,7 @@ export interface Receta {
   user_id: string;
   estado: string;
   paciente_nombre: string | null;
+  paciente_rut: string | null;
   medico_nombre: string | null;
   fecha_emision: string | null;
   fecha_vencimiento: string | null;
@@ -454,7 +433,14 @@ export interface Receta {
   saldo_macro: number;
   protocolo: string | null;
   duracion: string | null;
+  notas: string | null;
+  ai_confianza: string | null;
+  archivo_micro_path: string | null;
+  archivo_macro_path: string | null;
+  archivo_micro_url?: string | null;
+  archivo_macro_url?: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface MicrodosisOption {

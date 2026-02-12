@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
-import { ArrowLeft, ShoppingBag, User, CreditCard } from '@phosphor-icons/react';
+import { ArrowLeft, ShoppingBag, User, CreditCard, XCircle } from '@phosphor-icons/react';
 import styles from './SolicitudDetalle.module.css';
 import type { Solicitud, SolicitudEstado } from '../types';
 
@@ -12,6 +12,7 @@ const STATUS_MAP: Record<SolicitudEstado, { text: string; className: string }> =
   pre_aprobado: { text: 'Pre-aprobado', className: styles.statusPreAprobado },
   aprobado: { text: 'Aprobado', className: styles.statusAprobado },
   rechazado: { text: 'Rechazado', className: styles.statusRechazado },
+  cancelado: { text: 'Cancelado', className: styles.statusCancelado },
   pagado: { text: 'Pagado', className: styles.statusPagado },
   despachado: { text: 'Despachado', className: styles.statusDespachado },
   entregado: { text: 'Entregado', className: styles.statusEntregado }
@@ -30,6 +31,7 @@ const SolicitudDetalle: React.FC = () => {
   const { user } = useUser();
   const [solicitud, setSolicitud] = useState<Solicitud | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (user?.id && id) loadSolicitud(user.id, id);
@@ -47,6 +49,25 @@ const SolicitudDetalle: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleCancel = async () => {
+    if (!user?.id || !id) return;
+    setCancelling(true);
+    try {
+      await api.put(`/api/solicitudes/${user.id}/${id}/cancelar`, {
+        razon: 'Cancelado por el usuario'
+      });
+      toast.success('Solicitud cancelada');
+      // Reload to show updated state
+      await loadSolicitud(user.id, id);
+    } catch (error: any) {
+      toast.error(error.message || 'Error al cancelar solicitud');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const isCancellable = solicitud && ['pendiente', 'pre_aprobado', 'aprobado'].includes(solicitud.estado);
 
   if (loading || !solicitud) {
     return (
@@ -125,12 +146,12 @@ const SolicitudDetalle: React.FC = () => {
           )}
         </div>
 
-        {/* Observaciones (if rejected) */}
-        {solicitud.observaciones && solicitud.estado === 'rechazado' && (
+        {/* Observaciones (if rejected or cancelled) */}
+        {solicitud.observaciones && (solicitud.estado === 'rechazado' || solicitud.estado === 'cancelado') && (
           <div className={styles.card}>
-            <h3 className={styles.cardTitle}>Observaciones</h3>
+            <h3 className={styles.cardTitle}>{solicitud.estado === 'cancelado' ? 'Motivo de cancelación' : 'Observaciones'}</h3>
             <div className={styles.observaciones}>
-              <p>{solicitud.observaciones}</p>
+              <p>{solicitud.cancelado_razon || solicitud.observaciones}</p>
             </div>
           </div>
         )}
@@ -140,6 +161,13 @@ const SolicitudDetalle: React.FC = () => {
           <a href={solicitud.draft_order_url} target="_blank" rel="noopener noreferrer" className={styles.paymentBtn}>
             <CreditCard size={18} weight="bold" /> Ir al pago
           </a>
+        )}
+
+        {/* Cancel button (if cancellable) */}
+        {isCancellable && (
+          <button className={styles.cancelBtn} onClick={handleCancel} disabled={cancelling}>
+            <XCircle size={18} weight="bold" /> {cancelling ? 'Cancelando...' : 'Cancelar solicitud'}
+          </button>
         )}
       </div>
     </div>

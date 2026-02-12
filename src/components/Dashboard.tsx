@@ -7,7 +7,7 @@ import { SkeletonCard, SkeletonCalendar } from './Skeleton';
 import DoseSection from './DoseSection';
 import DayDetailModal from './DayDetailModal';
 import BottomNav from './BottomNav';
-import { Calendar, Warning, ClipboardText, Notepad, Storefront, Prescription } from '@phosphor-icons/react';
+import { Calendar, Warning, ClipboardText, Notepad, Storefront, Prescription, X } from '@phosphor-icons/react';
 import api from '../utils/api';
 import { INTERNAL_SUBSTANCE } from '../utils/doseOptions';
 import { startNotificationScheduler, stopNotificationScheduler, cleanupFiredNotifications } from '../utils/notifications';
@@ -15,7 +15,7 @@ import { toLocalDateString, padZero } from '../utils/dateHelpers';
 import styles from './Dashboard.module.css';
 import fieldLabels from '../utils/fieldLabels';
 import { useUser } from '../hooks/useUser';
-import type { Protocol, Baseline, DoseLog, CalendarDay, JournalEntry, FollowUpInfo, CountdownState, CustomDoseState, Quote, Receta } from '../types';
+import type { Protocol, Baseline, DoseLog, CalendarDay, FollowUpInfo, CountdownState, CustomDoseState, Quote, Receta } from '../types';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -41,10 +41,18 @@ const Dashboard: React.FC = () => {
   const [quote, setQuote] = useState<Quote>({ text: '', emoji: '✨' });
 
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-  const [dayJournalEntries, setDayJournalEntries] = useState<JournalEntry[]>([]);
   const [recetaActiva, setRecetaActiva] = useState<Receta | null>(null);
+  const [recetaCardDismissed, setRecetaCardDismissed] = useState<boolean>(() => {
+    return localStorage.getItem('receta_card_dismissed') === 'true';
+  });
 
   const isIntuitive = protocol?.frequency === 'intuitive';
+
+  const handleDismissRecetaCard = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecetaCardDismissed(true);
+    localStorage.setItem('receta_card_dismissed', 'true');
+  };
 
   useEffect(() => {
     loadRandomQuote();
@@ -99,6 +107,13 @@ const Dashboard: React.FC = () => {
       const data = await api.get(`/api/recetas/${userId}`);
       const activa = data?.find((r: Receta) => r.estado === 'activa');
       setRecetaActiva(activa || null);
+      // Reset dismiss if receta changed
+      const prevId = localStorage.getItem('receta_card_dismissed_id');
+      if (activa && prevId !== activa.id) {
+        setRecetaCardDismissed(false);
+        localStorage.removeItem('receta_card_dismissed');
+      }
+      if (activa) localStorage.setItem('receta_card_dismissed_id', activa.id);
     } catch {
       // Silencioso — la receta es opcional
     }
@@ -186,17 +201,6 @@ const Dashboard: React.FC = () => {
       setFollowUpInfo(data);
     } catch (error) {
       toast.error('Error al cargar follow-up');
-    }
-  };
-
-  const loadDayJournalEntries = async (userId: string, dateString: string) => {
-    try {
-      const data = await api.get(`/api/journal/${userId}?limit=100`);
-      const entries = data.items || data;
-      setDayJournalEntries(entries.filter((e: any) => e.date === dateString));
-    } catch (error) {
-      toast.error('Error al cargar entradas');
-      setDayJournalEntries([]);
     }
   };
 
@@ -295,7 +299,6 @@ const Dashboard: React.FC = () => {
     setSelectedDay(day);
     setIsEditMode(false);
     setShowDayDetailModal(true);
-    if (user?.id) loadDayJournalEntries(user.id, day.dateString);
   };
 
   const handleTakeDose = async () => {
@@ -365,17 +368,6 @@ const Dashboard: React.FC = () => {
       toast.info('Reflexión eliminada');
       setSelectedDay(prev => prev ? { ...prev, checkin: null } : prev);
       setRefreshKey(prev => prev + 1);
-    } catch (error) {
-      toast.error('Error al eliminar');
-    }
-  };
-
-  const handleDeleteJournalEntry = async (entryId: string) => {
-    if (!window.confirm('¿Eliminar esta entrada? Esta accion no se puede deshacer.')) return;
-    try {
-      await api.delete(`/api/journal/${entryId}`);
-      toast.info('Entrada eliminada');
-      setDayJournalEntries(prev => prev.filter(e => e.id !== entryId));
     } catch (error) {
       toast.error('Error al eliminar');
     }
@@ -515,8 +507,8 @@ const Dashboard: React.FC = () => {
         );
       })()}
 
-      {recetaActiva && (
-        <div className={styles.taskCard} onClick={() => navigate('/store/recetas')}>
+      {recetaActiva && !recetaCardDismissed && (
+        <div className={styles.taskCard} onClick={() => navigate('/store/recetas')} style={{ position: 'relative' }}>
           <div className={styles.taskCardBorderBaseline} />
           <div className={styles.taskCardContent}>
             <div className={styles.taskCardIcon}><Prescription size={28} weight="duotone" /></div>
@@ -530,6 +522,13 @@ const Dashboard: React.FC = () => {
             </div>
             <button className={styles.taskCardButton} onClick={(e) => { e.stopPropagation(); navigate('/store/solicitud'); }}>Pedir</button>
           </div>
+          <button
+            className={styles.taskCardDismiss}
+            onClick={handleDismissRecetaCard}
+            aria-label="Ocultar tarjeta de receta"
+          >
+            <X size={14} weight="bold" />
+          </button>
         </div>
       )}
 
@@ -567,12 +566,10 @@ const Dashboard: React.FC = () => {
           setIsEditMode={setIsEditMode}
           customDose={customDose}
           setCustomDose={setCustomDose}
-          dayJournalEntries={dayJournalEntries}
           fieldLabels={fieldLabels}
           followUpInfo={followUpInfo}
           handleDeleteDose={handleDeleteDose}
           handleDeleteCheckin={handleDeleteCheckin}
-          handleDeleteJournalEntry={handleDeleteJournalEntry}
           handleEditCheckin={handleEditCheckin}
           handleAddDoseForDay={handleAddDoseForDay}
           onClose={() => { setShowDayDetailModal(false); setIsEditMode(false); }}

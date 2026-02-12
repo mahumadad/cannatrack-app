@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Trash, ClipboardText, Bell, BellRinging, User, SignOut, Warning, CaretRight, PencilSimple, Phone, MapPin, Tag, CalendarBlank, SpinnerGap, Envelope } from '@phosphor-icons/react';
+import { ArrowLeft, Clock, Trash, ClipboardText, Bell, BellRinging, User, SignOut, Warning, CaretRight, PencilSimple, Phone, MapPin, Tag, CalendarBlank, SpinnerGap, Envelope, Lock, Key } from '@phosphor-icons/react';
 import styles from './Settings.module.css';
 import { useToast } from './Toast';
 import api from '../utils/api';
@@ -38,6 +38,13 @@ const Settings: React.FC = () => {
   const [editLastName, setEditLastName] = useState<string>('');
   const [savingName, setSavingName] = useState<boolean>(false);
 
+  // Password management
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [savingPassword, setSavingPassword] = useState<boolean>(false);
+
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
     setUser(userData);
@@ -45,6 +52,7 @@ const Settings: React.FC = () => {
       loadProtocol(userData.id);
       loadBaseline(userData.id);
       loadShopifyProfile(userData.id);
+      checkHasPassword();
     }
     
     // Load saved preferences
@@ -126,6 +134,47 @@ const Settings: React.FC = () => {
     }
   };
 
+  const checkHasPassword = async () => {
+    try {
+      const data = await api.get('/api/auth/has-password');
+      setHasPassword(data.hasPassword);
+    } catch {
+      // Default to true if check fails
+      setHasPassword(true);
+    }
+  };
+
+  const handlePasswordSubmit = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast!.warning('Completa ambos campos');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast!.warning('Las contraseñas no coinciden');
+      return;
+    }
+    if (newPassword.length < 8 || !/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      toast!.warning('La contraseña debe tener al menos 8 caracteres, mayúscula, minúscula y número');
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      const endpoint = hasPassword ? '/api/auth/change-password' : '/api/auth/create-password';
+      const body = hasPassword ? { newPassword } : { password: newPassword };
+      await api.post(endpoint, body);
+      setHasPassword(true);
+      setShowPasswordModal(false);
+      setNewPassword('');
+      setConfirmPassword('');
+      toast!.success(hasPassword ? 'Contraseña actualizada' : 'Contraseña creada exitosamente');
+    } catch {
+      toast!.error('Error al guardar contraseña');
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
   const handleEndProtocol = async () => {
     try {
       await api.delete(`/api/protocol/${user!.id}`);
@@ -142,10 +191,9 @@ const Settings: React.FC = () => {
     } catch (e) {
       // Proceed with local cleanup even if server call fails
     }
-    localStorage.removeItem('user');
-    localStorage.removeItem('session');
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('theme');
+    // Limpiar TODO el localStorage al cerrar sesión
+    stopNotificationScheduler();
+    localStorage.clear();
     navigate('/login');
   };
 
@@ -328,6 +376,31 @@ const Settings: React.FC = () => {
                 <span>Cargando datos...</span>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Password Section */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionLabel}>Seguridad</h2>
+          <div className={styles.card}>
+            <div className={styles.menuItem} onClick={() => { setNewPassword(''); setConfirmPassword(''); setShowPasswordModal(true); }}>
+              {hasPassword ? (
+                <Key size={24} weight="regular" className={styles.menuIcon} />
+              ) : (
+                <Lock size={24} weight="regular" className={styles.menuIcon} />
+              )}
+              <div className={styles.menuContent}>
+                <span className={styles.menuTitle}>
+                  {hasPassword === false ? 'Crear contraseña' : 'Cambiar contraseña'}
+                </span>
+                <span className={styles.menuSubtitle}>
+                  {hasPassword === false
+                    ? 'Agrega una contraseña para iniciar sesión sin Shopify'
+                    : 'Actualizar tu contraseña de acceso'}
+                </span>
+              </div>
+              <CaretRight size={20} weight="bold" className={styles.menuArrow} />
+            </div>
           </div>
         </div>
 
@@ -547,6 +620,47 @@ const Settings: React.FC = () => {
               <button className={styles.cancelButton} onClick={() => setEditingName(false)}>Cancelar</button>
               <button className={styles.confirmButton} onClick={handleSaveName} disabled={savingName}>
                 {savingName ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Password Modal */}
+      {showPasswordModal && (
+        <div className={styles.modal} onClick={() => setShowPasswordModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h2>{hasPassword ? 'Cambiar contraseña' : 'Crear contraseña'}</h2>
+            {!hasPassword && (
+              <p style={{ fontSize: 13, color: '#6B5B4E', marginBottom: 12 }}>
+                Crea una contraseña para poder iniciar sesión directamente sin necesidad de usar Shopify.
+              </p>
+            )}
+            <div className={styles.nameFields}>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Nueva contraseña"
+                className={styles.nameInput}
+                autoComplete="new-password"
+              />
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirmar contraseña"
+                className={styles.nameInput}
+                autoComplete="new-password"
+              />
+            </div>
+            <p style={{ fontSize: 11, color: '#9E9E9E', margin: '4px 0 8px' }}>
+              Mínimo 8 caracteres, con mayúscula, minúscula y número
+            </p>
+            <div className={styles.modalButtons}>
+              <button className={styles.cancelButton} onClick={() => setShowPasswordModal(false)}>Cancelar</button>
+              <button className={styles.confirmButton} onClick={handlePasswordSubmit} disabled={savingPassword}>
+                {savingPassword ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
           </div>

@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
-import { ArrowLeft, Check, UploadSimple, ShoppingCart, Trash, CheckCircle } from '@phosphor-icons/react';
+import { ArrowLeft, Check, UploadSimple, ShoppingCart, Trash, CheckCircle, Pill } from '@phosphor-icons/react';
 import styles from './SolicitudForm.module.css';
-import type { ProductCatalog, MicrodosisOption, MacrodosisOption, CartItem } from '../types';
+import type { ProductCatalog, MicrodosisOption, MacrodosisOption, CartItem, Receta } from '../types';
 
 type Step = 'micro' | 'macro' | 'recetas' | 'resumen';
 const STEPS: Step[] = ['micro', 'macro', 'recetas', 'resumen'];
@@ -26,10 +26,12 @@ const SolicitudForm: React.FC = () => {
   const { user } = useUser();
 
   const [catalog, setCatalog] = useState<ProductCatalog | null>(null);
+  const [recetasActivas, setRecetasActivas] = useState<Receta[]>([]);
   const [step, setStep] = useState<Step>('micro');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [preselected, setPreselected] = useState(false); // track if we auto-selected
 
   // Micro selection state
   const [selectedGramaje, setSelectedGramaje] = useState<string | null>(null);
@@ -50,9 +52,16 @@ const SolicitudForm: React.FC = () => {
   const microFileRef = useRef<HTMLInputElement>(null);
   const macroFileRef = useRef<HTMLInputElement>(null);
 
+  // Derived: find receta for micro and macro from all active recetas
+  const recetaMicro = recetasActivas.find(r => r.total_micro_autorizado > 0 && r.saldo_micro > 0) || null;
+  const recetaMacro = recetasActivas.find(r => r.total_macro_autorizado > 0 && r.saldo_macro > 0) || null;
+  // For backward-compat checks (any active receta at all)
+  const hasAnyReceta = recetasActivas.length > 0;
+
   useEffect(() => {
     loadCatalog();
     if (user?.email) setEmail(user.email);
+    if (user?.id) loadRecetasActivas(user.id);
   }, [user]);
 
   const loadCatalog = async () => {
@@ -63,6 +72,46 @@ const SolicitudForm: React.FC = () => {
       toast.error('Error al cargar catálogo');
     }
   };
+
+  const loadRecetasActivas = async (userId: string) => {
+    try {
+      const data = await api.get(`/api/recetas/${userId}`);
+      const activas = (data || []).filter((r: Receta) => r.estado === 'activa');
+      setRecetasActivas(activas);
+    } catch {
+      // No active recetas — that's fine
+    }
+  };
+
+  // Auto-select gramaje and max capsulas from active micro receta once catalog loads
+  useEffect(() => {
+    if (!catalog || !recetaMicro || preselected) return;
+
+    // Auto-select micro gramaje if receta has it
+    if (recetaMicro.gramaje_micro && recetaMicro.saldo_micro > 0) {
+      const matchingGramaje = catalog.microdosis.find(m =>
+        m.gramaje.replace(/\s/g, '').toLowerCase() === recetaMicro.gramaje_micro!.replace(/\s/g, '').toLowerCase()
+      );
+      if (matchingGramaje) {
+        setSelectedGramaje(matchingGramaje.gramaje);
+
+        // Find max capsulas that fits within saldo
+        const sortedOptions = [...matchingGramaje.options].sort(
+          (a, b) => parseInt(b.capsulas) - parseInt(a.capsulas)
+        );
+        const bestFit = sortedOptions.find(o => parseInt(o.capsulas) <= recetaMicro.saldo_micro);
+        if (bestFit) {
+          setSelectedCapsulas(bestFit.capsulas);
+        } else {
+          // All options exceed saldo — select smallest
+          const smallest = sortedOptions[sortedOptions.length - 1];
+          if (smallest) setSelectedCapsulas(smallest.capsulas);
+        }
+      }
+    }
+
+    setPreselected(true);
+  }, [catalog, recetaMicro, preselected]);
 
   const hasMicro = cart.some(i => i.category === 'Microdosis');
   const hasMacro = cart.some(i => i.category === 'Macrodosis');
@@ -156,11 +205,12 @@ const SolicitudForm: React.FC = () => {
       toast.error('Email es requerido');
       return;
     }
-    if (hasMicro && !recipeMicro) {
+    // Solo exigir receta si no hay receta activa para ese tipo
+    if (hasMicro && !recetaMicro && !recipeMicro) {
       toast.error('Sube la receta de microdosis');
       return;
     }
-    if (hasMacro && !recipeMacro) {
+    if (hasMacro && !recetaMacro && !recipeMacro) {
       toast.error('Sube la receta de macrodosis');
       return;
     }
@@ -188,8 +238,9 @@ const SolicitudForm: React.FC = () => {
   const stepIndex = STEPS.indexOf(step);
   const canGoNext = () => {
     if (step === 'recetas') {
-      if (hasMicro && !recipeMicro) return false;
-      if (hasMacro && !recipeMacro) return false;
+      // Solo exigir receta si no hay receta activa para ese tipo
+      if (hasMicro && !recetaMicro && !recipeMicro) return false;
+      if (hasMacro && !recetaMacro && !recipeMacro) return false;
       return !!email;
     }
     return true;
@@ -277,39 +328,74 @@ const SolicitudForm: React.FC = () => {
             <h2 className={styles.sectionTitle}>Microdosis</h2>
             <p className={styles.sectionSubtitle}>Selecciona gramaje y cantidad de cápsulas</p>
 
-            <div className={styles.productGrid}>
-              {catalog.microdosis.map((m: MicrodosisOption) => (
-                <div
-                  key={m.gramaje}
-                  className={`${styles.productCard} ${selectedGramaje === m.gramaje ? styles.productCardSelected : ''}`}
-                  onClick={() => { setSelectedGramaje(m.gramaje); setSelectedCapsulas(null); }}
-                >
-                  <div className={styles.productCardInfo}>
-                    <span className={styles.productCardName}>{m.label}</span>
-                    <span className={styles.productCardPrice}>
-                      desde {formatCLP(Math.min(...m.options.map(o => o.price)))}
-                    </span>
-                  </div>
-                  <div className={`${styles.productCardCheck} ${selectedGramaje === m.gramaje ? styles.productCardCheckSelected : ''}`}>
-                    {selectedGramaje === m.gramaje && <Check size={14} weight="bold" />}
-                  </div>
+            {/* Active receta banner for micro */}
+            {recetaMicro && recetaMicro.saldo_micro > 0 && (
+              <div className={styles.recetaBanner}>
+                <div className={styles.recetaBannerIcon}>
+                  <Pill size={16} weight="fill" />
                 </div>
-              ))}
+                <div className={styles.recetaBannerText}>
+                  <div className={styles.recetaBannerLabel}>Receta activa</div>
+                  Saldo disponible: <span className={styles.recetaBannerSaldo}>{recetaMicro.saldo_micro} caps</span>
+                  {recetaMicro.gramaje_micro && <> · Gramaje: <strong>{recetaMicro.gramaje_micro}</strong></>}
+                </div>
+              </div>
+            )}
+
+            <div className={styles.productGrid}>
+              {catalog.microdosis.map((m: MicrodosisOption) => {
+                const isRecetaGramaje = recetaMicro?.gramaje_micro && recetaMicro.saldo_micro > 0
+                  && m.gramaje.replace(/\s/g, '').toLowerCase() === recetaMicro.gramaje_micro.replace(/\s/g, '').toLowerCase();
+                const isSelected = selectedGramaje === m.gramaje;
+                return (
+                  <div
+                    key={m.gramaje}
+                    className={`${styles.productCard} ${isSelected ? styles.productCardSelected : ''} ${isRecetaGramaje && !isSelected && preselected ? styles.productCardRecommended : ''}`}
+                    onClick={() => { setSelectedGramaje(m.gramaje); setSelectedCapsulas(null); }}
+                  >
+                    <div className={styles.productCardInfo}>
+                      <span className={styles.productCardName}>{m.label}</span>
+                      <span className={styles.productCardPrice}>
+                        desde {formatCLP(Math.min(...m.options.map(o => o.price)))}
+                      </span>
+                    </div>
+                    <div className={`${styles.productCardCheck} ${isSelected ? styles.productCardCheckSelected : ''}`}>
+                      {isSelected && <Check size={14} weight="bold" />}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {selectedGramajeData && (
               <>
                 <p className={styles.sectionSubtitle}>Cantidad de cápsulas</p>
                 <div className={styles.capsulasGrid}>
-                  {selectedGramajeData.options.map(opt => (
-                    <button
-                      key={opt.capsulas}
-                      className={`${styles.capsulaChip} ${selectedCapsulas === opt.capsulas ? styles.capsulaChipSelected : ''}`}
-                      onClick={() => setSelectedCapsulas(opt.capsulas)}
-                    >
-                      {opt.capsulas} caps · {formatCLP(opt.price)}
-                    </button>
-                  ))}
+                  {selectedGramajeData.options.map(opt => {
+                    const isSelected = selectedCapsulas === opt.capsulas;
+                    // Determine if this is the recommended (max fit) capsulas for active receta
+                    const isRecommended = (() => {
+                      if (!recetaMicro || recetaMicro.saldo_micro <= 0 || !preselected) return false;
+                      const recetaGramajeMatch = recetaMicro.gramaje_micro
+                        && selectedGramaje?.replace(/\s/g, '').toLowerCase() === recetaMicro.gramaje_micro.replace(/\s/g, '').toLowerCase();
+                      if (!recetaGramajeMatch) return false;
+                      // Find the max option that fits saldo
+                      const sorted = [...selectedGramajeData!.options].sort((a, b) => parseInt(b.capsulas) - parseInt(a.capsulas));
+                      const bestFit = sorted.find(o => parseInt(o.capsulas) <= recetaMicro.saldo_micro);
+                      if (bestFit) return opt.capsulas === bestFit.capsulas;
+                      // If no option fits, recommend smallest
+                      return opt.capsulas === sorted[sorted.length - 1]?.capsulas;
+                    })();
+                    return (
+                      <button
+                        key={opt.capsulas}
+                        className={`${styles.capsulaChip} ${isSelected ? styles.capsulaChipSelected : ''} ${isRecommended && !isSelected ? styles.capsulaChipRecommended : ''}`}
+                        onClick={() => setSelectedCapsulas(opt.capsulas)}
+                      >
+                        {opt.capsulas} caps · {formatCLP(opt.price)}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {selectedCapsulas && (
@@ -327,6 +413,20 @@ const SolicitudForm: React.FC = () => {
           <>
             <h2 className={styles.sectionTitle}>Macrodosis</h2>
             <p className={styles.sectionSubtitle}>Selecciona el producto</p>
+
+            {/* Active receta banner for macro */}
+            {recetaMacro && recetaMacro.saldo_macro > 0 && (
+              <div className={styles.recetaBanner}>
+                <div className={styles.recetaBannerIcon}>
+                  <Pill size={16} weight="fill" />
+                </div>
+                <div className={styles.recetaBannerText}>
+                  <div className={styles.recetaBannerLabel}>Receta activa</div>
+                  Saldo disponible: <span className={styles.recetaBannerSaldo}>{recetaMacro.saldo_macro} unidades</span>
+                  {recetaMacro.gramaje_macro && <> · Gramaje: <strong>{recetaMacro.gramaje_macro}</strong></>}
+                </div>
+              </div>
+            )}
 
             <div className={styles.productGrid}>
               {catalog.macrodosis.map((m: MacrodosisOption) => (
@@ -357,10 +457,29 @@ const SolicitudForm: React.FC = () => {
         {/* ─── Step: Recetas & Contacto ─── */}
         {step === 'recetas' && (
           <>
+            {/* Banner si ya tiene receta activa */}
+            {hasAnyReceta && (
+              <div className={styles.recetaBanner} style={{ marginBottom: 20 }}>
+                <div className={styles.recetaBannerIcon}>
+                  <Pill size={16} weight="fill" />
+                </div>
+                <div className={styles.recetaBannerText}>
+                  <div className={styles.recetaBannerLabel}>Ya tienes {recetasActivas.length > 1 ? 'recetas activas' : 'una receta activa'}</div>
+                  {recetaMicro && hasMicro && !recetaMacro && hasMacro
+                    ? 'La receta de micro está cubierta. Solo necesitas subir receta de macrodosis.'
+                    : !recetaMicro && hasMicro && recetaMacro && hasMacro
+                    ? 'La receta de macro está cubierta. Solo necesitas subir receta de microdosis.'
+                    : 'No es necesario subir una nueva receta. Si deseas actualizar, puedes subir una nueva a continuación.'}
+                </div>
+              </div>
+            )}
+
             {hasMicro && (
               <>
                 <h2 className={styles.sectionTitle}>Receta Microdosis</h2>
-                <p className={styles.sectionSubtitle}>Sube la foto o PDF de tu receta</p>
+                <p className={styles.sectionSubtitle}>
+                  {recetaMicro ? 'Opcional — ya tienes receta micro activa' : 'Sube la foto o PDF de tu receta'}
+                </p>
                 <input ref={microFileRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => handleFileSelect(e, setRecipeMicro, setRecipeMicroName)} />
                 <div
                   className={`${styles.uploadArea} ${recipeMicro ? styles.uploadAreaFilled : ''}`}
@@ -376,7 +495,9 @@ const SolicitudForm: React.FC = () => {
             {hasMacro && (
               <>
                 <h2 className={styles.sectionTitle}>Receta Macrodosis</h2>
-                <p className={styles.sectionSubtitle}>Sube la foto o PDF de tu receta</p>
+                <p className={styles.sectionSubtitle}>
+                  {recetaMacro ? 'Opcional — ya tienes receta macro activa' : 'Sube la foto o PDF de tu receta'}
+                </p>
                 <input ref={macroFileRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => handleFileSelect(e, setRecipeMacro, setRecipeMacroName)} />
                 <div
                   className={`${styles.uploadArea} ${recipeMacro ? styles.uploadAreaFilled : ''}`}
