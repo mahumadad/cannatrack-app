@@ -16,7 +16,8 @@ import styles from './Dashboard.module.css';
 import fieldLabels from '../utils/fieldLabels';
 import { useUser } from '../hooks/useUser';
 import { useRecetas } from '../hooks/useRecetas';
-import type { Protocol, Baseline, DoseLog, CalendarDay, FollowUpInfo, CustomDoseState, Quote, Receta } from '../types';
+import storage, { STORAGE_KEYS } from '../utils/storage';
+import type { Protocol, Baseline, DoseLog, CalendarDay, FollowUpInfo, FollowUpMonthSummary, CustomDoseState, Quote, Receta } from '../types';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ const Dashboard: React.FC = () => {
   const { recetas: allRecetas } = useRecetas(user?.id);
   const recetaActiva = allRecetas.find((r: Receta) => r.estado === 'activa') || null;
   const [recetaCardDismissed, setRecetaCardDismissed] = useState<boolean>(() => {
-    return localStorage.getItem('receta_card_dismissed') === 'true';
+    return storage.getItem(STORAGE_KEYS.RECETA_DISMISSED) === 'true';
   });
 
   const isIntuitive = protocol?.frequency === 'intuitive';
@@ -52,14 +53,14 @@ const Dashboard: React.FC = () => {
   const handleDismissRecetaCard = (e: React.MouseEvent) => {
     e.stopPropagation();
     setRecetaCardDismissed(true);
-    localStorage.setItem('receta_card_dismissed', 'true');
+    storage.setItem(STORAGE_KEYS.RECETA_DISMISSED, 'true');
   };
 
   useEffect(() => {
     loadRandomQuote();
 
     // Start notification scheduler if enabled
-    const prefs = JSON.parse(localStorage.getItem('preferences') || '{}');
+    const prefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
     if (prefs.notificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
       cleanupFiredNotifications();
       startNotificationScheduler();
@@ -105,12 +106,12 @@ const Dashboard: React.FC = () => {
   // Track receta card dismiss state
   useEffect(() => {
     if (recetaActiva) {
-      const prevId = localStorage.getItem('receta_card_dismissed_id');
+      const prevId = storage.getItem(STORAGE_KEYS.RECETA_DISMISSED_ID);
       if (prevId !== recetaActiva.id) {
         setRecetaCardDismissed(false);
-        localStorage.removeItem('receta_card_dismissed');
+        storage.removeItem(STORAGE_KEYS.RECETA_DISMISSED);
       }
-      localStorage.setItem('receta_card_dismissed_id', recetaActiva.id);
+      storage.setItem(STORAGE_KEYS.RECETA_DISMISSED_ID, recetaActiva.id);
     }
   }, [recetaActiva?.id]);
 
@@ -150,7 +151,7 @@ const Dashboard: React.FC = () => {
     try {
       const data = await api.get(`/api/doses/${userId}?days=60`);
       const today = toLocalDateString(new Date());
-      setTodayDoses(data.filter((d: any) => toLocalDateString(new Date(d.date)) === today));
+      setTodayDoses(data.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === today));
       setRecentDoses(data);
       if (data.length > 0) setLastDose(data[0]);
     } catch (error) {
@@ -208,7 +209,7 @@ const Dashboard: React.FC = () => {
         }
         break;
       case 'every_x_days': {
-        const interval = (protocol.frequency_value as any)?.days || 3;
+        const interval = (protocol.frequency_value as { days: number } | null)?.days || 3;
         while (current <= endDate) {
           scheduled.add(toLocalDateString(current));
           current.setDate(current.getDate() + interval);
@@ -302,7 +303,7 @@ const Dashboard: React.FC = () => {
       await api.post('/api/doses', { userId: user!.id, timestamp: timestamp.toISOString(), substance: INTERNAL_SUBSTANCE, dose: parseFloat(String(customDose.amount)), unit: customDose.unit, notes: 'Dosis manual' });
       toast.success('Dosis agregada');
       const allDoses = await api.get(`/api/doses/${user!.id}?days=60`);
-      setSelectedDay(prev => prev ? { ...prev, doses: allDoses.filter((d: any) => toLocalDateString(new Date(d.date)) === selectedDay!.dateString) } : prev);
+      setSelectedDay(prev => prev ? { ...prev, doses: allDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === selectedDay!.dateString) } : prev);
       setRefreshKey(prev => prev + 1);
       if (selectedDay!.isToday) { loadDoses(user!.id); }
     } catch (error) {
@@ -316,7 +317,7 @@ const Dashboard: React.FC = () => {
       await api.delete(`/api/doses/${doseId}`);
       toast.info('Dosis eliminada');
       const allDoses = await api.get(`/api/doses/${user!.id}?days=60`);
-      setSelectedDay(prev => prev ? { ...prev, doses: allDoses.filter((d: any) => toLocalDateString(new Date(d.date)) === selectedDay!.dateString) } : prev);
+      setSelectedDay(prev => prev ? { ...prev, doses: allDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === selectedDay!.dateString) } : prev);
       setRefreshKey(prev => prev + 1);
       if (selectedDay!.isToday) { loadDoses(user!.id); }
     } catch (error) {
@@ -356,15 +357,15 @@ const Dashboard: React.FC = () => {
   const getFollowUpDates = (): string[] => {
     if (!followUpInfo?.allMonths) return [];
     return followUpInfo.allMonths
-      .filter((m: any) => !m.isCompleted && m.dueDate)
-      .map((m: any) => m.dueDate);
+      .filter((m: FollowUpMonthSummary) => !m.isCompleted && m.dueDate)
+      .map((m: FollowUpMonthSummary) => m.dueDate!);
   };
 
   const getFollowUpCompletedDates = (): string[] => {
     if (!followUpInfo?.allMonths) return [];
     return followUpInfo.allMonths
-      .filter((m: any) => m.isCompleted && m.dueDate)
-      .map((m: any) => m.dueDate);
+      .filter((m: FollowUpMonthSummary) => m.isCompleted && m.dueDate)
+      .map((m: FollowUpMonthSummary) => m.dueDate!);
   };
 
   const isFollowUpDue = (): boolean => {

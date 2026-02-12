@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
+import storage, { STORAGE_KEYS } from '../utils/storage';
 import styles from './Auth.module.css';
 
 interface RegisterFormData {
@@ -55,7 +56,7 @@ const Register: React.FC = () => {
         password: formData.password
       }, { skipAuthRedirect: true });
 
-      localStorage.setItem('user', JSON.stringify(data.user));
+      storage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
 
       navigate('/baseline');
     } catch (error: any) {

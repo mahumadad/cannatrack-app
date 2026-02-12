@@ -12,3 +12,10 @@ export const toLocalDateString = (date: Date = new Date()): string => {
 
 /** Pad a number with a leading zero (e.g. 5 → "05"). */
 export const padZero = (num: number): string => String(num).padStart(2, '0');
+
+/**
+ * Extract a YYYY-MM-DD date from any ISO-like string.
+ * Handles both "2024-01-15" and "2024-01-15T12:00:00.000Z" formats.
+ */
+export const normalizeDate = (d: string): string =>
+  typeof d === 'string' && d.includes('T') ? d.split('T')[0] : d;

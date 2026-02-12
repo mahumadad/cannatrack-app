@@ -9,6 +9,7 @@ import styles from './Reflect.module.css';
 import sharedFieldLabels from '../utils/fieldLabels';
 import { useUser } from '../hooks/useUser';
 import { toLocalDateString } from '../utils/dateHelpers';
+import storage from '../utils/storage';
 import type { Checkin, FieldLabelsMap } from '../types';
 
 interface ReflectFormData {
@@ -106,7 +107,7 @@ const Reflect: React.FC = () => {
   useEffect(() => {
     if (!existingCheckin && isEditing) {
       try {
-        const draft = localStorage.getItem(`reflect_draft_${selectedDate}`);
+        const draft = storage.getItem(`reflect_draft_${selectedDate}`);
         if (draft) {
           const parsed = JSON.parse(draft);
           setFormData(prev => ({ ...prev, ...parsed }));
@@ -118,7 +119,7 @@ const Reflect: React.FC = () => {
   // Guardar borrador en localStorage mientras se edita
   useEffect(() => {
     if (isEditing && !existingCheckin) {
-      localStorage.setItem(`reflect_draft_${selectedDate}`, JSON.stringify(formData));
+      storage.setItem(`reflect_draft_${selectedDate}`, JSON.stringify(formData));
     }
   }, [formData, selectedDate, isEditing, existingCheckin]);
 
@@ -131,7 +132,7 @@ const Reflect: React.FC = () => {
       const body = { user_id: user!.id, date: selectedDate, ...formData };
       const data = existingCheckin ? await api.put(path, body) : await api.post(path, body);
       toast!.success('¡Check-in guardado! ✅');
-      localStorage.removeItem(`reflect_draft_${selectedDate}`);
+      storage.removeItem(`reflect_draft_${selectedDate}`);
       setExistingCheckin(data);
       setIsEditing(false);
       setCurrentSection(0);

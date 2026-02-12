@@ -5,6 +5,7 @@ import styles from './Settings.module.css';
 import { useToast } from './Toast';
 import api from '../utils/api';
 import { requestNotificationPermission, getNotificationPermission, startNotificationScheduler, stopNotificationScheduler } from '../utils/notifications';
+import storage, { STORAGE_KEYS } from '../utils/storage';
 import type { User as UserType, Protocol, Baseline, ShopifyCustomerProfile } from '../types';
 
 const Settings: React.FC = () => {
@@ -47,7 +48,7 @@ const Settings: React.FC = () => {
   const [savingPassword, setSavingPassword] = useState<boolean>(false);
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    const userData = JSON.parse(storage.getItem(STORAGE_KEYS.USER) || '{}');
     setUser(userData);
     if (userData.id) {
       loadProtocol(userData.id);
@@ -57,7 +58,7 @@ const Settings: React.FC = () => {
     }
     
     // Load saved preferences
-    const savedPrefs = JSON.parse(localStorage.getItem('preferences') || '{}');
+    const savedPrefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
     if (savedPrefs.doseReminder) setDoseReminder(savedPrefs.doseReminder);
     if (savedPrefs.reflectionReminder) setReflectionReminder(savedPrefs.reflectionReminder);
     if (savedPrefs.notificationsEnabled !== undefined) setNotificationsEnabled(savedPrefs.notificationsEnabled);
@@ -68,9 +69,9 @@ const Settings: React.FC = () => {
   }, []);
 
   const savePreferences = (newPrefs: Record<string, any>) => {
-    const currentPrefs = JSON.parse(localStorage.getItem('preferences') || '{}');
+    const currentPrefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
     const updated = { ...currentPrefs, ...newPrefs };
-    localStorage.setItem('preferences', JSON.stringify(updated));
+    storage.setItem(STORAGE_KEYS.PREFERENCES, JSON.stringify(updated));
   };
 
   const loadProtocol = async (userId: string) => {
@@ -124,7 +125,7 @@ const Settings: React.FC = () => {
       const newName = [editFirstName.trim(), editLastName.trim()].filter(Boolean).join(' ');
       const updatedUser = { ...user!, name: newName };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      storage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
       await loadShopifyProfile(user!.id);
       setEditingName(false);
       toast!.success('Nombre actualizado');
@@ -198,9 +199,15 @@ const Settings: React.FC = () => {
     } catch (e) {
       // Proceed with local cleanup even if server call fails
     }
-    // Limpiar TODO el localStorage al cerrar sesión
+    // Limpiar datos de sesión del usuario (namespaced)
     stopNotificationScheduler();
-    localStorage.clear();
+    storage.removeItem(STORAGE_KEYS.USER);
+    storage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    storage.removeItem(STORAGE_KEYS.PREFERENCES);
+    storage.removeItem(STORAGE_KEYS.RECETA_DISMISSED);
+    storage.removeItem(STORAGE_KEYS.RECETA_DISMISSED_ID);
+    storage.removeItem('notificationsFired');
+    storage.removeItem('theme');
     navigate('/login');
   };
 

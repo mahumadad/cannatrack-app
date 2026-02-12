@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import storage, { STORAGE_KEYS } from '../utils/storage';
 
 export interface User {
   id: string;
@@ -12,7 +13,7 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem('user');
+    const stored = storage.getItem(STORAGE_KEYS.USER);
     if (stored) {
       try {
         setUser(JSON.parse(stored));

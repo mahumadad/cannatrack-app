@@ -1,4 +1,5 @@
 import config from '../config';
+import storage, { STORAGE_KEYS } from './storage';
 
 const DEFAULT_TIMEOUT: number = 10000;
 const MAX_RETRIES: number = 2;
@@ -67,7 +68,7 @@ const getCsrfToken = (): string | null => {
 const getHeaders = (method: string = 'GET'): Record<string, string> => {
   const h: Record<string, string> = { 'Content-Type': 'application/json' };
 
-  const token = localStorage.getItem('access_token');
+  const token = storage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
   if (token) {
     h['Authorization'] = `Bearer ${token}`;
   }
@@ -99,8 +100,8 @@ const handleResponse = async (response: Response, options?: RequestOptions): Pro
   // 401 = no autenticado → redirigir a login (excepto en endpoints de auth)
   if (response.status === 401) {
     if (!options?.skipAuthRedirect) {
-      localStorage.removeItem('user');
-      localStorage.removeItem('access_token');
+      storage.removeItem(STORAGE_KEYS.USER);
+      storage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }

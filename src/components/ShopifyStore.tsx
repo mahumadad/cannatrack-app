@@ -7,6 +7,7 @@ import styles from './ShopifyStore.module.css';
 import BottomNav from './BottomNav';
 import { useUser } from '../hooks/useUser';
 import { useRecetas } from '../hooks/useRecetas';
+import { formatCLP } from '../utils/formatters';
 import type { ShopifyOrder, ShopifySubscription, ShopifyStoreData, Receta, Solicitud } from '../types';
 
 type Tab = 'orders' | 'subscriptions' | 'solicitudes' | 'recetas';
@@ -51,9 +52,6 @@ const ShopifyStore: React.FC = () => {
       // Silencioso
     }
   };
-
-  const formatCLP = (n: number): string =>
-    new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n);
 
   const formatPrice = (amount: string, currency: string): string => {
     return new Intl.NumberFormat('es-CL', {

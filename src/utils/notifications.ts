@@ -1,4 +1,5 @@
 import { toLocalDateString } from './dateHelpers';
+import storage, { STORAGE_KEYS } from './storage';
 
 /**
  * Notification utilities for browser-based reminders.
@@ -53,13 +54,13 @@ interface NotificationPreferences {
 const checkAndFireNotifications = (): void => {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-  const prefs: NotificationPreferences = JSON.parse(localStorage.getItem('preferences') || '{}');
+  const prefs: NotificationPreferences = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
   if (!prefs.notificationsEnabled) return;
 
   const now = new Date();
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const todayKey = toLocalDateString(now);
-  const firedToday: Record<string, boolean> = JSON.parse(localStorage.getItem('notificationsFired') || '{}');
+  const firedToday: Record<string, boolean> = JSON.parse(storage.getItem('notificationsFired') || '{}');
 
   if (prefs.doseNotification && prefs.doseReminder) {
     const doseKey = `dose_${todayKey}`;
@@ -83,15 +84,15 @@ const checkAndFireNotifications = (): void => {
     }
   }
 
-  localStorage.setItem('notificationsFired', JSON.stringify(firedToday));
+  storage.setItem('notificationsFired', JSON.stringify(firedToday));
 };
 
 export const cleanupFiredNotifications = (): void => {
   const todayKey = toLocalDateString();
-  const fired: Record<string, boolean> = JSON.parse(localStorage.getItem('notificationsFired') || '{}');
+  const fired: Record<string, boolean> = JSON.parse(storage.getItem('notificationsFired') || '{}');
   const cleaned: Record<string, boolean> = {};
   Object.keys(fired).forEach(key => {
     if (key.endsWith(todayKey)) cleaned[key] = fired[key];
   });
-  localStorage.setItem('notificationsFired', JSON.stringify(cleaned));
+  storage.setItem('notificationsFired', JSON.stringify(cleaned));
 };

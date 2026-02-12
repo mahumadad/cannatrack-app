@@ -3,6 +3,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import styles from './Auth.module.css';
 import config from '../config';
 import api from '../utils/api';
+import storage, { STORAGE_KEYS } from '../utils/storage';
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   missing_params: 'Error en la autenticacion con Shopify',
@@ -53,7 +54,7 @@ const Login: React.FC = () => {
     try {
       const data = await api.post('/api/auth/login', formData, { skipAuthRedirect: true });
 
-      localStorage.setItem('user', JSON.stringify(data.user));
+      storage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
 
       // Verificar si completo el onboarding
       try {
@@ -76,8 +77,8 @@ const Login: React.FC = () => {
 
   const handleShopifyLogin = () => {
     // Limpiar sesion anterior antes de iniciar OAuth (evita datos residuales)
-    localStorage.removeItem('user');
-    localStorage.removeItem('access_token');
+    storage.removeItem(STORAGE_KEYS.USER);
+    storage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     // Usar URL pública (ngrok) para el redirect de Shopify OAuth, no localhost
     window.location.href = `${config.SHOPIFY_REDIRECT_URL}/api/auth/shopify`;
   };

@@ -187,7 +187,7 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, ref
         break;
 
       case 'every_x_days':
-        const interval = (protocol.frequency_value as any)?.days || 3;
+        const interval = (protocol.frequency_value as { days: number } | null)?.days || 3;
         while (currentDate <= endDate) {
           scheduledDays.add(toLocalDateString(currentDate));
           currentDate.setDate(currentDate.getDate() + interval);
@@ -211,8 +211,8 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, ref
         break;
 
       case 'custom':
-        const onDays = (protocol.frequency_value as any)?.on || 1;
-        const offDays = (protocol.frequency_value as any)?.off || 2;
+        const onDays = (protocol.frequency_value as { on: number; off: number } | null)?.on || 1;
+        const offDays = (protocol.frequency_value as { on: number; off: number } | null)?.off || 2;
         while (currentDate <= endDate) {
           for (let i = 0; i < onDays && currentDate <= endDate; i++) {
             scheduledDays.add(toLocalDateString(currentDate));

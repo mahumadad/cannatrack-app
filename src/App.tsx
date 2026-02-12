@@ -20,6 +20,7 @@ const SolicitudForm = React.lazy(() => import('./components/SolicitudForm'));
 const MisSolicitudes = React.lazy(() => import('./components/MisSolicitudes'));
 const SolicitudDetalle = React.lazy(() => import('./components/SolicitudDetalle'));
 const MisRecetas = React.lazy(() => import('./components/MisRecetas'));
+import storage, { STORAGE_KEYS } from './utils/storage';
 import config from './config';
 import './theme.css';
 import './fonts.css';
@@ -31,7 +32,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   const verify = () => {
     setStatus('loading');
-    const user = localStorage.getItem('user');
+    const user = storage.getItem(STORAGE_KEYS.USER);
     if (!user) {
       setStatus('invalid');
       return;
@@ -44,8 +45,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
         if (res.ok) {
           setStatus('valid');
         } else {
-          localStorage.removeItem('user');
-          localStorage.removeItem('access_token');
+          storage.removeItem(STORAGE_KEYS.USER);
+          storage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
           setStatus('invalid');
         }
       })
@@ -79,7 +80,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 function App() {
   useEffect(() => {
     document.documentElement.classList.remove('dark');
-    localStorage.removeItem('theme');
+    storage.removeItem('theme');
   }, []);
 
   return (

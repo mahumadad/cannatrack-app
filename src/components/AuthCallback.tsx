@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
+import storage, { STORAGE_KEYS } from '../utils/storage';
 import styles from './Auth.module.css';
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -47,7 +48,7 @@ const AuthCallback: React.FC = () => {
           }
 
           // Guardar datos de usuario (no-sensibles) en localStorage
-          localStorage.setItem('user', JSON.stringify(data.user));
+          storage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
 
           navigate(redirectPath);
         } catch (err) {

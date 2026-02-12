@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import { toLocalDateString } from '../utils/dateHelpers';
+import { toLocalDateString, normalizeDate } from '../utils/dateHelpers';
 import { calcWellbeing } from '../utils/wellbeing';
 import { calculateDASS, calculatePANAS, calculatePSS, getSeverityColor } from '../utils/followUpScoring';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -53,7 +53,7 @@ const Insights: React.FC = () => {
     cutoff.setHours(0, 0, 0, 0);
 
     const periodCheckins = insightsData.checkins.filter(c => {
-      const cDate = typeof c.date === 'string' && c.date.includes('T') ? c.date.split('T')[0] : c.date;
+      const cDate = normalizeDate(c.date);
       return cDate >= toLocalDateString(cutoff);
     });
 
@@ -155,8 +155,6 @@ const Insights: React.FC = () => {
     }
     setLoading(false);
   };
-
-  const normalizeDate = (d: string): string => (typeof d === 'string' && d.includes('T') ? d.split('T')[0] : d);
 
   const calculateComparison = (checkins: Checkin[], doses: DoseLog[], periodDays: number = 30) => {
     const cutoffDate = new Date();

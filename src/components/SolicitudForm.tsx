@@ -6,6 +6,7 @@ import { useUser } from '../hooks/useUser';
 import { useRecetas } from '../hooks/useRecetas';
 import { ArrowLeft, Check, UploadSimple, ShoppingCart, Trash, CheckCircle, Pill } from '@phosphor-icons/react';
 import styles from './SolicitudForm.module.css';
+import { formatCLP } from '../utils/formatters';
 import type { ProductCatalog, MicrodosisOption, MacrodosisOption, CartItem, Receta } from '../types';
 
 type Step = 'micro' | 'macro' | 'recetas' | 'resumen';
@@ -17,9 +18,6 @@ const STEP_LABELS: Record<Step, string> = {
   recetas: 'Recetas y contacto',
   resumen: 'Resumen'
 };
-
-const formatCLP = (n: number): string =>
-  new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n);
 
 const SolicitudForm: React.FC = () => {
   const navigate = useNavigate();
