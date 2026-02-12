@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
+import { useRecetas, invalidateRecetasCache } from '../hooks/useRecetas';
 import { ArrowLeft, Prescription, Calendar, UserCircle, Clock, FileText, CaretDown, CaretUp, Pill, Eye, X, Plus, Image as ImageIcon } from '@phosphor-icons/react';
 import styles from './MisRecetas.module.css';
 import type { Receta } from '../types';
@@ -48,8 +49,7 @@ const MisRecetas: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast()!;
   const { user } = useUser();
-  const [recetas, setRecetas] = useState<Receta[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { recetas, loading, refetch: refetchRecetas } = useRecetas(user?.id);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
@@ -57,22 +57,6 @@ const MisRecetas: React.FC = () => {
   const [uploadFile, setUploadFile] = useState<string | null>(null);
   const [uploadFileName, setUploadFileName] = useState<string>('');
   const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    if (user?.id) loadRecetas(user.id);
-  }, [user]);
-
-  const loadRecetas = async (userId: string) => {
-    setLoading(true);
-    try {
-      const data = await api.get(`/api/recetas/${userId}`);
-      setRecetas(data);
-    } catch {
-      toast.error('Error al cargar recetas');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -108,7 +92,8 @@ const MisRecetas: React.FC = () => {
       setShowUpload(false);
       setUploadFile(null);
       setUploadFileName('');
-      loadRecetas(user.id);
+      invalidateRecetasCache();
+      refetchRecetas();
     } catch (err: any) {
       toast.error(err.message || 'Error al subir receta');
     } finally {

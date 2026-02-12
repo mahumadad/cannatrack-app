@@ -1,23 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastProvider } from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
-import Onboarding from './components/Onboarding';
+// Eager: first-paint screens (login, register, auth callback)
 import Login from './components/Login';
 import Register from './components/Register';
 import AuthCallback from './components/AuthCallback';
-import Dashboard from './components/Dashboard';
-import Reflect from './components/Reflect';
-import Insights from './components/Insights';
-import Settings from './components/Settings';
-import ProtocolConfig from './components/ProtocolConfig';
-import BaselineForm from './components/BaselineForm';
-import FollowUp from './components/FollowUp';
-import ShopifyStore from './components/ShopifyStore';
-import SolicitudForm from './components/SolicitudForm';
-import MisSolicitudes from './components/MisSolicitudes';
-import SolicitudDetalle from './components/SolicitudDetalle';
-import MisRecetas from './components/MisRecetas';
+// Lazy: all protected route components — loaded on demand
+const Onboarding = React.lazy(() => import('./components/Onboarding'));
+const Dashboard = React.lazy(() => import('./components/Dashboard'));
+const Reflect = React.lazy(() => import('./components/Reflect'));
+const Insights = React.lazy(() => import('./components/Insights'));
+const Settings = React.lazy(() => import('./components/Settings'));
+const ProtocolConfig = React.lazy(() => import('./components/ProtocolConfig'));
+const BaselineForm = React.lazy(() => import('./components/BaselineForm'));
+const FollowUp = React.lazy(() => import('./components/FollowUp'));
+const ShopifyStore = React.lazy(() => import('./components/ShopifyStore'));
+const SolicitudForm = React.lazy(() => import('./components/SolicitudForm'));
+const MisSolicitudes = React.lazy(() => import('./components/MisSolicitudes'));
+const SolicitudDetalle = React.lazy(() => import('./components/SolicitudDetalle'));
+const MisRecetas = React.lazy(() => import('./components/MisRecetas'));
 import config from './config';
 import './theme.css';
 import './fonts.css';
@@ -84,6 +86,7 @@ function App() {
     <ErrorBoundary>
     <ToastProvider>
       <Router>
+        <Suspense fallback={null}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -103,6 +106,7 @@ function App() {
           <Route path="/store/recetas" element={<ProtectedRoute><MisRecetas /></ProtectedRoute>} />
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
+        </Suspense>
       </Router>
     </ToastProvider>
     </ErrorBoundary>

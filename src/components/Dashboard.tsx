@@ -11,11 +11,12 @@ import { Calendar, Warning, ClipboardText, Notepad, Storefront, Prescription, X 
 import api from '../utils/api';
 import { INTERNAL_SUBSTANCE } from '../utils/doseOptions';
 import { startNotificationScheduler, stopNotificationScheduler, cleanupFiredNotifications } from '../utils/notifications';
-import { toLocalDateString, padZero } from '../utils/dateHelpers';
+import { toLocalDateString } from '../utils/dateHelpers';
 import styles from './Dashboard.module.css';
 import fieldLabels from '../utils/fieldLabels';
 import { useUser } from '../hooks/useUser';
-import type { Protocol, Baseline, DoseLog, CalendarDay, FollowUpInfo, CountdownState, CustomDoseState, Quote, Receta } from '../types';
+import { useRecetas } from '../hooks/useRecetas';
+import type { Protocol, Baseline, DoseLog, CalendarDay, FollowUpInfo, CustomDoseState, Quote, Receta } from '../types';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -32,7 +33,6 @@ const Dashboard: React.FC = () => {
   const [customDose, setCustomDose] = useState<CustomDoseState>({ amount: 0.1, unit: 'g' });
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const [nextDoseDate, setNextDoseDate] = useState<Date | null>(null);
-  const [countdown, setCountdown] = useState<CountdownState>({ hours: 0, minutes: 0, seconds: 0, isOverdue: false, isToday: false });
   const [lastDose, setLastDose] = useState<DoseLog | null>(null);
   const [recentDoses, setRecentDoses] = useState<DoseLog[]>([]);
   const [followUpInfo, setFollowUpInfo] = useState<FollowUpInfo | null>(null);
@@ -41,7 +41,8 @@ const Dashboard: React.FC = () => {
   const [quote, setQuote] = useState<Quote>({ text: '', emoji: '✨' });
 
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-  const [recetaActiva, setRecetaActiva] = useState<Receta | null>(null);
+  const { recetas: allRecetas } = useRecetas(user?.id);
+  const recetaActiva = allRecetas.find((r: Receta) => r.estado === 'activa') || null;
   const [recetaCardDismissed, setRecetaCardDismissed] = useState<boolean>(() => {
     return localStorage.getItem('receta_card_dismissed') === 'true';
   });
@@ -96,28 +97,22 @@ const Dashboard: React.FC = () => {
       loadProtocol(userId),
       loadBaseline(userId),
       loadDoses(userId),
-      loadFollowUpInfo(userId),
-      loadRecetaActiva(userId)
+      loadFollowUpInfo(userId)
     ]);
     setLoading(false);
   };
 
-  const loadRecetaActiva = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/recetas/${userId}`);
-      const activa = data?.find((r: Receta) => r.estado === 'activa');
-      setRecetaActiva(activa || null);
-      // Reset dismiss if receta changed
+  // Track receta card dismiss state
+  useEffect(() => {
+    if (recetaActiva) {
       const prevId = localStorage.getItem('receta_card_dismissed_id');
-      if (activa && prevId !== activa.id) {
+      if (prevId !== recetaActiva.id) {
         setRecetaCardDismissed(false);
         localStorage.removeItem('receta_card_dismissed');
       }
-      if (activa) localStorage.setItem('receta_card_dismissed_id', activa.id);
-    } catch {
-      // Silencioso — la receta es opcional
+      localStorage.setItem('receta_card_dismissed_id', recetaActiva.id);
     }
-  };
+  }, [recetaActiva?.id]);
 
   useEffect(() => {
     if (isIntuitive) {
@@ -127,40 +122,8 @@ const Dashboard: React.FC = () => {
     if (protocol) calculateNextDoseDate();
   }, [protocol, todayDoses, recentDoses, isIntuitive]);
 
-  useEffect(() => {
-    if (!nextDoseDate || isIntuitive) return;
-
-    const updateCountdown = () => {
-      const now = new Date();
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const doseDay = new Date(nextDoseDate);
-      doseDay.setHours(0, 0, 0, 0);
-
-      const isToday = today.getTime() === doseDay.getTime();
-      const diff = nextDoseDate.getTime() - now.getTime();
-      const isOverdue = diff <= 0;
-
-      if (isOverdue) {
-        const absDiff = Math.abs(diff);
-        const hours = Math.floor(absDiff / (1000 * 60 * 60));
-        const minutes = Math.floor((absDiff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((absDiff % (1000 * 60)) / 1000);
-        setCountdown({ hours, minutes, seconds, isOverdue: true, isToday: true });
-      } else if (isToday) {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        setCountdown({ hours, minutes, seconds, isOverdue: false, isToday: true });
-      } else {
-        setCountdown({ hours: 0, minutes: 0, seconds: 0, isOverdue: false, isToday: false });
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, [nextDoseDate, isIntuitive]);
+  // Countdown timer logic is now self-contained in CountdownTimer component
+  // (rendered inside DoseSection), so Dashboard no longer re-renders every second.
 
   const loadProtocol = async (userId: string) => {
     try {
@@ -185,7 +148,7 @@ const Dashboard: React.FC = () => {
 
   const loadDoses = async (userId: string) => {
     try {
-      const data = await api.get(`/api/doses/${userId}?days=30`);
+      const data = await api.get(`/api/doses/${userId}?days=60`);
       const today = toLocalDateString(new Date());
       setTodayDoses(data.filter((d: any) => toLocalDateString(new Date(d.date)) === today));
       setRecentDoses(data);
@@ -338,7 +301,7 @@ const Dashboard: React.FC = () => {
       const timestamp = new Date(selectedDay.dateString + 'T12:00:00');
       await api.post('/api/doses', { userId: user!.id, timestamp: timestamp.toISOString(), substance: INTERNAL_SUBSTANCE, dose: parseFloat(String(customDose.amount)), unit: customDose.unit, notes: 'Dosis manual' });
       toast.success('Dosis agregada');
-      const allDoses = await api.get(`/api/doses/${user!.id}?days=30`);
+      const allDoses = await api.get(`/api/doses/${user!.id}?days=60`);
       setSelectedDay(prev => prev ? { ...prev, doses: allDoses.filter((d: any) => toLocalDateString(new Date(d.date)) === selectedDay!.dateString) } : prev);
       setRefreshKey(prev => prev + 1);
       if (selectedDay!.isToday) { loadDoses(user!.id); }
@@ -352,7 +315,7 @@ const Dashboard: React.FC = () => {
     try {
       await api.delete(`/api/doses/${doseId}`);
       toast.info('Dosis eliminada');
-      const allDoses = await api.get(`/api/doses/${user!.id}?days=30`);
+      const allDoses = await api.get(`/api/doses/${user!.id}?days=60`);
       setSelectedDay(prev => prev ? { ...prev, doses: allDoses.filter((d: any) => toLocalDateString(new Date(d.date)) === selectedDay!.dateString) } : prev);
       setRefreshKey(prev => prev + 1);
       if (selectedDay!.isToday) { loadDoses(user!.id); }
@@ -537,7 +500,7 @@ const Dashboard: React.FC = () => {
         <p className={styles.quote}>{quote.text} {quote.emoji}</p>
       </div>
 
-      <WeeklyCalendar key={refreshKey} userId={user?.id} onDayClick={handleDayClick} refreshKey={refreshKey} followUpDates={getFollowUpDates()} followUpCompletedDates={getFollowUpCompletedDates()} protocol={protocol} />
+      <WeeklyCalendar key={refreshKey} userId={user?.id} onDayClick={handleDayClick} refreshKey={refreshKey} followUpDates={getFollowUpDates()} followUpCompletedDates={getFollowUpCompletedDates()} protocol={protocol} doses={recentDoses} />
 
       <DoseSection
         protocol={protocol}
@@ -545,7 +508,6 @@ const Dashboard: React.FC = () => {
         todayDoses={todayDoses}
         lastDose={lastDose}
         nextDoseDate={nextDoseDate}
-        countdown={countdown}
         customDose={customDose}
         setCustomDose={setCustomDose}
         showDoseModal={showDoseModal}

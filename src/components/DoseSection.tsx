@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Pill, Plus, CheckCircle, Sparkle, Clock, CalendarBlank } from '@phosphor-icons/react';
 import DosePicker from './DosePicker';
-import { padZero } from '../utils/dateHelpers';
+import CountdownTimer, { computeCountdown } from './CountdownTimer';
 import styles from './Dashboard.module.css';
-import type { Protocol, DoseLog, CountdownState, CustomDoseState } from '../types';
+import type { Protocol, DoseLog, CustomDoseState } from '../types';
 import type { NavigateFunction } from 'react-router-dom';
 
 interface DoseSectionProps {
@@ -12,7 +12,6 @@ interface DoseSectionProps {
   todayDoses: DoseLog[];
   lastDose: DoseLog | null;
   nextDoseDate: Date | null;
-  countdown: CountdownState;
   customDose: CustomDoseState;
   setCustomDose: React.Dispatch<React.SetStateAction<CustomDoseState>>;
   showDoseModal: boolean;
@@ -32,7 +31,6 @@ const DoseSection: React.FC<DoseSectionProps> = ({
   todayDoses,
   lastDose,
   nextDoseDate,
-  countdown,
   customDose,
   setCustomDose,
   showDoseModal,
@@ -152,18 +150,19 @@ const DoseSection: React.FC<DoseSectionProps> = ({
     }
 
     // Scheduled - dose pending today (or overdue)
-    if (countdown.isToday || countdown.isOverdue) {
+    const snapshot = computeCountdown(nextDoseDate);
+    if (snapshot.isToday || snapshot.isOverdue) {
       return (
         <div className={styles.doseRow}>
-          <div className={`${styles.doseStatusIcon} ${countdown.isOverdue ? styles.doseIconDanger : styles.doseIconPending}`}>
+          <div className={`${styles.doseStatusIcon} ${snapshot.isOverdue ? styles.doseIconDanger : styles.doseIconPending}`}>
             <Clock size={24} weight="fill" />
           </div>
           <div className={styles.doseStatusText}>
             <span className={styles.doseStatusTitle}>
-              {countdown.isOverdue ? 'Dosis atrasada' : 'Dosis pendiente'} · {protocol.dose}g
+              {snapshot.isOverdue ? 'Dosis atrasada' : 'Dosis pendiente'} · {protocol.dose}g
             </span>
-            <span className={`${styles.doseStatusSub} ${countdown.isOverdue ? styles.doseSubDanger : ''}`}>
-              {countdown.isOverdue ? '-' : ''}{padZero(countdown.hours)}:{padZero(countdown.minutes)}:{padZero(countdown.seconds)}
+            <span className={`${styles.doseStatusSub} ${snapshot.isOverdue ? styles.doseSubDanger : ''}`}>
+              <CountdownTimer nextDoseDate={nextDoseDate} isIntuitive={isIntuitive} />
             </span>
           </div>
           <button className={styles.doseActionButton} onClick={() => setShowDoseModal(true)}>Tomar</button>

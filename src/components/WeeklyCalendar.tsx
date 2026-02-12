@@ -12,9 +12,10 @@ interface WeeklyCalendarProps {
   followUpDates?: string[];
   followUpCompletedDates?: string[];
   protocol: Protocol | null;
+  doses?: DoseLog[];
 }
 
-const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, refreshKey, followUpDates = [], followUpCompletedDates = [], protocol }) => {
+const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, refreshKey, followUpDates = [], followUpCompletedDates = [], protocol, doses: externalDoses }) => {
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
@@ -29,6 +30,13 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, ref
   const touchEndX = useRef<number>(0);
 
   const isIntuitive = protocol?.frequency === 'intuitive';
+
+  // Sync external doses from parent (Dashboard passes 60-day doses)
+  useEffect(() => {
+    if (externalDoses) {
+      setDoses(externalDoses);
+    }
+  }, [externalDoses]);
 
   useEffect(() => {
     if (userId) {
@@ -53,11 +61,14 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, ref
   const loadData = async () => {
     setLoading(true);
 
-    try {
-      const dosesData = await api.get(`/api/doses/${userId}?days=60`);
-      setDoses(dosesData);
-    } catch (error) {
-      console.error('Error loading doses:', error);
+    // Skip dose fetch if parent already provides doses
+    if (!externalDoses) {
+      try {
+        const dosesData = await api.get(`/api/doses/${userId}?days=60`);
+        setDoses(dosesData);
+      } catch (error) {
+        console.error('Error loading doses:', error);
+      }
     }
 
     try {

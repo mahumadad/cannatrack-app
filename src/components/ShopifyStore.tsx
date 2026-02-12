@@ -6,6 +6,7 @@ import { Package, Truck, ArrowsClockwise, Receipt, ShoppingBag, ArrowLeft, MapPi
 import styles from './ShopifyStore.module.css';
 import BottomNav from './BottomNav';
 import { useUser } from '../hooks/useUser';
+import { useRecetas } from '../hooks/useRecetas';
 import type { ShopifyOrder, ShopifySubscription, ShopifyStoreData, Receta, Solicitud } from '../types';
 
 type Tab = 'orders' | 'subscriptions' | 'solicitudes' | 'recetas';
@@ -14,9 +15,10 @@ const ShopifyStore: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const { user } = useUser();
+  const { recetas: allRecetas } = useRecetas(user?.id);
+  const recetasActivas = allRecetas.filter((r: Receta) => r.estado === 'activa');
+  const recetasPasadas = allRecetas.filter((r: Receta) => r.estado !== 'activa');
   const [storeData, setStoreData] = useState<ShopifyStoreData | null>(null);
-  const [recetasActivas, setRecetasActivas] = useState<Receta[]>([]);
-  const [recetasPasadas, setRecetasPasadas] = useState<Receta[]>([]);
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<Tab>('orders');
@@ -25,7 +27,6 @@ const ShopifyStore: React.FC = () => {
   useEffect(() => {
     if (user?.id) {
       loadStoreData(user.id);
-      loadRecetasActivas(user.id);
       loadSolicitudes(user.id);
     }
   }, [user]);
@@ -39,17 +40,6 @@ const ShopifyStore: React.FC = () => {
       // Silencioso — el usuario puede no tener Shopify conectado
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadRecetasActivas = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/recetas/${userId}`);
-      const activas = (data || []).filter((r: Receta) => r.estado === 'activa');
-      setRecetasActivas(activas);
-      setRecetasPasadas((data || []).filter((r: Receta) => r.estado !== 'activa'));
-    } catch {
-      // Silencioso — la receta es opcional
     }
   };
 

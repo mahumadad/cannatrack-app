@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
+import { useRecetas } from '../hooks/useRecetas';
 import { ArrowLeft, Check, UploadSimple, ShoppingCart, Trash, CheckCircle, Pill } from '@phosphor-icons/react';
 import styles from './SolicitudForm.module.css';
 import type { ProductCatalog, MicrodosisOption, MacrodosisOption, CartItem, Receta } from '../types';
@@ -24,9 +25,10 @@ const SolicitudForm: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast()!;
   const { user } = useUser();
+  const { recetas: allRecetas } = useRecetas(user?.id);
+  const recetasActivas = allRecetas.filter((r: Receta) => r.estado === 'activa');
 
   const [catalog, setCatalog] = useState<ProductCatalog | null>(null);
-  const [recetasActivas, setRecetasActivas] = useState<Receta[]>([]);
   const [step, setStep] = useState<Step>('micro');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -61,7 +63,6 @@ const SolicitudForm: React.FC = () => {
   useEffect(() => {
     loadCatalog();
     if (user?.email) setEmail(user.email);
-    if (user?.id) loadRecetasActivas(user.id);
   }, [user]);
 
   const loadCatalog = async () => {
@@ -70,16 +71,6 @@ const SolicitudForm: React.FC = () => {
       setCatalog(data);
     } catch {
       toast.error('Error al cargar catálogo');
-    }
-  };
-
-  const loadRecetasActivas = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/recetas/${userId}`);
-      const activas = (data || []).filter((r: Receta) => r.estado === 'activa');
-      setRecetasActivas(activas);
-    } catch {
-      // No active recetas — that's fine
     }
   };
 
