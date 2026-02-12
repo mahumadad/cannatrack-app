@@ -650,7 +650,7 @@ const FollowUp: React.FC = () => {
     return (
       <div className={styles.followup}>
         <div className={styles.header}>
-          <button className={styles.backButton} onClick={() => navigate('/dashboard')}><ArrowLeft size={20} weight="bold" /> Volver</button>
+          <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /> Volver</button>
           <h1 className={styles.title}>Resultados</h1>
           <div style={{ width: '60px' }}></div>
         </div>

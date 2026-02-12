@@ -368,7 +368,7 @@ const ShopifyStore: React.FC = () => {
     return (
       <div className={styles.store}>
         <div className={styles.header}>
-          <button className={styles.backButton} onClick={() => navigate('/dashboard')}>
+          <button className={styles.backButton} onClick={() => navigate(-1)}>
             <ArrowLeft size={20} weight="bold" />
           </button>
           <h1 className={styles.title}>C&D</h1>
@@ -388,7 +388,7 @@ const ShopifyStore: React.FC = () => {
   return (
     <div className={styles.store}>
       <div className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate('/dashboard')}>
+        <button className={styles.backButton} onClick={() => navigate(-1)}>
           <ArrowLeft size={20} weight="bold" />
         </button>
         <h1 className={styles.title}>C&D</h1>

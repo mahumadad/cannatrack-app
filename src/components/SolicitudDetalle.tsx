@@ -73,7 +73,7 @@ const SolicitudDetalle: React.FC = () => {
     return (
       <div className={styles.page}>
         <div className={styles.header}>
-          <button className={styles.backButton} onClick={() => navigate('/store/solicitudes')}>
+          <button className={styles.backButton} onClick={() => navigate(-1)}>
             <ArrowLeft size={20} weight="bold" />
           </button>
           <h1 className={styles.title}>Detalle</h1>
@@ -92,7 +92,7 @@ const SolicitudDetalle: React.FC = () => {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate('/store/solicitudes')}>
+        <button className={styles.backButton} onClick={() => navigate(-1)}>
           <ArrowLeft size={20} weight="bold" />
         </button>
         <h1 className={styles.title}>Detalle</h1>

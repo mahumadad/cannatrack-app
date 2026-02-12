@@ -411,7 +411,7 @@ const Insights: React.FC = () => {
     return (
       <div className={styles.insights}>
         <div className={styles.header}>
-          <button className={styles.backButton} onClick={() => navigate('/dashboard')}><ArrowLeft size={24} weight="bold" /></button>
+          <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={24} weight="bold" /></button>
           <h1 className={styles.title}>Análisis</h1>
           <div style={{ width: 40 }}></div>
         </div>
@@ -427,7 +427,7 @@ const Insights: React.FC = () => {
     return (
       <div className={styles.insights}>
         <div className={styles.header}>
-          <button className={styles.backButton} onClick={() => navigate('/dashboard')}><ArrowLeft size={24} weight="bold" /></button>
+          <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={24} weight="bold" /></button>
           <h1 className={styles.title}>Análisis</h1>
           <div style={{ width: 40 }}></div>
         </div>
@@ -458,7 +458,7 @@ const Insights: React.FC = () => {
   return (
     <div className={styles.insights}>
       <div className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate('/dashboard')}><ArrowLeft size={24} weight="bold" /></button>
+        <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={24} weight="bold" /></button>
         <h1 className={styles.title}>Análisis</h1>
         <div style={{ width: 40 }}></div>
       </div>

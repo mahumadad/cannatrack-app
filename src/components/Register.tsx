@@ -90,6 +90,8 @@ const Register: React.FC = () => {
             <input
               type="text"
               name="name"
+              autoComplete="name"
+              enterKeyHint="next"
               value={formData.name}
               onChange={handleChange}
               placeholder="Tu nombre"
@@ -102,6 +104,9 @@ const Register: React.FC = () => {
             <input
               type="email"
               name="email"
+              inputMode="email"
+              autoComplete="email"
+              enterKeyHint="next"
               value={formData.email}
               onChange={handleChange}
               placeholder="tu@email.com"
@@ -114,6 +119,8 @@ const Register: React.FC = () => {
             <input
               type="password"
               name="password"
+              autoComplete="new-password"
+              enterKeyHint="next"
               value={formData.password}
               onChange={handleChange}
               placeholder="Min 8 chars, mayuscula, minuscula y numero"
@@ -126,6 +133,8 @@ const Register: React.FC = () => {
             <input
               type="password"
               name="confirmPassword"
+              autoComplete="new-password"
+              enterKeyHint="go"
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="Repite tu contrasena"

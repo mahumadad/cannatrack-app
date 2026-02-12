@@ -150,7 +150,7 @@ const MisRecetas: React.FC = () => {
     return (
       <div className={styles.page}>
         <div className={styles.header}>
-          <button className={styles.backButton} onClick={() => navigate('/store')}>
+          <button className={styles.backButton} onClick={() => navigate(-1)}>
             <ArrowLeft size={20} weight="bold" />
           </button>
           <h1 className={styles.title}>Mis Recetas</h1>
@@ -168,7 +168,7 @@ const MisRecetas: React.FC = () => {
       {lightboxUrl && <ImageLightbox src={lightboxUrl} alt="Receta" onClose={() => setLightboxUrl(null)} />}
 
       <div className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate('/store')}>
+        <button className={styles.backButton} onClick={() => navigate(-1)}>
           <ArrowLeft size={20} weight="bold" />
         </button>
         <h1 className={styles.title}>Mis Recetas</h1>

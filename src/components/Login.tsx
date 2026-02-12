@@ -107,6 +107,9 @@ const Login: React.FC = () => {
             <input
               type="email"
               name="email"
+              inputMode="email"
+              autoComplete="email"
+              enterKeyHint="next"
               value={formData.email}
               onChange={handleChange}
               placeholder="tu@email.com"
@@ -119,6 +122,8 @@ const Login: React.FC = () => {
             <input
               type="password"
               name="password"
+              autoComplete="current-password"
+              enterKeyHint="go"
               value={formData.password}
               onChange={handleChange}
               placeholder="••••••••"

@@ -1,7 +1,9 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ToastProvider } from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
+import useOnlineStatus from './hooks/useOnlineStatus';
 // Eager: first-paint screens (login, register, auth callback)
 import Login from './components/Login';
 import Register from './components/Register';
@@ -78,6 +80,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 function App() {
+  const isOnline = useOnlineStatus();
+  const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW();
+
   useEffect(() => {
     document.documentElement.classList.remove('dark');
     storage.removeItem('theme');
@@ -86,6 +91,15 @@ function App() {
   return (
     <ErrorBoundary>
     <ToastProvider>
+      {!isOnline && (
+        <div className="offline-banner">Sin conexión a internet</div>
+      )}
+      {needRefresh && (
+        <div className="update-banner">
+          <span>Nueva versión disponible</span>
+          <button onClick={() => updateServiceWorker(true)}>Actualizar</button>
+        </div>
+      )}
       <Router>
         <Suspense fallback={null}>
         <Routes>

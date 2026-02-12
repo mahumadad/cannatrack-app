@@ -270,7 +270,7 @@ const Settings: React.FC = () => {
   return (
     <div className={styles.settings}>
       <div className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate('/dashboard')}><ArrowLeft size={24} weight="bold" /></button>
+        <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={24} weight="bold" /></button>
         <h1 className={styles.title}>Configuración</h1>
         <div style={{ width: '40px' }}></div>
       </div>
@@ -621,6 +621,8 @@ const Settings: React.FC = () => {
                 onChange={(e) => setEditFirstName(e.target.value)}
                 placeholder="Nombre"
                 className={styles.nameInput}
+                autoComplete="given-name"
+                enterKeyHint="next"
               />
               <input
                 type="text"
@@ -628,6 +630,8 @@ const Settings: React.FC = () => {
                 onChange={(e) => setEditLastName(e.target.value)}
                 placeholder="Apellido"
                 className={styles.nameInput}
+                autoComplete="family-name"
+                enterKeyHint="done"
               />
             </div>
             <div className={styles.modalButtons}>

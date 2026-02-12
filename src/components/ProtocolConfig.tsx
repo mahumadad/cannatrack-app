@@ -155,9 +155,9 @@ const ProtocolConfig: React.FC = () => {
   return (
     <div className={styles.protocol}>
       <div className={styles.header}>
-        <button 
+        <button
           className={styles.backButton}
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate(-1)}
         >
           ← Volver
         </button>
@@ -275,6 +275,7 @@ const ProtocolConfig: React.FC = () => {
                   <label>Cada cuántos días:</label>
                   <input
                     type="number"
+                    inputMode="numeric"
                     min="1"
                     max="30"
                     value={everyXDays}
@@ -310,6 +311,7 @@ const ProtocolConfig: React.FC = () => {
                     <div className={styles.patternInput}>
                       <input
                         type="number"
+                        inputMode="numeric"
                         min="1"
                         max="10"
                         value={customPattern.on}
@@ -321,6 +323,7 @@ const ProtocolConfig: React.FC = () => {
                     <div className={styles.patternInput}>
                       <input
                         type="number"
+                        inputMode="numeric"
                         min="1"
                         max="10"
                         value={customPattern.off}
@@ -400,6 +403,7 @@ const ProtocolConfig: React.FC = () => {
                 <h2 className={styles.sectionTitle}>📆 Duración del Protocolo (Opcional)</h2>
                 <input
                   type="number"
+                  inputMode="numeric"
                   min="1"
                   max="365"
                   value={protocol.duration || ''}
