@@ -49,6 +49,10 @@ const AuthCallback: React.FC = () => {
 
           // Guardar datos de usuario (no-sensibles) en localStorage
           storage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
+          // Guardar token para producción cross-origin (Bearer fallback)
+          if (data.access_token) {
+            storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
+          }
 
           navigate(redirectPath);
         } catch (err) {

@@ -55,6 +55,9 @@ const Login: React.FC = () => {
       const data = await api.post('/api/auth/login', formData, { skipAuthRedirect: true });
 
       storage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
+      if (data.access_token) {
+        storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
+      }
 
       // Verificar si completo el onboarding
       try {
