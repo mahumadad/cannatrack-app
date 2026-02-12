@@ -41,8 +41,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
       return;
     }
 
+    const headers: Record<string, string> = {};
+    const token = storage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     fetch(`${config.API_URL}/api/auth/verify`, {
-      credentials: 'include'
+      credentials: 'include',
+      headers
     })
       .then(res => {
         if (res.ok) {
