@@ -7,7 +7,7 @@ import { SkeletonCard, SkeletonCalendar } from './Skeleton';
 import DoseSection from './DoseSection';
 import DayDetailModal from './DayDetailModal';
 import BottomNav from './BottomNav';
-import { Calendar, Warning, ClipboardText, Notepad, Storefront, Prescription, X } from '@phosphor-icons/react';
+import { Calendar, Warning, ClipboardText, Notepad, Prescription, X } from '@phosphor-icons/react';
 import api from '../utils/api';
 import { INTERNAL_SUBSTANCE } from '../utils/doseOptions';
 import { startNotificationScheduler, stopNotificationScheduler, cleanupFiredNotifications } from '../utils/notifications';
@@ -416,9 +416,7 @@ const Dashboard: React.FC = () => {
         <div className={styles.header}>
           <div className={styles.avatarButton}><span>{userInitial}</span></div>
           <img src="/imagotipo.png" alt="Camellos" className={styles.logo} />
-          <div className={styles.storeButton}>
-            <Storefront size={20} weight="bold" />
-          </div>
+          <div style={{ width: '36px' }} />
         </div>
         <SkeletonCalendar />
         <div style={{ padding: '0 20px' }}><SkeletonCard /><SkeletonCard /></div>
@@ -434,9 +432,7 @@ const Dashboard: React.FC = () => {
           <span>{userInitial}</span>
         </button>
         <img src="/imagotipo.png" alt="Camellos" className={styles.logo} />
-        <button className={styles.storeButton} onClick={() => navigate('/store')}>
-          <Storefront size={20} weight="bold" />
-        </button>
+        <div style={{ width: '36px' }} />
       </div>
 
       {(!baseline || !baseline.is_locked) && (
