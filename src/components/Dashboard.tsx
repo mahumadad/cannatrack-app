@@ -312,7 +312,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleDeleteDose = async (doseId: string) => {
-    if (!window.confirm('¿Eliminar esta dosis? Esta accion no se puede deshacer.')) return;
+    if (!await toast.confirm('¿Eliminar esta dosis? Esta acción no se puede deshacer.')) return;
     try {
       await api.delete(`/api/doses/${doseId}`);
       toast.info('Dosis eliminada');
@@ -326,7 +326,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleDeleteCheckin = async (checkinId: string) => {
-    if (!window.confirm('¿Eliminar esta reflexion? Esta accion no se puede deshacer.')) return;
+    if (!await toast.confirm('¿Eliminar esta reflexión? Esta acción no se puede deshacer.')) return;
     try {
       await api.delete(`/api/checkins/${checkinId}`);
       toast.info('Reflexión eliminada');

@@ -23,6 +23,7 @@ const MisSolicitudes = React.lazy(() => import('./components/MisSolicitudes'));
 const SolicitudDetalle = React.lazy(() => import('./components/SolicitudDetalle'));
 const MisRecetas = React.lazy(() => import('./components/MisRecetas'));
 import storage, { STORAGE_KEYS } from './utils/storage';
+import { updateCsrfToken } from './utils/api';
 import config from './config';
 import './theme.css';
 import './fonts.css';
@@ -45,6 +46,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     })
       .then(res => {
         if (res.ok) {
+          const csrf = res.headers.get('x-csrf-token');
+          if (csrf) updateCsrfToken(csrf);
           setStatus('valid');
         } else {
           storage.removeItem(STORAGE_KEYS.USER);

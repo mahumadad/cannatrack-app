@@ -18,7 +18,10 @@ const formatDateTime = (dateStr: string | null): string => {
   return new Date(dateStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
-// --- Lightbox Component ---
+// --- Helper: detect PDF from URL or path ---
+const isPdfUrl = (url: string) => /\.pdf(\?|$)/i.test(url);
+
+// --- Lightbox Component (supports images & PDFs) ---
 const ImageLightbox: React.FC<{ src: string; alt: string; onClose: () => void }> = ({ src, alt, onClose }) => {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -30,17 +33,28 @@ const ImageLightbox: React.FC<{ src: string; alt: string; onClose: () => void }>
     };
   }, [onClose]);
 
+  const pdf = isPdfUrl(src);
+
   return (
     <div className={styles.lightboxOverlay} onClick={onClose}>
       <button className={styles.lightboxClose} onClick={onClose}>
         <X size={22} weight="bold" />
       </button>
-      <img
-        src={src}
-        alt={alt}
-        onClick={e => e.stopPropagation()}
-        className={styles.lightboxImage}
-      />
+      {pdf ? (
+        <iframe
+          src={src}
+          title={alt}
+          onClick={e => e.stopPropagation()}
+          className={styles.lightboxPdf}
+        />
+      ) : (
+        <img
+          src={src}
+          alt={alt}
+          onClick={e => e.stopPropagation()}
+          className={styles.lightboxImage}
+        />
+      )}
     </div>
   );
 };
@@ -247,7 +261,11 @@ const MisRecetas: React.FC = () => {
             const macroPct = getSaldoPercentage(receta.saldo_macro, receta.total_macro_autorizado);
             const isExpanded = expandedId === receta.id;
             const confianza = getConfianzaLabel(receta.ai_confianza);
+            const sameFile = receta.archivo_micro_url && receta.archivo_macro_url && receta.archivo_micro_path === receta.archivo_macro_path;
             const hasImages = receta.archivo_micro_url || receta.archivo_macro_url;
+            const hasSemantic = receta.total_micro_autorizado > 0 || receta.total_macro_autorizado > 0 || !!receta.gramaje_micro || !!receta.gramaje_macro;
+            const isMicro = receta.total_micro_autorizado > 0 || !!receta.gramaje_micro || (!hasSemantic && !!receta.archivo_micro_path);
+            const isMacro = receta.total_macro_autorizado > 0 || !!receta.gramaje_macro || (!hasSemantic && !!receta.archivo_macro_path);
 
             return (
               <div key={receta.id} className={styles.recetaCard}>
@@ -262,9 +280,13 @@ const MisRecetas: React.FC = () => {
                     </div>
                   </div>
                   <div className={styles.headerRight}>
-                    <span className={`${styles.estadoBadge} ${getEstadoClass(receta.estado)}`}>
-                      {getEstadoLabel(receta.estado)}
-                    </span>
+                    <div className={styles.headerBadges}>
+                      <span className={`${styles.estadoBadge} ${getEstadoClass(receta.estado)}`}>
+                        {getEstadoLabel(receta.estado)}
+                      </span>
+                      {isMicro && <span className={styles.tipoBadge}>Micro</span>}
+                      {isMacro && <span className={styles.tipoBadge}>Macro</span>}
+                    </div>
                     {isExpanded ? <CaretUp size={16} weight="bold" style={{ color: '#999' }} /> : <CaretDown size={16} weight="bold" style={{ color: '#999' }} />}
                   </div>
                 </div>
@@ -310,35 +332,49 @@ const MisRecetas: React.FC = () => {
                         <div className={styles.recetaImages}>
                           {receta.archivo_micro_url && (
                             <div className={styles.recetaImageWrapper}>
-                              <img
-                                src={receta.archivo_micro_url}
-                                alt="Receta Micro"
-                                className={styles.recetaThumbnail}
-                                onClick={(e) => { e.stopPropagation(); setLightboxUrl(receta.archivo_micro_url!); }}
-                                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                              />
+                              {isPdfUrl(receta.archivo_micro_url) ? (
+                                <div className={styles.pdfThumbnail} onClick={(e) => { e.stopPropagation(); setLightboxUrl(receta.archivo_micro_url!); }}>
+                                  <FileText size={32} weight="light" />
+                                  <span>PDF</span>
+                                </div>
+                              ) : (
+                                <img
+                                  src={receta.archivo_micro_url}
+                                  alt="Receta Micro"
+                                  className={styles.recetaThumbnail}
+                                  onClick={(e) => { e.stopPropagation(); setLightboxUrl(receta.archivo_micro_url!); }}
+                                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                />
+                              )}
                               <button
                                 className={styles.recetaImageBtn}
                                 onClick={(e) => { e.stopPropagation(); setLightboxUrl(receta.archivo_micro_url!); }}
                               >
-                                <Eye size={14} weight="bold" /> Ver micro
+                                <Eye size={14} weight="bold" /> Ver receta
                               </button>
                             </div>
                           )}
-                          {receta.archivo_macro_url && (
+                          {receta.archivo_macro_url && !sameFile && (
                             <div className={styles.recetaImageWrapper}>
-                              <img
-                                src={receta.archivo_macro_url}
-                                alt="Receta Macro"
-                                className={styles.recetaThumbnail}
-                                onClick={(e) => { e.stopPropagation(); setLightboxUrl(receta.archivo_macro_url!); }}
-                                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                              />
+                              {isPdfUrl(receta.archivo_macro_url) ? (
+                                <div className={styles.pdfThumbnail} onClick={(e) => { e.stopPropagation(); setLightboxUrl(receta.archivo_macro_url!); }}>
+                                  <FileText size={32} weight="light" />
+                                  <span>PDF</span>
+                                </div>
+                              ) : (
+                                <img
+                                  src={receta.archivo_macro_url}
+                                  alt="Receta Macro"
+                                  className={styles.recetaThumbnail}
+                                  onClick={(e) => { e.stopPropagation(); setLightboxUrl(receta.archivo_macro_url!); }}
+                                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                />
+                              )}
                               <button
                                 className={styles.recetaImageBtn}
                                 onClick={(e) => { e.stopPropagation(); setLightboxUrl(receta.archivo_macro_url!); }}
                               >
-                                <Eye size={14} weight="bold" /> Ver macro
+                                <Eye size={14} weight="bold" /> Ver receta
                               </button>
                             </div>
                           )}

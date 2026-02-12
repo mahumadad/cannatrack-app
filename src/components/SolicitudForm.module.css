@@ -493,6 +493,131 @@
   color: var(--color-primary);
 }
 
+/* ============ RECETA CARDS ============ */
+
+.recetaCards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.recetaCard {
+  background: linear-gradient(135deg, #FEFCF9, #FFF8F0);
+  border: 1.5px solid #E8DDD4;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recetaCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-primary);
+  flex-wrap: wrap;
+}
+
+.recetaCardBadge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #2E7D32;
+  background: #E8F5E9;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.recetaCardTypeBadge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #5D4037;
+  background: #EFEBE9;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.recetaCardRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6B5B4E;
+  flex-wrap: wrap;
+}
+
+.recetaCardRow svg {
+  color: #A0907E;
+  flex-shrink: 0;
+}
+
+.recetaCardSep {
+  color: #C4B8AC;
+}
+
+.recetaCardDosis {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6B5B4E;
+  padding: 4px 0 0;
+  flex-wrap: wrap;
+}
+
+.recetaCardDosisLabel {
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #4A3F35;
+  background: #F0EBE5;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.recetaCardGramaje {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.recetaCardDosisValue {
+  color: #4A3F35;
+  font-weight: 500;
+}
+
+.recetaCardUsed {
+  color: #A0907E;
+  font-size: 11px;
+}
+
+/* ============ WARNING BANNER ============ */
+
+.warningBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #FFF8E1;
+  border: 1.5px solid #FFD54F;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #7B6B00;
+  line-height: 1.4;
+}
+
+.warningBanner svg {
+  color: #F9A825;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 /* ============ PRE-SELECT PULSE ============ */
 .productCardRecommended {
   border-color: var(--color-primary);

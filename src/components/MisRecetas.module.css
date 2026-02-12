@@ -120,10 +120,28 @@
   gap: 8px;
 }
 
+.headerBadges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
 .estadoBadge {
   font-size: 11px;
   font-weight: 600;
   padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.tipoBadge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #5D4037;
+  background: #EFEBE9;
+  padding: 2px 8px;
   border-radius: 20px;
 }
 
@@ -300,6 +318,34 @@
   transform: scale(0.97);
 }
 
+.pdfThumbnail {
+  width: 100%;
+  max-height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: #F5F0EB;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  padding: 24px 16px;
+  cursor: pointer;
+  color: #A0907E;
+  transition: transform 0.2s;
+}
+
+.pdfThumbnail span {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pdfThumbnail:active {
+  transform: scale(0.97);
+}
+
 .recetaImageBtn {
   display: inline-flex;
   align-items: center;
@@ -392,6 +438,15 @@
 @keyframes lightboxZoom {
   from { transform: scale(0.9); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
+}
+
+.lightboxPdf {
+  width: 92vw;
+  height: 85vh;
+  border: none;
+  border-radius: 8px;
+  background: white;
+  animation: lightboxZoom 0.25s ease;
 }
 
 /* ============ EMPTY STATE ============ */

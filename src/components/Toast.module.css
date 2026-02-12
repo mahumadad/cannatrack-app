@@ -68,3 +68,63 @@
   font-size: 14px;
   font-weight: 500;
 }
+
+/* ─── Confirm dialog ─── */
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.confirmDialog {
+  background: var(--color-surface, #fff);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.5rem;
+  max-width: 320px;
+  width: 100%;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.confirmMessage {
+  font-size: 0.95rem;
+  color: var(--color-text, #333);
+  margin: 0 0 1.25rem;
+  line-height: 1.4;
+}
+
+.confirmButtons {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.confirmCancel,
+.confirmAccept {
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-md, 8px);
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirmCancel {
+  background: var(--color-surface-alt, #f0f0f0);
+  color: var(--color-text-secondary, #666);
+}
+
+.confirmAccept {
+  background: #f44336;
+  color: white;
+}

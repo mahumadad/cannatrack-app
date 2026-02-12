@@ -56,6 +56,9 @@ const fetchWithRetry = async (url: string, options: RequestInit = {}): Promise<R
 // CSRF token almacenado en memoria (recibido via response header)
 let csrfToken: string | null = null;
 
+// Permite actualizar el token desde fuera (e.g. ProtectedRoute verify)
+export const updateCsrfToken = (token: string) => { csrfToken = token; };
+
 const getCsrfToken = (): string | null => {
   // Primero intentar desde memoria, luego fallback a cookie
   if (csrfToken) return csrfToken;

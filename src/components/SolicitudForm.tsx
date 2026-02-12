@@ -4,7 +4,7 @@ import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
 import { useRecetas } from '../hooks/useRecetas';
-import { ArrowLeft, Check, UploadSimple, ShoppingCart, Trash, CheckCircle, Pill } from '@phosphor-icons/react';
+import { ArrowLeft, Check, UploadSimple, ShoppingCart, Trash, CheckCircle, Pill, Warning, CalendarBlank, User } from '@phosphor-icons/react';
 import styles from './SolicitudForm.module.css';
 import { formatCLP } from '../utils/formatters';
 import type { ProductCatalog, MicrodosisOption, MacrodosisOption, CartItem, Receta } from '../types';
@@ -23,7 +23,7 @@ const SolicitudForm: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast()!;
   const { user } = useUser();
-  const { recetas: allRecetas } = useRecetas(user?.id);
+  const { recetas: allRecetas, loading: loadingRecetas } = useRecetas(user?.id);
   const recetasActivas = allRecetas.filter((r: Receta) => r.estado === 'activa');
 
   const [catalog, setCatalog] = useState<ProductCatalog | null>(null);
@@ -53,14 +53,20 @@ const SolicitudForm: React.FC = () => {
   const macroFileRef = useRef<HTMLInputElement>(null);
 
   // Derived: find receta for micro and macro from all active recetas
-  const recetaMicro = recetasActivas.find(r => r.total_micro_autorizado > 0 && r.saldo_micro > 0) || null;
-  const recetaMacro = recetasActivas.find(r => r.total_macro_autorizado > 0 && r.saldo_macro > 0) || null;
-  // For backward-compat checks (any active receta at all)
+  // Con saldo — para banners y auto-selección de gramaje
+  const recetaMicroConSaldo = recetasActivas.find(r => r.total_micro_autorizado > 0 && r.saldo_micro > 0) || null;
+  const recetaMacroConSaldo = recetasActivas.find(r => r.total_macro_autorizado > 0 && r.saldo_macro > 0) || null;
+  // Para validación: basta que tenga cualquier receta activa
   const hasAnyReceta = recetasActivas.length > 0;
+  const recetaMicro = hasAnyReceta ? recetasActivas[0] : null;
+  const recetaMacro = hasAnyReceta ? recetasActivas[0] : null;
 
   useEffect(() => {
     loadCatalog();
-    if (user?.email) setEmail(user.email);
+    if (user) {
+      if (user.email) setEmail(user.email);
+      loadContactInfo(user.id);
+    }
   }, [user]);
 
   const loadCatalog = async () => {
@@ -72,14 +78,24 @@ const SolicitudForm: React.FC = () => {
     }
   };
 
+  const loadContactInfo = async (userId: string) => {
+    try {
+      const profile = await api.get(`/api/shopify/profile/${userId}`, { skipAuthRedirect: true });
+      if (profile?.emailAddress?.emailAddress) setEmail(profile.emailAddress.emailAddress);
+      if (profile?.phoneNumber?.phoneNumber) setTelefono(profile.phoneNumber.phoneNumber);
+    } catch {
+      // Shopify data is supplementary — silently ignore
+    }
+  };
+
   // Auto-select gramaje and max capsulas from active micro receta once catalog loads
   useEffect(() => {
-    if (!catalog || !recetaMicro || preselected) return;
+    if (!catalog || !recetaMicroConSaldo || preselected) return;
 
     // Auto-select micro gramaje if receta has it
-    if (recetaMicro.gramaje_micro && recetaMicro.saldo_micro > 0) {
+    if (recetaMicroConSaldo.gramaje_micro && recetaMicroConSaldo.saldo_micro > 0) {
       const matchingGramaje = catalog.microdosis.find(m =>
-        m.gramaje.replace(/\s/g, '').toLowerCase() === recetaMicro.gramaje_micro!.replace(/\s/g, '').toLowerCase()
+        m.gramaje.replace(/\s/g, '').toLowerCase() === recetaMicroConSaldo.gramaje_micro!.replace(/\s/g, '').toLowerCase()
       );
       if (matchingGramaje) {
         setSelectedGramaje(matchingGramaje.gramaje);
@@ -88,7 +104,7 @@ const SolicitudForm: React.FC = () => {
         const sortedOptions = [...matchingGramaje.options].sort(
           (a, b) => parseInt(b.capsulas) - parseInt(a.capsulas)
         );
-        const bestFit = sortedOptions.find(o => parseInt(o.capsulas) <= recetaMicro.saldo_micro);
+        const bestFit = sortedOptions.find(o => parseInt(o.capsulas) <= recetaMicroConSaldo.saldo_micro);
         if (bestFit) {
           setSelectedCapsulas(bestFit.capsulas);
         } else {
@@ -100,11 +116,17 @@ const SolicitudForm: React.FC = () => {
     }
 
     setPreselected(true);
-  }, [catalog, recetaMicro, preselected]);
+  }, [catalog, recetaMicroConSaldo, preselected]);
 
   const hasMicro = cart.some(i => i.category === 'Microdosis');
   const hasMacro = cart.some(i => i.category === 'Macrodosis');
   const cartTotal = cart.reduce((sum, i) => sum + i.lineTotal, 0);
+
+  // Cart quantities for saldo warnings
+  const cartMicroCaps = cart.filter(i => i.category === 'Microdosis').reduce((sum, i) => sum + parseInt(i.capsulas || '0') * (i.quantity || 1), 0);
+  const cartMacroUnits = cart.filter(i => i.category === 'Macrodosis').reduce((sum, i) => sum + (i.quantity || 1), 0);
+  // Gramajes in cart for mismatch detection
+  const cartMicroGramajes = [...new Set(cart.filter(i => i.category === 'Microdosis').map(i => i.gramaje))];
 
   // ─── Add to cart ───────────────────────
 
@@ -227,6 +249,7 @@ const SolicitudForm: React.FC = () => {
   const stepIndex = STEPS.indexOf(step);
   const canGoNext = () => {
     if (step === 'recetas') {
+      if (loadingRecetas) return false; // Esperar a que carguen las recetas
       // Solo exigir receta si no hay receta activa para ese tipo
       if (hasMicro && !recetaMicro && !recipeMicro) return false;
       if (hasMacro && !recetaMacro && !recipeMacro) return false;
@@ -318,23 +341,23 @@ const SolicitudForm: React.FC = () => {
             <p className={styles.sectionSubtitle}>Selecciona gramaje y cantidad de cápsulas</p>
 
             {/* Active receta banner for micro */}
-            {recetaMicro && recetaMicro.saldo_micro > 0 && (
+            {recetaMicroConSaldo && (
               <div className={styles.recetaBanner}>
                 <div className={styles.recetaBannerIcon}>
                   <Pill size={16} weight="fill" />
                 </div>
                 <div className={styles.recetaBannerText}>
                   <div className={styles.recetaBannerLabel}>Receta activa</div>
-                  Saldo disponible: <span className={styles.recetaBannerSaldo}>{recetaMicro.saldo_micro} caps</span>
-                  {recetaMicro.gramaje_micro && <> · Gramaje: <strong>{recetaMicro.gramaje_micro}</strong></>}
+                  Saldo disponible: <span className={styles.recetaBannerSaldo}>{recetaMicroConSaldo.saldo_micro} caps</span>
+                  {recetaMicroConSaldo.gramaje_micro && <> · Gramaje: <strong>{recetaMicroConSaldo.gramaje_micro}</strong></>}
                 </div>
               </div>
             )}
 
             <div className={styles.productGrid}>
               {catalog.microdosis.map((m: MicrodosisOption) => {
-                const isRecetaGramaje = recetaMicro?.gramaje_micro && recetaMicro.saldo_micro > 0
-                  && m.gramaje.replace(/\s/g, '').toLowerCase() === recetaMicro.gramaje_micro.replace(/\s/g, '').toLowerCase();
+                const isRecetaGramaje = recetaMicroConSaldo?.gramaje_micro
+                  && m.gramaje.replace(/\s/g, '').toLowerCase() === recetaMicroConSaldo.gramaje_micro.replace(/\s/g, '').toLowerCase();
                 const isSelected = selectedGramaje === m.gramaje;
                 return (
                   <div
@@ -364,13 +387,13 @@ const SolicitudForm: React.FC = () => {
                     const isSelected = selectedCapsulas === opt.capsulas;
                     // Determine if this is the recommended (max fit) capsulas for active receta
                     const isRecommended = (() => {
-                      if (!recetaMicro || recetaMicro.saldo_micro <= 0 || !preselected) return false;
-                      const recetaGramajeMatch = recetaMicro.gramaje_micro
-                        && selectedGramaje?.replace(/\s/g, '').toLowerCase() === recetaMicro.gramaje_micro.replace(/\s/g, '').toLowerCase();
+                      if (!recetaMicroConSaldo || !preselected) return false;
+                      const recetaGramajeMatch = recetaMicroConSaldo.gramaje_micro
+                        && selectedGramaje?.replace(/\s/g, '').toLowerCase() === recetaMicroConSaldo.gramaje_micro.replace(/\s/g, '').toLowerCase();
                       if (!recetaGramajeMatch) return false;
                       // Find the max option that fits saldo
                       const sorted = [...selectedGramajeData!.options].sort((a, b) => parseInt(b.capsulas) - parseInt(a.capsulas));
-                      const bestFit = sorted.find(o => parseInt(o.capsulas) <= recetaMicro.saldo_micro);
+                      const bestFit = sorted.find(o => parseInt(o.capsulas) <= recetaMicroConSaldo.saldo_micro);
                       if (bestFit) return opt.capsulas === bestFit.capsulas;
                       // If no option fits, recommend smallest
                       return opt.capsulas === sorted[sorted.length - 1]?.capsulas;
@@ -404,15 +427,15 @@ const SolicitudForm: React.FC = () => {
             <p className={styles.sectionSubtitle}>Selecciona el producto</p>
 
             {/* Active receta banner for macro */}
-            {recetaMacro && recetaMacro.saldo_macro > 0 && (
+            {recetaMacroConSaldo && (
               <div className={styles.recetaBanner}>
                 <div className={styles.recetaBannerIcon}>
                   <Pill size={16} weight="fill" />
                 </div>
                 <div className={styles.recetaBannerText}>
                   <div className={styles.recetaBannerLabel}>Receta activa</div>
-                  Saldo disponible: <span className={styles.recetaBannerSaldo}>{recetaMacro.saldo_macro} unidades</span>
-                  {recetaMacro.gramaje_macro && <> · Gramaje: <strong>{recetaMacro.gramaje_macro}</strong></>}
+                  Saldo disponible: <span className={styles.recetaBannerSaldo}>{recetaMacroConSaldo.saldo_macro} unidades</span>
+                  {recetaMacroConSaldo.gramaje_macro && <> · Gramaje: <strong>{recetaMacroConSaldo.gramaje_macro}</strong></>}
                 </div>
               </div>
             )}
@@ -446,23 +469,132 @@ const SolicitudForm: React.FC = () => {
         {/* ─── Step: Recetas & Contacto ─── */}
         {step === 'recetas' && (
           <>
-            {/* Banner si ya tiene receta activa */}
-            {hasAnyReceta && (
-              <div className={styles.recetaBanner} style={{ marginBottom: 20 }}>
-                <div className={styles.recetaBannerIcon}>
-                  <Pill size={16} weight="fill" />
+            {/* ── Receta summary cards ── */}
+            {recetasActivas.length > 0 && (
+              <>
+                <h2 className={styles.sectionTitle}>
+                  {recetasActivas.length > 1 ? 'Tus recetas activas' : 'Tu receta activa'}
+                </h2>
+                <div className={styles.recetaCards}>
+                  {recetasActivas.map((r: Receta) => {
+                    const fmtDate = (d: string | null) => {
+                      if (!d) return '—';
+                      const [y, m, day] = d.split('-');
+                      return `${day}/${m}/${y}`;
+                    };
+                    const usedMicro = r.total_micro_autorizado - r.saldo_micro;
+                    const usedMacro = r.total_macro_autorizado - r.saldo_macro;
+                    const hasMicroAuth = r.total_micro_autorizado > 0;
+                    const hasMacroAuth = r.total_macro_autorizado > 0;
+                    // Detect type: semantic data first, file paths only as last resort
+                    const hasSemantic = hasMicroAuth || hasMacroAuth || !!r.gramaje_micro || !!r.gramaje_macro;
+                    const isMicroReceta = hasMicroAuth || !!r.gramaje_micro || (!hasSemantic && !!r.archivo_micro_path);
+                    const isMacroReceta = hasMacroAuth || !!r.gramaje_macro || (!hasSemantic && !!r.archivo_macro_path);
+
+                    return (
+                      <div key={r.id} className={styles.recetaCard}>
+                        <div className={styles.recetaCardHeader}>
+                          <Pill size={16} weight="fill" />
+                          <span className={styles.recetaCardBadge}>Activa</span>
+                          {isMicroReceta && <span className={styles.recetaCardTypeBadge}>Micro</span>}
+                          {isMacroReceta && <span className={styles.recetaCardTypeBadge}>Macro</span>}
+                        </div>
+
+                        <div className={styles.recetaCardRow}>
+                          <User size={14} weight="bold" />
+                          <span>{r.medico_nombre || 'Médico no registrado'}</span>
+                        </div>
+
+                        <div className={styles.recetaCardRow}>
+                          <CalendarBlank size={14} weight="bold" />
+                          <span>Emisión: {fmtDate(r.fecha_emision)}</span>
+                          <span className={styles.recetaCardSep}>·</span>
+                          <span>Vence: {fmtDate(r.fecha_vencimiento)}</span>
+                        </div>
+
+                        {isMicroReceta && (
+                          <div className={styles.recetaCardDosis}>
+                            <span className={styles.recetaCardDosisLabel}>Micro</span>
+                            {r.gramaje_micro && <span className={styles.recetaCardGramaje}>{r.gramaje_micro}</span>}
+                            {hasMicroAuth ? (
+                              <>
+                                <span className={styles.recetaCardDosisValue}>
+                                  {r.saldo_micro} de {r.total_micro_autorizado} caps
+                                </span>
+                                {usedMicro > 0 && <span className={styles.recetaCardUsed}>({usedMicro} usadas)</span>}
+                              </>
+                            ) : (
+                              <span className={styles.recetaCardUsed}>sin cantidad asignada</span>
+                            )}
+                          </div>
+                        )}
+
+                        {isMacroReceta && (
+                          <div className={styles.recetaCardDosis}>
+                            <span className={styles.recetaCardDosisLabel}>Macro</span>
+                            {r.gramaje_macro && <span className={styles.recetaCardGramaje}>{r.gramaje_macro}</span>}
+                            {hasMacroAuth ? (
+                              <>
+                                <span className={styles.recetaCardDosisValue}>
+                                  {r.saldo_macro} de {r.total_macro_autorizado} uds
+                                </span>
+                                {usedMacro > 0 && <span className={styles.recetaCardUsed}>({usedMacro} usadas)</span>}
+                              </>
+                            ) : (
+                              <span className={styles.recetaCardUsed}>sin cantidad asignada</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className={styles.recetaBannerText}>
-                  <div className={styles.recetaBannerLabel}>Ya tienes {recetasActivas.length > 1 ? 'recetas activas' : 'una receta activa'}</div>
-                  {recetaMicro && hasMicro && !recetaMacro && hasMacro
-                    ? 'La receta de micro está cubierta. Solo necesitas subir receta de macrodosis.'
-                    : !recetaMicro && hasMicro && recetaMacro && hasMacro
-                    ? 'La receta de macro está cubierta. Solo necesitas subir receta de microdosis.'
-                    : 'No es necesario subir una nueva receta. Si deseas actualizar, puedes subir una nueva a continuación.'}
-                </div>
+                <p className={styles.sectionSubtitle} style={{ marginTop: 4 }}>
+                  Puedes subir otra receta a continuación.
+                </p>
+              </>
+            )}
+
+            {/* ── Warnings ── */}
+            {hasMicro && !recetaMicro && !recipeMicro && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>No tienes receta de microdosis activa. Sube una para continuar.</span>
+              </div>
+            )}
+            {hasMacro && !recetaMacro && !recipeMacro && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>No tienes receta de macrodosis activa. Sube una para continuar.</span>
+              </div>
+            )}
+            {hasMicro && recetaMicroConSaldo && cartMicroCaps > recetaMicroConSaldo.saldo_micro && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>Pides {cartMicroCaps} caps micro pero tu saldo es {recetaMicroConSaldo.saldo_micro}. El admin decidirá si aprueba.</span>
+              </div>
+            )}
+            {hasMicro && recetaMicroConSaldo && recetaMicroConSaldo.saldo_micro === 0 && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>Tu saldo de microdosis está agotado. El admin decidirá si aprueba.</span>
+              </div>
+            )}
+            {hasMacro && recetaMacroConSaldo && cartMacroUnits > recetaMacroConSaldo.saldo_macro && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>Pides {cartMacroUnits} uds macro pero tu saldo es {recetaMacroConSaldo.saldo_macro}. El admin decidirá si aprueba.</span>
+              </div>
+            )}
+            {hasMicro && recetaMicroConSaldo && recetaMicroConSaldo.gramaje_micro && cartMicroGramajes.length > 0
+              && !cartMicroGramajes.some(g => g?.replace(/\s/g, '').toLowerCase() === recetaMicroConSaldo.gramaje_micro?.replace(/\s/g, '').toLowerCase()) && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>Tu receta indica {recetaMicroConSaldo.gramaje_micro} pero pediste {cartMicroGramajes.join(', ')}. El admin decidirá si aprueba.</span>
               </div>
             )}
 
+            {/* ── Upload sections ── */}
             {hasMicro && (
               <>
                 <h2 className={styles.sectionTitle}>Receta Microdosis</h2>

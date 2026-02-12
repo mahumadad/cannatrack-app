@@ -371,6 +371,7 @@ export interface ToastContextType {
   error: (message: string) => void;
   info: (message: string) => void;
   warning: (message: string) => void;
+  confirm: (message: string) => Promise<boolean>;
 }
 
 export interface ToastItem {
