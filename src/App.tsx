@@ -25,16 +25,16 @@ import './App.css';
 
 // Verifica token contra el backend antes de renderizar rutas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [status, setStatus] = useState<'loading' | 'valid' | 'invalid'>('loading');
+  const [status, setStatus] = useState<'loading' | 'valid' | 'invalid' | 'error'>('loading');
 
-  useEffect(() => {
+  const verify = () => {
+    setStatus('loading');
     const user = localStorage.getItem('user');
     if (!user) {
       setStatus('invalid');
       return;
     }
 
-    // Verificar token contra el backend
     fetch(`${config.API_URL}/api/auth/verify`, {
       credentials: 'include'
     })
@@ -42,20 +42,33 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
         if (res.ok) {
           setStatus('valid');
         } else {
-          // Token invalido: limpiar localStorage
           localStorage.removeItem('user');
           localStorage.removeItem('access_token');
           setStatus('invalid');
         }
       })
       .catch(() => {
-        // Error de red: permitir acceso con datos locales como fallback
-        setStatus('valid');
+        setStatus('error');
       });
+  };
+
+  useEffect(() => {
+    verify();
   }, []);
 
   if (status === 'loading') {
-    return null; // O un spinner
+    return null;
+  }
+
+  if (status === 'error') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: '1rem', padding: '2rem', textAlign: 'center' }}>
+        <p style={{ fontSize: '1.1rem', color: '#666' }}>No se pudo verificar tu sesión. Revisa tu conexión a internet.</p>
+        <button onClick={verify} style={{ padding: '0.75rem 2rem', borderRadius: '8px', border: 'none', background: '#4f46e5', color: 'white', fontSize: '1rem', cursor: 'pointer' }}>
+          Reintentar
+        </button>
+      </div>
+    );
   }
 
   return status === 'valid' ? <>{children}</> : <Navigate to="/login" />;

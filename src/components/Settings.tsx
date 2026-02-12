@@ -41,6 +41,7 @@ const Settings: React.FC = () => {
   // Password management
   const [hasPassword, setHasPassword] = useState<boolean | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
+  const [currentPassword, setCurrentPassword] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [savingPassword, setSavingPassword] = useState<boolean>(false);
@@ -145,6 +146,10 @@ const Settings: React.FC = () => {
   };
 
   const handlePasswordSubmit = async () => {
+    if (hasPassword && !currentPassword) {
+      toast!.warning('Ingresa tu contraseña actual');
+      return;
+    }
     if (!newPassword || !confirmPassword) {
       toast!.warning('Completa ambos campos');
       return;
@@ -161,15 +166,17 @@ const Settings: React.FC = () => {
     setSavingPassword(true);
     try {
       const endpoint = hasPassword ? '/api/auth/change-password' : '/api/auth/create-password';
-      const body = hasPassword ? { newPassword } : { password: newPassword };
+      const body = hasPassword ? { currentPassword, newPassword } : { password: newPassword };
       await api.post(endpoint, body);
       setHasPassword(true);
       setShowPasswordModal(false);
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       toast!.success(hasPassword ? 'Contraseña actualizada' : 'Contraseña creada exitosamente');
-    } catch {
-      toast!.error('Error al guardar contraseña');
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || 'Error al guardar contraseña';
+      toast!.error(msg);
     } finally {
       setSavingPassword(false);
     }
@@ -637,6 +644,16 @@ const Settings: React.FC = () => {
               </p>
             )}
             <div className={styles.nameFields}>
+              {hasPassword && (
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Contraseña actual"
+                  className={styles.nameInput}
+                  autoComplete="current-password"
+                />
+              )}
               <input
                 type="password"
                 value={newPassword}
