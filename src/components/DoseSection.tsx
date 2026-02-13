@@ -170,7 +170,7 @@ const DoseSection: React.FC<DoseSectionProps> = ({
       );
     }
 
-    // Scheduled - next dose is another day
+    // Scheduled - next dose is another day (register via FAB only)
     return (
       <div className={styles.doseRow}>
         <div className={styles.doseStatusIcon}>
@@ -180,7 +180,6 @@ const DoseSection: React.FC<DoseSectionProps> = ({
           <span className={styles.doseStatusTitle}>Próxima dosis · {protocol.dose}g</span>
           <span className={styles.doseStatusSub}>{formatNextDoseDate()}</span>
         </div>
-        <button className={styles.doseActionButtonOutline} onClick={() => setShowDoseModal(true)}>Tomar ahora</button>
       </div>
     );
   };
