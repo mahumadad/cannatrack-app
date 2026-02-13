@@ -11,6 +11,8 @@ export default defineConfig({
       manifest: false,
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        skipWaiting: true,
+        clientsClaim: true,
         // Fix #14: NO cachear endpoints de API sensibles
         // Solo cachear assets estaticos, no datos de usuario
         runtimeCaching: [
