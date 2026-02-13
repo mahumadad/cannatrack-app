@@ -181,7 +181,12 @@
   border-radius: 10px;
   transition: all 0.3s ease;
   font-family: inherit;
-  white-space: nowrap;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.tabIcon {
+  display: none;
 }
 
 .tabActive {
@@ -189,15 +194,9 @@
   color: white;
 }
 
-@media (max-width: 400px) {
-  .tabButton {
-    font-size: 11px;
-    gap: 2px;
-    padding: 10px 4px;
-  }
-
-  .tabButton svg {
-    display: none;
+@media (min-width: 480px) {
+  .tabIcon {
+    display: inline-flex;
   }
 }
 

@@ -404,28 +404,28 @@ const ShopifyStore: React.FC = () => {
           className={`${styles.tabButton} ${activeTab === 'orders' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('orders')}
         >
-          <Package size={16} weight="bold" />
+          <span className={styles.tabIcon}><Package size={16} weight="bold" /></span>
           Pedidos
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'solicitudes' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('solicitudes')}
         >
-          <ClipboardText size={16} weight="bold" />
+          <span className={styles.tabIcon}><ClipboardText size={16} weight="bold" /></span>
           Solicitudes
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'subscriptions' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('subscriptions')}
         >
-          <ArrowsClockwise size={16} weight="bold" />
+          <span className={styles.tabIcon}><ArrowsClockwise size={16} weight="bold" /></span>
           Suscripciones
         </button>
         <button
           className={`${styles.tabButton} ${activeTab === 'recetas' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('recetas')}
         >
-          <Prescription size={16} weight="bold" />
+          <span className={styles.tabIcon}><Prescription size={16} weight="bold" /></span>
           Recetas
         </button>
       </div>
