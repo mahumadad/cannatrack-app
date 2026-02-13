@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
+import useSwipeBack from '../hooks/useSwipeBack';
 import { ArrowLeft, ClipboardText, Plus } from '@phosphor-icons/react';
 import styles from './MisSolicitudes.module.css';
 import type { Solicitud, SolicitudEstado } from '../types';
@@ -28,6 +29,7 @@ const MisSolicitudes: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast()!;
   const { user } = useUser();
+  useSwipeBack();
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState(true);
 

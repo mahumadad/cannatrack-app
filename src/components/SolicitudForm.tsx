@@ -4,6 +4,7 @@ import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
 import { useRecetas } from '../hooks/useRecetas';
+import useSwipeBack from '../hooks/useSwipeBack';
 import { ArrowLeft, Check, UploadSimple, ShoppingCart, Trash, CheckCircle, Pill, Warning, CalendarBlank, User } from '@phosphor-icons/react';
 import styles from './SolicitudForm.module.css';
 import { formatCLP } from '../utils/formatters';
@@ -24,6 +25,7 @@ const SolicitudForm: React.FC = () => {
   const toast = useToast()!;
   const { user } = useUser();
   const { recetas: allRecetas, loading: loadingRecetas } = useRecetas(user?.id);
+  useSwipeBack();
   const recetasActivas = allRecetas.filter((r: Receta) => r.estado === 'activa');
 
   const [catalog, setCatalog] = useState<ProductCatalog | null>(null);

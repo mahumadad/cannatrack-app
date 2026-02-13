@@ -4,6 +4,7 @@ import { ArrowLeft } from '@phosphor-icons/react';
 import { useToast } from './Toast';
 import api from '../utils/api';
 import styles from './FollowUp.module.css';
+import useSwipeBack from '../hooks/useSwipeBack';
 import type { FollowUp as FollowUpType, FollowUpInfo, FollowUpMonthSummary } from '../types';
 import {
   calculateDASS, calculatePANAS, calculatePSS, getSeverityColor,
@@ -49,6 +50,7 @@ const FollowUp: React.FC = () => {
 
   const [formData, setFormData] = useState<FollowUpFormData>({ ...defaultFormData });
   const [subStep, setSubStep] = useState<number>(0);
+  useSwipeBack();
 
   const sectionSubSteps: Record<string, number> = {
     intro: 1, dass: 3, panas: 2, pss: 2,
@@ -650,9 +652,9 @@ const FollowUp: React.FC = () => {
     return (
       <div className={styles.followup}>
         <div className={styles.header}>
-          <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /> Volver</button>
-          <h1 className={styles.title}>Resultados</h1>
-          <div style={{ width: '60px' }}></div>
+          <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
+          <h1 className={styles.title}>C&D</h1>
+          <div style={{ width: 36 }}></div>
         </div>
 
         <div className={styles.analysisContent}>
@@ -848,8 +850,8 @@ const FollowUp: React.FC = () => {
   return (
     <div className={styles.followup}>
       <div className={styles.header}>
-        <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /> Volver</button>
-        <h1 className={styles.title}>Follow-up</h1>
+        <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button>
+        <h1 className={styles.title}>C&D</h1>
         <span className={styles.progress}>{completedSteps}/{totalSteps}</span>
       </div>
 

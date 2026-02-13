@@ -6,6 +6,7 @@ import { useToast } from './Toast';
 import api from '../utils/api';
 import { requestNotificationPermission, getNotificationPermission, startNotificationScheduler, stopNotificationScheduler } from '../utils/notifications';
 import storage, { STORAGE_KEYS } from '../utils/storage';
+import useSwipeBack from '../hooks/useSwipeBack';
 import type { User as UserType, Protocol, Baseline, ShopifyCustomerProfile } from '../types';
 
 const Settings: React.FC = () => {
@@ -23,6 +24,7 @@ const Settings: React.FC = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
   const [doseNotification, setDoseNotification] = useState<boolean>(true);
   const [reflectionNotification, setReflectionNotification] = useState<boolean>(true);
+  useSwipeBack();
   const [protocolNotification, setProtocolNotification] = useState<boolean>(true);
   const [notificationPermission, setNotificationPermission] = useState<string>('default');
 

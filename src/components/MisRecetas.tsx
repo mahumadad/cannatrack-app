@@ -4,6 +4,7 @@ import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
 import { useRecetas, invalidateRecetasCache } from '../hooks/useRecetas';
+import useSwipeBack from '../hooks/useSwipeBack';
 import { ArrowLeft, Prescription, Calendar, UserCircle, Clock, FileText, CaretDown, CaretUp, Pill, Eye, X, Plus, Image as ImageIcon } from '@phosphor-icons/react';
 import styles from './MisRecetas.module.css';
 import type { Receta } from '../types';
@@ -64,6 +65,7 @@ const MisRecetas: React.FC = () => {
   const toast = useToast()!;
   const { user } = useUser();
   const { recetas, loading, refetch: refetchRecetas } = useRecetas(user?.id);
+  useSwipeBack();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);

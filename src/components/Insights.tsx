@@ -11,6 +11,7 @@ import { useToast } from './Toast';
 import styles from './Insights.module.css';
 import sharedFieldLabels from '../utils/fieldLabels';
 import { useUser } from '../hooks/useUser';
+import useSwipeBack from '../hooks/useSwipeBack';
 import type { InsightsData, ComparisonData, ComparisonAverages, Checkin, DoseLog, EmotionalDataPoint } from '../types';
 
 interface PeriodAverages {
@@ -34,6 +35,7 @@ const Insights: React.FC = () => {
   const [baselineData, setBaselineData] = useState<Record<string, any> | null>(null);
   const [completedFollowUps, setCompletedFollowUps] = useState<Record<string, any>[]>([]);
   const [selectedEvolutionMetrics, setSelectedEvolutionMetrics] = useState<string[]>(['depression', 'anxiety', 'stress']);
+  useSwipeBack();
 
   const allFields = sharedFieldLabels;
 
@@ -411,9 +413,9 @@ const Insights: React.FC = () => {
     return (
       <div className={styles.insights}>
         <div className={styles.header}>
-          <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={24} weight="bold" /></button>
-          <h1 className={styles.title}>Análisis</h1>
-          <div style={{ width: 40 }}></div>
+          <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
+          <h1 className={styles.title}>C&D</h1>
+          <div style={{ width: 36 }}></div>
         </div>
         <div className={styles.loading}>
           <div className={styles.loadingSpinner}></div>
@@ -427,9 +429,9 @@ const Insights: React.FC = () => {
     return (
       <div className={styles.insights}>
         <div className={styles.header}>
-          <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={24} weight="bold" /></button>
-          <h1 className={styles.title}>Análisis</h1>
-          <div style={{ width: 40 }}></div>
+          <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
+          <h1 className={styles.title}>C&D</h1>
+          <div style={{ width: 36 }}></div>
         </div>
         <div className={styles.noData}>
           <div className={styles.noDataIcon}>📊</div>

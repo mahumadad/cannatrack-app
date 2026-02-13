@@ -10,6 +10,7 @@ import sharedFieldLabels from '../utils/fieldLabels';
 import { useUser } from '../hooks/useUser';
 import { toLocalDateString } from '../utils/dateHelpers';
 import storage from '../utils/storage';
+import useSwipeBack from '../hooks/useSwipeBack';
 import type { Checkin, FieldLabelsMap } from '../types';
 
 interface ReflectFormData {
@@ -48,6 +49,7 @@ const Reflect: React.FC = () => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<string>(dateParam || toLocalDateString());
   const [hoveredField, setHoveredField] = useState<string | null>(null);
+  useSwipeBack();
 
   const [formData, setFormData] = useState<ReflectFormData>({
     mood: 5, anxiety: 5, energy: 5, sleep: 5, focus: 5,

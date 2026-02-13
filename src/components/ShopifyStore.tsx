@@ -8,6 +8,7 @@ import BottomNav from './BottomNav';
 import { useUser } from '../hooks/useUser';
 import { useRecetas } from '../hooks/useRecetas';
 import { formatCLP } from '../utils/formatters';
+import useSwipeBack from '../hooks/useSwipeBack';
 import type { ShopifyOrder, ShopifySubscription, ShopifyStoreData, Receta, Solicitud } from '../types';
 
 type Tab = 'orders' | 'subscriptions' | 'solicitudes' | 'recetas';
@@ -23,6 +24,7 @@ const ShopifyStore: React.FC = () => {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<Tab>('orders');
+  useSwipeBack();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   useEffect(() => {

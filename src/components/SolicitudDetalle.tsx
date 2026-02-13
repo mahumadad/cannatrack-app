@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
+import useSwipeBack from '../hooks/useSwipeBack';
 import { ArrowLeft, ShoppingBag, User, CreditCard, XCircle } from '@phosphor-icons/react';
 import styles from './SolicitudDetalle.module.css';
 import type { Solicitud, SolicitudEstado } from '../types';
@@ -29,6 +30,7 @@ const SolicitudDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const toast = useToast()!;
   const { user } = useUser();
+  useSwipeBack();
   const [solicitud, setSolicitud] = useState<Solicitud | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
