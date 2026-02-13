@@ -1,7 +1,7 @@
 .dashboard {
   min-height: 100vh;
   background: var(--color-bg);
-  padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(200px + env(safe-area-inset-bottom, 0px));
   animation: fadeIn 0.3s ease;
 }
 
