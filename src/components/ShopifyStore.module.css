@@ -162,15 +162,22 @@
   padding: 4px;
   border-radius: var(--radius-md);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabToggle::-webkit-scrollbar {
+  display: none;
 }
 
 .tabButton {
-  flex: 1;
+  flex: 1 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 8px;
+  gap: 5px;
+  padding: 10px 10px;
   border: none;
   background: transparent;
   font-size: 13px;
@@ -180,11 +187,20 @@
   border-radius: 10px;
   transition: all 0.3s ease;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 .tabActive {
   background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
   color: white;
+}
+
+@media (max-width: 400px) {
+  .tabButton {
+    font-size: 11px;
+    gap: 3px;
+    padding: 10px 8px;
+  }
 }
 
 /* ============ CONTENT ============ */
