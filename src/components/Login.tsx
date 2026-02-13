@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import styles from './Auth.module.css';
 import config from '../config';
 import api from '../utils/api';
@@ -155,9 +155,6 @@ const Login: React.FC = () => {
           Iniciar con tu cuenta de cliente
         </button>
 
-        <p className={styles.switchAuth}>
-          ¿No tienes cuenta? <Link to="/register">Registrate</Link>
-        </p>
       </div>
     </div>
   );

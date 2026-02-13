@@ -6,7 +6,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 import useOnlineStatus from './hooks/useOnlineStatus';
 // Eager: first-paint screens (login, register, auth callback)
 import Login from './components/Login';
-import Register from './components/Register';
 import AuthCallback from './components/AuthCallback';
 // Lazy: all protected route components — loaded on demand
 const Onboarding = React.lazy(() => import('./components/Onboarding'));
@@ -118,7 +117,7 @@ function App() {
         <Suspense fallback={null}>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/register" element={<Navigate to="/login" />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
