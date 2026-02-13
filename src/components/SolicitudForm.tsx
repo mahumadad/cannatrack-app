@@ -125,6 +125,15 @@ const SolicitudForm: React.FC = () => {
   // Cart quantities for saldo warnings
   const cartMicroCaps = cart.filter(i => i.category === 'Microdosis').reduce((sum, i) => sum + parseInt(i.capsulas || '0') * (i.quantity || 1), 0);
   const cartMacroUnits = cart.filter(i => i.category === 'Macrodosis').reduce((sum, i) => sum + (i.quantity || 1), 0);
+  // Total grams of macro in cart (for gramaje validation)
+  const cartMacroGrams = cart.filter(i => i.category === 'Macrodosis').reduce((sum, i) => {
+    const producto = catalog?.macrodosis.find(m => m.key === i.producto);
+    return sum + (producto?.grams || 0) * (i.quantity || 1);
+  }, 0);
+  // Max grams authorized per dispensation by receta
+  const recetaMacroGramsMax = recetaMacroConSaldo?.gramaje_macro
+    ? parseFloat(recetaMacroConSaldo.gramaje_macro.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0
+    : 0;
   // Gramajes in cart for mismatch detection
   const cartMicroGramajes = [...new Set(cart.filter(i => i.category === 'Microdosis').map(i => i.gramaje))];
 
@@ -434,8 +443,16 @@ const SolicitudForm: React.FC = () => {
                 </div>
                 <div className={styles.recetaBannerText}>
                   <div className={styles.recetaBannerLabel}>Receta activa</div>
-                  Saldo disponible: <span className={styles.recetaBannerSaldo}>{recetaMacroConSaldo.saldo_macro} unidades</span>
-                  {recetaMacroConSaldo.gramaje_macro && <> · Gramaje: <strong>{recetaMacroConSaldo.gramaje_macro}</strong></>}
+                  {recetaMacroConSaldo.gramaje_macro
+                    ? <>Autorizado: <span className={styles.recetaBannerSaldo}>{recetaMacroConSaldo.gramaje_macro}</span> · </>
+                    : null
+                  }
+                  Dispensaciones: <span className={styles.recetaBannerSaldo}>{recetaMacroConSaldo.saldo_macro}</span>
+                  {cartMacroGrams > 0 && (
+                    <> · En carrito: <strong>{cartMacroGrams}g</strong>
+                      {recetaMacroGramsMax > 0 && <> de {recetaMacroGramsMax}g</>}
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -580,10 +597,16 @@ const SolicitudForm: React.FC = () => {
                 <span>Tu saldo de microdosis está agotado. El admin decidirá si aprueba.</span>
               </div>
             )}
-            {hasMacro && recetaMacroConSaldo && cartMacroUnits > recetaMacroConSaldo.saldo_macro && (
+            {hasMacro && recetaMacroConSaldo && recetaMacroConSaldo.saldo_macro < 1 && (
               <div className={styles.warningBanner}>
                 <Warning size={16} weight="fill" />
-                <span>Pides {cartMacroUnits} uds macro pero tu saldo es {recetaMacroConSaldo.saldo_macro}. El admin decidirá si aprueba.</span>
+                <span>No te quedan dispensaciones de macrodosis. El admin decidirá si aprueba.</span>
+              </div>
+            )}
+            {hasMacro && recetaMacroConSaldo && recetaMacroGramsMax > 0 && cartMacroGrams > recetaMacroGramsMax && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>Pides {cartMacroGrams}g macro pero tu receta autoriza {recetaMacroGramsMax}g. El admin decidirá si aprueba.</span>
               </div>
             )}
             {hasMicro && recetaMicroConSaldo && recetaMicroConSaldo.gramaje_micro && cartMicroGramajes.length > 0

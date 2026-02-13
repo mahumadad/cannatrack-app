@@ -454,6 +454,7 @@ export interface MacrodosisOption {
   key: string;
   label: string;
   price: number;
+  grams?: number;
 }
 
 export interface ProductCatalog {
