@@ -1,7 +1,7 @@
 .followup {
   min-height: 100vh;
   background: var(--color-bg);
-  padding-bottom: 160px;
+  padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
 }
 
 .header {
