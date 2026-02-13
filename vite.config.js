@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['logo-camellos.png', 'imagotipo.png', 'icon-192.png', 'icon-512.png', 'icon-180.png', 'favicon-32.png'],
       manifest: false,
       workbox: {

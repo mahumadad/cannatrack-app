@@ -94,7 +94,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 function App() {
   const isOnline = useOnlineStatus();
-  const { needRefresh: [needRefresh], updateServiceWorker } = useRegisterSW();
+  useRegisterSW({ immediate: true });
 
   useEffect(() => {
     document.documentElement.classList.remove('dark');
@@ -106,12 +106,6 @@ function App() {
     <ToastProvider>
       {!isOnline && (
         <div className="offline-banner">Sin conexión a internet</div>
-      )}
-      {needRefresh && (
-        <div className="update-banner">
-          <span>Nueva versión disponible</span>
-          <button onClick={() => updateServiceWorker(true)}>Actualizar</button>
-        </div>
       )}
       <Router>
         <Suspense fallback={null}>
