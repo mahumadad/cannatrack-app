@@ -56,6 +56,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
           const csrf = res.headers.get('x-csrf-token');
           if (csrf) updateCsrfToken(csrf);
           setStatus('valid');
+        } else if (res.status === 503) {
+          // Supabase caído / circuit breaker — no borrar sesión,
+          // mostrar error retryable (no es problema de auth)
+          setStatus('error');
         } else {
           storage.removeItem(STORAGE_KEYS.USER);
           storage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);

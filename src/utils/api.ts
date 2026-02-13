@@ -10,6 +10,9 @@ const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(r
 const isRetryable = (error: Error | null, response: Response | null): boolean => {
   if (error?.name === 'TypeError') return true;
   if (error?.name === 'AbortError') return true;
+  // 503 = circuit breaker / Supabase down → fail-fast, no reintentar
+  // (el backend ya sabe que está caído, reintentar solo acumula carga)
+  if (response?.status === 503) return false;
   if (response?.status && response.status >= 500) return true;
   return false;
 };
@@ -99,6 +102,13 @@ const handleResponse = async (response: Response, options?: RequestOptions): Pro
   }
 
   if (response.ok) return response.json();
+
+  // 503 = servicio temporalmente no disponible (Supabase caído / circuit breaker)
+  // NO borrar sesión — es un problema de infra, no de auth
+  if (response.status === 503) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Servicio temporalmente no disponible');
+  }
 
   // 401 = no autenticado → redirigir a login (excepto en endpoints de auth)
   if (response.status === 401) {
