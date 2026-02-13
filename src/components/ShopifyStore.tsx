@@ -169,12 +169,9 @@ const ShopifyStore: React.FC = () => {
         </div>
 
         <div className={styles.draftOrderItems}>
-          {firstItem && (
-            <span className={styles.draftItemLabel}>{firstItem.displayLabel}</span>
-          )}
-          {moreCount > 0 && (
-            <span className={styles.draftItemMore}>+{moreCount} más</span>
-          )}
+          {items.map((item: any, i: number) => (
+            <span key={i} className={styles.draftItemLabel}>{item.displayLabel}</span>
+          ))}
         </div>
 
         <a
@@ -485,8 +482,10 @@ const ShopifyStore: React.FC = () => {
                         <span className={`${styles.statusBadge} ${status.cls}`}>{status.text}</span>
                       </div>
                     </div>
-                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 4 }}>
-                      {firstItem?.displayLabel}{moreCount > 0 ? ` +${moreCount} más` : ''}
+                    <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {items.map((item: any, i: number) => (
+                        <span key={i}>{item.displayLabel}</span>
+                      ))}
                     </div>
                   </div>
                 );

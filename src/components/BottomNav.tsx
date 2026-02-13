@@ -41,7 +41,6 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, onFabPress }) => {
             onClick={() => !isActive && navigate(item.route)}
           >
             <Icon size={24} weight={isActive ? 'fill' : 'regular'} className={styles.navIcon} />
-            {isActive && <span className={styles.navLabel}>{item.label}</span>}
           </button>
         );
       })}
@@ -62,7 +61,6 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, onFabPress }) => {
             onClick={() => !isActive && navigate(item.route)}
           >
             <Icon size={24} weight={isActive ? 'fill' : 'regular'} className={styles.navIcon} />
-            {isActive && <span className={styles.navLabel}>{item.label}</span>}
           </button>
         );
       })}

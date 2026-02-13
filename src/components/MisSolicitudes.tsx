@@ -49,11 +49,9 @@ const MisSolicitudes: React.FC = () => {
     }
   };
 
-  const getItemsSummary = (sol: Solicitud): string => {
+  const getItemsList = (sol: Solicitud): string[] => {
     const items = sol.cart_json || [];
-    if (items.length === 0) return '';
-    if (items.length === 1) return items[0].displayLabel;
-    return `${items[0].displayLabel} +${items.length - 1} más`;
+    return items.map((item: any) => item.displayLabel);
   };
 
   if (loading) {
@@ -105,7 +103,11 @@ const MisSolicitudes: React.FC = () => {
                   </div>
                   <span className={`${styles.statusBadge} ${status.className}`}>{status.text}</span>
                 </div>
-                <div className={styles.solicitudItems}>{getItemsSummary(sol)}</div>
+                <div className={styles.solicitudItems}>
+                  {getItemsList(sol).map((label, i) => (
+                    <div key={i}>{label}</div>
+                  ))}
+                </div>
                 <div className={styles.solicitudFooter}>
                   <span className={styles.solicitudTotal}>{formatCLP(sol.total_estimado)}</span>
                 </div>
