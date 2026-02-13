@@ -149,19 +149,23 @@ const DoseSection: React.FC<DoseSectionProps> = ({
       );
     }
 
-    // Scheduled - dose pending today (or overdue)
-    const snapshot = computeCountdown(nextDoseDate);
-    if (snapshot.isToday || snapshot.isOverdue) {
+    // Check if next dose is actually today (calendar day)
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const doseDay = nextDoseDate ? new Date(nextDoseDate.getFullYear(), nextDoseDate.getMonth(), nextDoseDate.getDate()) : null;
+    const isDoseToday = doseDay && todayStart.getTime() === doseDay.getTime();
+
+    // Scheduled - dose pending today (show "Tomar" button)
+    if (isDoseToday) {
+      const snapshot = computeCountdown(nextDoseDate);
       return (
         <div className={styles.doseRow}>
-          <div className={`${styles.doseStatusIcon} ${snapshot.isOverdue ? styles.doseIconDanger : styles.doseIconPending}`}>
+          <div className={`${styles.doseStatusIcon} ${styles.doseIconPending}`}>
             <Clock size={24} weight="fill" />
           </div>
           <div className={styles.doseStatusText}>
-            <span className={styles.doseStatusTitle}>
-              {snapshot.isOverdue ? 'Dosis atrasada' : 'Dosis pendiente'} · {protocol.dose}g
-            </span>
-            <span className={`${styles.doseStatusSub} ${snapshot.isOverdue ? styles.doseSubDanger : ''}`}>
+            <span className={styles.doseStatusTitle}>Dosis pendiente · {protocol.dose}g</span>
+            <span className={styles.doseStatusSub}>
               <CountdownTimer nextDoseDate={nextDoseDate} isIntuitive={isIntuitive} />
             </span>
           </div>
@@ -170,15 +174,20 @@ const DoseSection: React.FC<DoseSectionProps> = ({
       );
     }
 
-    // Scheduled - next dose is another day (register via FAB only)
+    // Scheduled - dose overdue (past day) or future day — no "Tomar" button, register via FAB only
+    const isOverdue = nextDoseDate && nextDoseDate.getTime() < now.getTime();
     return (
       <div className={styles.doseRow}>
-        <div className={styles.doseStatusIcon}>
+        <div className={`${styles.doseStatusIcon} ${isOverdue ? styles.doseIconDanger : ''}`}>
           <CalendarBlank size={24} weight="duotone" />
         </div>
         <div className={styles.doseStatusText}>
-          <span className={styles.doseStatusTitle}>Próxima dosis · {protocol.dose}g</span>
-          <span className={styles.doseStatusSub}>{formatNextDoseDate()}</span>
+          <span className={styles.doseStatusTitle}>
+            {isOverdue ? 'Dosis atrasada' : 'Próxima dosis'} · {protocol.dose}g
+          </span>
+          <span className={`${styles.doseStatusSub} ${isOverdue ? styles.doseSubDanger : ''}`}>
+            {formatNextDoseDate()}
+          </span>
         </div>
       </div>
     );
