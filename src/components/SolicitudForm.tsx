@@ -92,10 +92,10 @@ const SolicitudForm: React.FC = () => {
 
   // Auto-select gramaje and max capsulas from active micro receta once catalog loads
   useEffect(() => {
-    if (!catalog || !recetaMicroConSaldo || preselected) return;
+    if (!catalog || preselected) return;
 
     // Auto-select micro gramaje if receta has it
-    if (recetaMicroConSaldo.gramaje_micro && recetaMicroConSaldo.saldo_micro > 0) {
+    if (recetaMicroConSaldo?.gramaje_micro && recetaMicroConSaldo.saldo_micro > 0) {
       const matchingGramaje = catalog.microdosis.find(m =>
         m.gramaje.replace(/\s/g, '').toLowerCase() === recetaMicroConSaldo.gramaje_micro!.replace(/\s/g, '').toLowerCase()
       );
@@ -117,8 +117,20 @@ const SolicitudForm: React.FC = () => {
       }
     }
 
+    // Auto-select macro product: largest that fits within gramaje_macro
+    if (recetaMacroConSaldo?.gramaje_macro && recetaMacroConSaldo.saldo_macro > 0) {
+      const maxGrams = parseFloat(recetaMacroConSaldo.gramaje_macro.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
+      if (maxGrams > 0) {
+        const sorted = [...catalog.macrodosis].sort((a, b) => (b.grams || 0) - (a.grams || 0));
+        const bestFit = sorted.find(m => (m.grams || 0) <= maxGrams);
+        if (bestFit) {
+          setSelectedMacro(bestFit.key);
+        }
+      }
+    }
+
     setPreselected(true);
-  }, [catalog, recetaMicroConSaldo, preselected]);
+  }, [catalog, recetaMicroConSaldo, recetaMacroConSaldo, preselected]);
 
   const hasMicro = cart.some(i => i.category === 'Microdosis');
   const hasMacro = cart.some(i => i.category === 'Macrodosis');
@@ -460,21 +472,33 @@ const SolicitudForm: React.FC = () => {
             )}
 
             <div className={styles.productGrid}>
-              {catalog.macrodosis.map((m: MacrodosisOption) => (
-                <div
-                  key={m.key}
-                  className={`${styles.productCard} ${selectedMacro === m.key ? styles.productCardSelected : ''}`}
-                  onClick={() => setSelectedMacro(m.key)}
-                >
-                  <div className={styles.productCardInfo}>
-                    <span className={styles.productCardName}>{m.label}</span>
-                    <span className={styles.productCardPrice}>{formatCLP(m.price)}</span>
+              {catalog.macrodosis.map((m: MacrodosisOption) => {
+                const isSelected = selectedMacro === m.key;
+                // Recommended: largest product that fits within receta gramaje
+                const isRecommended = (() => {
+                  if (!recetaMacroConSaldo?.gramaje_macro || !preselected) return false;
+                  const maxGrams = parseFloat(recetaMacroConSaldo.gramaje_macro.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
+                  if (maxGrams <= 0) return false;
+                  const sorted = [...catalog!.macrodosis].sort((a, b) => (b.grams || 0) - (a.grams || 0));
+                  const bestFit = sorted.find(p => (p.grams || 0) <= maxGrams);
+                  return bestFit?.key === m.key;
+                })();
+                return (
+                  <div
+                    key={m.key}
+                    className={`${styles.productCard} ${isSelected ? styles.productCardSelected : ''} ${isRecommended && !isSelected && preselected ? styles.productCardRecommended : ''}`}
+                    onClick={() => setSelectedMacro(m.key)}
+                  >
+                    <div className={styles.productCardInfo}>
+                      <span className={styles.productCardName}>{m.label}</span>
+                      <span className={styles.productCardPrice}>{formatCLP(m.price)}</span>
+                    </div>
+                    <div className={`${styles.productCardCheck} ${isSelected ? styles.productCardCheckSelected : ''}`}>
+                      {isSelected && <Check size={14} weight="bold" />}
+                    </div>
                   </div>
-                  <div className={`${styles.productCardCheck} ${selectedMacro === m.key ? styles.productCardCheckSelected : ''}`}>
-                    {selectedMacro === m.key && <Check size={14} weight="bold" />}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {selectedMacro && (
