@@ -618,18 +618,36 @@
   margin-top: 1px;
 }
 
-/* ============ PRE-SELECT PULSE ============ */
+/* ============ PRE-SELECT PULSE (sugerencia de receta) ============ */
 .productCardRecommended {
-  border-color: var(--color-primary);
-  background: #FFF8F0;
+  border-color: #DBC4A8;
+  border-style: dashed;
+  background: #FFFCF8;
   animation: softPulse 2s ease-in-out 3;
+  position: relative;
+}
+
+.productCardRecommended::after {
+  content: 'Sugerido';
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: #FFF3E0;
+  padding: 1px 8px;
+  border-radius: 8px;
+  letter-spacing: 0.3px;
 }
 
 .capsulaChipRecommended {
-  border-color: var(--color-primary);
-  background: #FFF8F0;
-  color: var(--color-primary);
+  border-color: #DBC4A8;
+  border-style: dashed;
+  background: #FFFCF8;
+  color: #A08060;
   animation: softPulse 2s ease-in-out 3;
+  position: relative;
 }
 
 @keyframes softPulse {
@@ -637,6 +655,6 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   }
   50% {
-    box-shadow: 0 2px 16px rgba(166, 128, 80, 0.35);
+    box-shadow: 0 2px 16px rgba(166, 128, 80, 0.25);
   }
 }
