@@ -366,15 +366,17 @@ const Reflect: React.FC = () => {
     </>
   );
 
+  const isSummaryView = !!(existingCheckin && !isEditing);
+
   if (loading) return (<div className={styles.reflect}><div className={styles.header}><button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button><h1 className={styles.title}>Seguimiento</h1><div style={{ width: 36 }}></div></div><div className={styles.loadingContainer}><div className={styles.loadingSpinner}></div><p>Cargando...</p></div></div>);
 
   return (
-    <div className={styles.reflect}>
+    <div className={`${styles.reflect} ${isSummaryView ? styles.reflectSummary : styles.reflectEditing}`}>
       <div className={styles.header}><button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button><h1 className={styles.title}>Seguimiento</h1><div style={{ width: 36 }}></div></div>
-      
-      {existingCheckin && !isEditing ? (<><div className={styles.dateDisplaySummary}><Calendar size={18} /> {formatDate(selectedDate)}</div>{renderCheckinSummary()}</>) : renderCheckinEditor()}
 
-      {existingCheckin && !isEditing && <BottomNav activePage="reflect" />}
+      {isSummaryView ? (<><div className={styles.dateDisplaySummary}><Calendar size={18} /> {formatDate(selectedDate)}</div>{renderCheckinSummary()}</>) : renderCheckinEditor()}
+
+      {isSummaryView && <BottomNav activePage="reflect" />}
     </div>
   );
 };

@@ -1,6 +1,13 @@
 .reflect {
   min-height: 100vh;
   background: var(--color-bg);
+}
+
+.reflectSummary {
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+}
+
+.reflectEditing {
   padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px));
 }
 
