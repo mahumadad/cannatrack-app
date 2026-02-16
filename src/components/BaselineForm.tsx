@@ -254,9 +254,9 @@ const BaselineForm: React.FC = () => {
     return (
       <div className={styles.baseline}>
         <div className={styles.header}>
-          <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /> Volver</button>
+          <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
           <h1 className={styles.title}>Resultados Baseline</h1>
-          <div style={{ width: '60px' }}></div>
+          <div style={{ width: 36 }}></div>
         </div>
 
         <div className={styles.analysisContent}>
@@ -864,7 +864,7 @@ const BaselineForm: React.FC = () => {
   return (
     <div className={styles.baseline}>
       <div className={styles.header}>
-        <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /> Volver</button>
+        <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button>
         <h1 className={styles.title}>Baseline</h1>
         <span className={styles.progress}>{completedSteps}/{totalSteps}</span>
       </div>

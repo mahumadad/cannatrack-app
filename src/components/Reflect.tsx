@@ -366,11 +366,11 @@ const Reflect: React.FC = () => {
     </>
   );
 
-  if (loading) return (<div className={styles.reflect}><div className={styles.header}><button className={styles.backButtonHeader} onClick={goBack}><ArrowLeft size={20} weight="bold" /> Volver</button><h1 className={styles.title}>Seguimiento</h1><div style={{ width: 60 }}></div></div><div className={styles.loadingContainer}><div className={styles.loadingSpinner}></div><p>Cargando...</p></div></div>);
+  if (loading) return (<div className={styles.reflect}><div className={styles.header}><button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button><h1 className={styles.title}>Seguimiento</h1><div style={{ width: 36 }}></div></div><div className={styles.loadingContainer}><div className={styles.loadingSpinner}></div><p>Cargando...</p></div></div>);
 
   return (
     <div className={styles.reflect}>
-      <div className={styles.header}><button className={styles.backButtonHeader} onClick={goBack}><ArrowLeft size={20} weight="bold" /> Volver</button><h1 className={styles.title}>Seguimiento</h1><div style={{ width: 60 }}></div></div>
+      <div className={styles.header}><button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button><h1 className={styles.title}>Seguimiento</h1><div style={{ width: 36 }}></div></div>
       
       {existingCheckin && !isEditing ? (<><div className={styles.dateDisplaySummary}><Calendar size={18} /> {formatDate(selectedDate)}</div>{renderCheckinSummary()}</>) : renderCheckinEditor()}
 

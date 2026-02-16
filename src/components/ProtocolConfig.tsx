@@ -159,12 +159,12 @@ const ProtocolConfig: React.FC = () => {
           className={styles.backButton}
           onClick={() => navigate(-1)}
         >
-          ← Volver
+          <ArrowLeft size={20} weight="bold" />
         </button>
         <h1 className={styles.title}>
           {existingProtocol ? 'Editar Protocolo' : 'Configurar Protocolo'}
         </h1>
-        <div style={{ width: '60px' }}></div>
+        <div style={{ width: 36 }}></div>
       </div>
 
       <div className={styles.stepIndicator}>

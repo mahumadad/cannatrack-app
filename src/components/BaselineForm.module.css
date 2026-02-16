@@ -20,15 +20,27 @@
 }
 
 .backButton {
-  background: none;
-  border: none;
-  font-size: 16px;
-  font-weight: 600;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface-warm);
   color: var(--color-primary);
+  border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  transform: scale(1.08);
+  background: var(--color-primary);
+  color: white;
+}
+
+.backButton:active {
+  transform: scale(0.95);
 }
 
 .title {
