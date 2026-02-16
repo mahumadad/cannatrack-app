@@ -303,9 +303,12 @@ const Dashboard: React.FC = () => {
       await api.post('/api/doses', { userId: user!.id, timestamp: timestamp.toISOString(), substance: INTERNAL_SUBSTANCE, dose: parseFloat(String(customDose.amount)), unit: customDose.unit, notes: 'Dosis manual' });
       toast.success('Dosis agregada');
       const allDoses = await api.get(`/api/doses/${user!.id}?days=60`);
+      const today = toLocalDateString(new Date());
+      setRecentDoses(allDoses);
+      setTodayDoses(allDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === today));
+      if (allDoses.length > 0) setLastDose(allDoses[0]);
       setSelectedDay(prev => prev ? { ...prev, doses: allDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === selectedDay!.dateString) } : prev);
       setRefreshKey(prev => prev + 1);
-      if (selectedDay!.isToday) { loadDoses(user!.id); }
     } catch (error) {
       toast.error('Error al agregar dosis');
     }
@@ -317,9 +320,12 @@ const Dashboard: React.FC = () => {
       await api.delete(`/api/doses/${doseId}`);
       toast.info('Dosis eliminada');
       const allDoses = await api.get(`/api/doses/${user!.id}?days=60`);
+      const today = toLocalDateString(new Date());
+      setRecentDoses(allDoses);
+      setTodayDoses(allDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === today));
+      setLastDose(allDoses.length > 0 ? allDoses[0] : null);
       setSelectedDay(prev => prev ? { ...prev, doses: allDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === selectedDay!.dateString) } : prev);
       setRefreshKey(prev => prev + 1);
-      if (selectedDay!.isToday) { loadDoses(user!.id); }
     } catch (error) {
       toast.error('Error al eliminar');
     }
