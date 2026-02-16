@@ -6,6 +6,7 @@ import { useToast } from './Toast';
 import api from '../utils/api';
 import { requestNotificationPermission, getNotificationPermission, startNotificationScheduler, stopNotificationScheduler } from '../utils/notifications';
 import storage, { STORAGE_KEYS } from '../utils/storage';
+import { invalidateRecetasCache } from '../hooks/useRecetas';
 import useSwipeBack from '../hooks/useSwipeBack';
 import type { User as UserType, Protocol, Baseline, ShopifyCustomerProfile } from '../types';
 
@@ -203,6 +204,7 @@ const Settings: React.FC = () => {
     }
     // Limpiar datos de sesión del usuario (namespaced)
     stopNotificationScheduler();
+    invalidateRecetasCache();
     storage.removeItem(STORAGE_KEYS.USER);
     storage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     storage.removeItem(STORAGE_KEYS.PREFERENCES);

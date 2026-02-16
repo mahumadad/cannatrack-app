@@ -125,6 +125,22 @@ const Reflect: React.FC = () => {
     }
   }, [formData, selectedDate, isEditing, existingCheckin]);
 
+  // Limpiar drafts viejos (>7 días) al montar
+  useEffect(() => {
+    try {
+      const DRAFT_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+      const now = Date.now();
+      const keys = Object.keys(localStorage).filter(k => k.startsWith('user_reflect_draft_'));
+      for (const key of keys) {
+        const dateStr = key.replace('user_reflect_draft_', '');
+        const draftDate = new Date(dateStr).getTime();
+        if (!isNaN(draftDate) && now - draftDate > DRAFT_MAX_AGE) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch {}
+  }, []);
+
   const handleChange = (field: string, value: string | number) => setFormData(prev => ({ ...prev, [field]: value }));
 
   const handleSaveCheckin = async () => {
