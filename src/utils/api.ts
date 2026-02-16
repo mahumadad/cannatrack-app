@@ -101,6 +101,14 @@ const handleResponse = async (response: Response, options?: RequestOptions): Pro
     csrfToken = newCsrf;
   }
 
+  // Si el backend hizo un silent refresh, actualizar el token en localStorage
+  if (response.headers.get('x-token-refreshed') === 'true') {
+    const newToken = response.headers.get('x-new-access-token');
+    if (newToken) {
+      storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, newToken);
+    }
+  }
+
   if (response.ok) return response.json();
 
   // 503 = servicio temporalmente no disponible (Supabase caído / circuit breaker)
