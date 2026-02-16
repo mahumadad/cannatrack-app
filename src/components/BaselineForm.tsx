@@ -252,7 +252,7 @@ const BaselineForm: React.FC = () => {
     };
 
     return (
-      <div className={styles.baseline}>
+      <div className={`${styles.baseline} ${styles.baselineResults}`}>
         <div className={styles.header}>
           <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
           <h1 className={styles.title}>Resultados Baseline</h1>
@@ -862,7 +862,7 @@ const BaselineForm: React.FC = () => {
   };
 
   return (
-    <div className={styles.baseline}>
+    <div className={`${styles.baseline} ${styles.baselineEditing}`}>
       <div className={styles.header}>
         <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button>
         <h1 className={styles.title}>Baseline</h1>
