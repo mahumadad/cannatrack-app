@@ -58,8 +58,56 @@
 .noData p { color: var(--color-text-secondary); margin-bottom: 24px; }
 .startButton { padding: 14px 32px; background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%); color: white; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; cursor: pointer; }
 
-.content { padding: 0 20px 20px; }
-.card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); }
+/* Carousel horizontal */
+.carouselContainer {
+  display: flex;
+  align-items: flex-start;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 16px;
+  padding: 0 20px 8px;
+}
+.carouselContainer::-webkit-scrollbar { display: none; }
+
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  min-width: calc(100vw - 40px);
+  max-width: calc(100vw - 40px);
+  scroll-snap-align: center;
+  flex-shrink: 0;
+  overflow-y: visible;
+}
+
+/* Dots indicator */
+.dotsContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0 4px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #E8C9A1;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dotActive {
+  width: 24px;
+  border-radius: 4px;
+  background: var(--color-primary);
+}
 .cardTitle { font-size: 18px; font-weight: 700; color: #4A3F35; margin-bottom: 4px; }
 .cardSubtitle { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 16px; }
 .chartContainer { width: 100%; margin-left: -10px; margin-right: -10px; padding-right: 10px; }

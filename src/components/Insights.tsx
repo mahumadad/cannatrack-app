@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { toLocalDateString, normalizeDate } from '../utils/dateHelpers';
@@ -37,6 +37,26 @@ const Insights: React.FC = () => {
   const [selectedEvolutionMetrics, setSelectedEvolutionMetrics] = useState<string[]>(['depression', 'anxiety', 'stress']);
   useSwipeBack();
 
+  const [activeCard, setActiveCard] = useState<number>(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const handleCarouselScroll = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const cardWidth = el.firstElementChild?.getBoundingClientRect().width || 1;
+    const gap = 16;
+    const index = Math.round(el.scrollLeft / (cardWidth + gap));
+    setActiveCard(index);
+  }, []);
+
+  const scrollToCard = useCallback((index: number) => {
+    const el = carouselRef.current;
+    if (!el || !el.firstElementChild) return;
+    const cardWidth = el.firstElementChild.getBoundingClientRect().width;
+    const gap = 16;
+    el.scrollTo({ left: index * (cardWidth + gap), behavior: 'smooth' });
+  }, []);
+
   const allFields = sharedFieldLabels;
 
   const radarFields = ['mood', 'anxiety', 'energy', 'sleep', 'focus', 'sociability', 'rumination', 'functionality', 'productivity', 'connection'];
@@ -56,7 +76,7 @@ const Insights: React.FC = () => {
 
     const periodCheckins = insightsData.checkins.filter(c => {
       const cDate = normalizeDate(c.date);
-      return cDate >= toLocalDateString(cutoff);
+      return cDate > toLocalDateString(cutoff);
     });
 
     if (periodCheckins.length === 0) {
@@ -164,8 +184,8 @@ const Insights: React.FC = () => {
     cutoffDate.setHours(0, 0, 0, 0);
 
     const cutoffStr = toLocalDateString(cutoffDate);
-    const filteredCheckins = checkins.filter(c => normalizeDate(c.date) >= cutoffStr);
-    const filteredDoses = doses.filter(d => normalizeDate(d.date) >= cutoffStr);
+    const filteredCheckins = checkins.filter(c => normalizeDate(c.date) > cutoffStr);
+    const filteredDoses = doses.filter(d => normalizeDate(d.date) > cutoffStr);
 
     const doseDates = new Set(filteredDoses.map(d => normalizeDate(d.date)));
 
@@ -457,6 +477,305 @@ const Insights: React.FC = () => {
     connection: avgs.avgConnection || avgs.connection
   });
 
+  // Build evolution card data (needed for sections array)
+  const showEvolution = period === 'monthly' && baselineData && completedFollowUps.length > 0;
+
+  const toNum = (v: unknown): number | null => { if (v === null || v === undefined) return null; const n = Number(v); return isNaN(n) ? null : n; };
+
+  const evolutionMetrics: Record<string, { label: string; emoji: string; color: string; lowerIsBetter: boolean; normalize: (v: number) => number; extract: (data: Record<string, any>) => number | null }> = {
+    depression: { label: 'Depresión', emoji: '😔', color: '#7B1FA2', lowerIsBetter: true, normalize: v => (v / 42) * 100, extract: d => calculateDASS(d)?.depression.scaled ?? null },
+    anxiety: { label: 'Ansiedad', emoji: '😰', color: '#F44336', lowerIsBetter: true, normalize: v => (v / 42) * 100, extract: d => calculateDASS(d)?.anxiety.scaled ?? null },
+    stress: { label: 'Estrés', emoji: '😤', color: '#FF9800', lowerIsBetter: true, normalize: v => (v / 42) * 100, extract: d => calculateDASS(d)?.stress.scaled ?? null },
+    positiveAffect: { label: 'Af. Positivo', emoji: '😊', color: '#4CAF50', lowerIsBetter: false, normalize: v => ((v - 10) / 40) * 100, extract: d => calculatePANAS(d)?.positiveAffect ?? null },
+    negativeAffect: { label: 'Af. Negativo', emoji: '😞', color: '#795548', lowerIsBetter: true, normalize: v => ((v - 10) / 40) * 100, extract: d => calculatePANAS(d)?.negativeAffect ?? null },
+    pss: { label: 'Estrés Percibido', emoji: '🧠', color: '#E91E63', lowerIsBetter: true, normalize: v => (v / 40) * 100, extract: d => calculatePSS(d)?.total ?? null },
+    lifeSat: { label: 'Satisfacción', emoji: '⭐', color: '#FFC107', lowerIsBetter: false, normalize: v => (v / 10) * 100, extract: d => toNum(d.life_satisfaction) },
+  };
+
+  let evolutionCard: React.ReactNode = null;
+  if (showEvolution && baselineData) {
+    const allDataPoints = [baselineData, ...completedFollowUps];
+    const availableMetrics = Object.keys(evolutionMetrics).filter(key => {
+      const metric = evolutionMetrics[key];
+      const baseVal = metric.extract(baselineData);
+      if (baseVal === null) return false;
+      return completedFollowUps.some(fu => metric.extract(fu) !== null);
+    });
+
+    const chartData = allDataPoints.map((dp, idx) => {
+      const point: Record<string, any> = { label: idx === 0 ? 'Baseline' : (dp.monthName || `Mes ${idx}`) };
+      Object.entries(evolutionMetrics).forEach(([key, metric]) => {
+        const raw = metric.extract(dp);
+        if (raw !== null) point[key] = metric.normalize(raw);
+        point[`${key}_raw`] = raw;
+      });
+      return point;
+    });
+
+    const lastFU = completedFollowUps[completedFollowUps.length - 1];
+    const effectiveSelection = selectedEvolutionMetrics.filter(k => availableMetrics.includes(k));
+    if (effectiveSelection.length === 0 && availableMetrics.length > 0) {
+      setTimeout(() => setSelectedEvolutionMetrics(availableMetrics.slice(0, 3)), 0);
+    }
+    const activeMetrics = effectiveSelection.length > 0 ? effectiveSelection : availableMetrics.slice(0, 3);
+
+    const toggleEvolutionMetric = (key: string) => {
+      setSelectedEvolutionMetrics(prev => {
+        const current = prev.filter(k => availableMetrics.includes(k));
+        if (current.includes(key)) {
+          return current.length > 1 ? current.filter(k => k !== key) : current;
+        }
+        return [...current, key];
+      });
+    };
+
+    const EvolutionTooltip = ({ active, payload, label: tooltipLabel }: any) => {
+      if (active && payload && payload.length) {
+        return (
+          <div className={styles.tooltip}>
+            <p className={styles.tooltipLabel}>{tooltipLabel}</p>
+            {payload.map((p: any, i: number) => {
+              const metric = evolutionMetrics[p.dataKey];
+              const rawVal = p.payload[`${p.dataKey}_raw`];
+              return (
+                <p key={i} style={{ color: p.color, margin: '4px 0' }}>
+                  {metric?.emoji} {metric?.label}: {rawVal ?? '-'}
+                </p>
+              );
+            })}
+          </div>
+        );
+      }
+      return null;
+    };
+
+    evolutionCard = (
+      <>
+        <h2 className={styles.cardTitle}>📈 Evolución Clínica</h2>
+        <p className={styles.cardSubtitle}>Comparación con tu baseline</p>
+        <div className={styles.evolutionChips}>
+          {Object.entries(evolutionMetrics).map(([key, metric]) => {
+            const hasData = availableMetrics.includes(key);
+            return (
+              <button
+                key={key}
+                className={`${styles.evolutionChip} ${activeMetrics.includes(key) ? styles.evolutionChipActive : ''}`}
+                onClick={() => hasData && toggleEvolutionMetric(key)}
+                style={{
+                  ...(activeMetrics.includes(key) ? { borderColor: metric.color, background: `${metric.color}15` } : {}),
+                  ...(!hasData ? { opacity: 0.35, cursor: 'default' } : {})
+                }}
+                title={!hasData ? 'Sin datos en follow-up' : metric.label}
+              >
+                <span>{metric.emoji}</span>
+                <span className={styles.evolutionChipLabel}>{metric.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        {activeMetrics.length > 0 ? (
+          <div className={styles.chartContainer}>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E8C9A1" />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#6B5D52' }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#6B5D52' }} width={30} tickFormatter={(v: number) => `${v}%`} />
+                <Tooltip content={<EvolutionTooltip />} />
+                {activeMetrics.map(key => (
+                  <Line key={key} type="monotone" dataKey={key} stroke={evolutionMetrics[key].color} strokeWidth={2} dot={{ r: 4, fill: evolutionMetrics[key].color }} connectNulls />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <p style={{ textAlign: 'center', color: '#6B5E50', padding: '20px 0', fontSize: '14px' }}>
+            No hay métricas comparables aún. Completa todas las secciones de tu próximo follow-up.
+          </p>
+        )}
+        <div className={styles.evolutionChanges}>
+          <p className={styles.evolutionChangesTitle}>Cambios desde tu Baseline</p>
+          {Object.entries(evolutionMetrics).map(([key, metric]) => {
+            const baseVal = metric.extract(baselineData);
+            const lastVal = metric.extract(lastFU);
+            const hasData = baseVal !== null && lastVal !== null;
+            if (!hasData) {
+              return (
+                <div key={key} className={styles.evolutionChangeRow} style={{ opacity: 0.4 }}>
+                  <span className={styles.evolutionChangeEmoji}>{metric.emoji}</span>
+                  <span className={styles.evolutionChangeLabel}>{metric.label}</span>
+                  <span className={styles.evolutionChangeValues}>Sin datos</span>
+                  <span className={styles.evolutionChangeArrow} style={{ color: '#6B5E50' }}>—</span>
+                </div>
+              );
+            }
+            const diff = lastVal - baseVal;
+            const pctChange = baseVal !== 0 ? Math.round(Math.abs(diff / baseVal) * 100) : 0;
+            const improved = metric.lowerIsBetter ? diff < 0 : diff > 0;
+            const unchanged = diff === 0;
+            return (
+              <div key={key} className={styles.evolutionChangeRow}>
+                <span className={styles.evolutionChangeEmoji}>{metric.emoji}</span>
+                <span className={styles.evolutionChangeLabel}>{metric.label}</span>
+                <span className={styles.evolutionChangeValues}>{baseVal} → {lastVal}</span>
+                <span className={styles.evolutionChangeArrow} style={{ color: unchanged ? '#6B5E50' : improved ? '#4CAF50' : '#F44336' }}>
+                  {unchanged ? '—' : diff > 0 ? `↑ ${pctChange}%` : `↓ ${pctChange}%`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </>
+    );
+  }
+
+  // Build sections array — filter conditional ones
+  const sections: React.ReactNode[] = [
+    /* 0: Estado Emocional */
+    <>
+      <h2 className={styles.cardTitle}>📈 Estado Emocional</h2>
+      <p className={styles.cardSubtitle}>{period === 'weekly' ? 'Evolución diaria' : 'Evolución semanal'}</p>
+      <div className={styles.fieldSelectorContainer}>
+        <div className={styles.fieldSelectorActions}>
+          <button className={`${styles.fieldActionBtn} ${selectedFields.length === Object.keys(allFields).length ? styles.fieldActionBtnActive : ''}`} onClick={selectAllFields}>Todas</button>
+          <button className={styles.fieldActionBtn} onClick={clearFields}>Limpiar</button>
+        </div>
+        <div className={styles.fieldSelectorRow}>
+          {Object.entries(allFields).slice(0, 5).map(([key, field]) => (
+            <div key={key} className={styles.fieldChipWrapper}
+              onMouseEnter={() => setHoveredField(key)}
+              onMouseLeave={() => setHoveredField(null)}>
+              <button className={styles.fieldChip} onClick={() => toggleField(key)}
+                style={{ borderColor: selectedFields.includes(key) ? field.color : '#E8C9A1', background: selectedFields.includes(key) ? `${field.color}20` : 'transparent' }}>
+                {field.emoji}
+              </button>
+              {hoveredField === key && <div className={styles.fieldChipTooltip}>{field.label}</div>}
+            </div>
+          ))}
+        </div>
+        <div className={styles.fieldSelectorRow}>
+          {Object.entries(allFields).slice(5).map(([key, field]) => (
+            <div key={key} className={styles.fieldChipWrapper}
+              onMouseEnter={() => setHoveredField(key)}
+              onMouseLeave={() => setHoveredField(null)}>
+              <button className={styles.fieldChip} onClick={() => toggleField(key)}
+                style={{ borderColor: selectedFields.includes(key) ? field.color : '#E8C9A1', background: selectedFields.includes(key) ? `${field.color}20` : 'transparent' }}>
+                {field.emoji}
+              </button>
+              {hoveredField === key && <div className={styles.fieldChipTooltip}>{field.label}</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className={styles.chartContainer}>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={period === 'weekly' ? insightsData.emotional : weeklyData.map(w => ({ ...w, day: w.label }))} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#E8C9A1" />
+            <XAxis dataKey={period === 'weekly' ? 'day' : 'label'} tick={{ fontSize: 10, fill: '#6B5D52' }} />
+            <YAxis domain={[0, 10]} tick={{ fontSize: 10, fill: '#6B5D52' }} width={30} />
+            <Tooltip content={<CustomTooltip />} />
+            {selectedFields.map(field => (
+              <Line key={field} type="monotone" dataKey={field} stroke={allFields[field].color} strokeWidth={2} dot={{ r: 3, fill: allFields[field].color }} name={allFields[field].label} />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </>,
+
+    /* 1: Bienestar */
+    <>
+      <h2 className={styles.cardTitle}>{period === 'weekly' ? '🌟 Bienestar Semana' : '🌟 Bienestar Mes'}</h2>
+      <p className={styles.cardSubtitle}>Puntuación general basada en tus métricas</p>
+      <WellbeingGauge score={wellbeingScore} />
+      <div className={styles.miniGaugesGrid}>
+        <MiniGauge value={avgs.avgMood || avgs.mood} label="Ánimo" emoji="😊" color="#FF9800" fieldKey="mood" />
+        <MiniGauge value={avgs.avgEnergy || avgs.energy} label="Energía" emoji="⚡" color="#2196F3" fieldKey="energy" />
+        <MiniGauge value={avgs.avgAnxiety || avgs.anxiety} label="Ansiedad" emoji="😰" color="#F44336" fieldKey="anxiety" />
+        <MiniGauge value={avgs.avgFocus || avgs.focus} label="Enfoque" emoji="🎯" color="#4CAF50" fieldKey="focus" />
+        <MiniGauge value={avgs.avgSleep || avgs.sleep} label="Sueño" emoji="😴" color="#9C27B0" fieldKey="sleep" />
+        <MiniGauge value={avgs.avgSociability || avgs.sociability} label="Social" emoji="👥" color="#00BCD4" fieldKey="sociability" />
+        <MiniGauge value={avgs.avgRumination || avgs.rumination} label="Rumiación" emoji="🌀" color="#795548" fieldKey="rumination" />
+        <MiniGauge value={avgs.avgFunctionality || avgs.functionality} label="Función" emoji="✅" color="#607D8B" fieldKey="functionality" />
+        <MiniGauge value={avgs.avgProductivity || avgs.productivity} label="Productivo" emoji="📈" color="#E91E63" fieldKey="productivity" />
+        <MiniGauge value={avgs.avgConnection || avgs.connection} label="Conexión" emoji="❤️" color="#FF5722" fieldKey="connection" />
+      </div>
+    </>,
+
+    /* 2: Comparación (condicional) */
+    ...(comparisonData ? [
+      <>
+        <h2 className={styles.cardTitle}>⚖️ Comparación: Con vs Sin Dosis</h2>
+        <p className={styles.cardSubtitle}>Bienestar promedio según días de microdosis</p>
+        <div className={styles.compareGauges}>
+          <ComparisonGauge score={comparisonData.withDose.wellbeing} label="Con Dosis" color="#4CAF50" days={comparisonData.withDose.count} />
+          <ComparisonGauge score={comparisonData.withoutDose.wellbeing} label="Sin Dosis" color="#9E9E9E" days={comparisonData.withoutDose.count} />
+        </div>
+      </>,
+
+      <>
+        <h2 className={styles.cardTitle}>🕸️ Métricas Comparadas</h2>
+        <p className={styles.cardSubtitle}>Radar comparativo de días con y sin dosis</p>
+        <ComparisonRadarChart withDose={comparisonData.withDose} withoutDose={comparisonData.withoutDose} />
+        <div className={styles.radarLegend}>
+          <div className={styles.legendItem}>
+            <span className={styles.legendDot} style={{ background: '#4CAF50' }}></span>
+            <span>Con Dosis</span>
+          </div>
+          <div className={styles.legendItem}>
+            <span className={styles.legendDot} style={{ background: '#9E9E9E' }}></span>
+            <span>Sin Dosis</span>
+          </div>
+        </div>
+      </>
+    ] : []),
+
+    /* Evolución Clínica (condicional) */
+    ...(evolutionCard ? [evolutionCard] : []),
+
+    /* Resumen (siempre) */
+    <>
+      <h2 className={styles.cardTitle}>📊 Resumen</h2>
+      <p className={styles.cardSubtitle}>Tu actividad en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
+      <div className={styles.compareGauges}>
+        <div className={styles.compareGaugeItem}>
+          <span style={{ fontSize: '32px' }}>💊</span>
+          <span className={styles.compareGaugeLabel}>
+            {(() => {
+              const days = period === 'weekly' ? 7 : 30;
+              const cutoff = new Date();
+              cutoff.setDate(cutoff.getDate() - days);
+              const cutoffStr = toLocalDateString(cutoff);
+              return insightsData.doses.filter(d => normalizeDate(d.date) > cutoffStr).length;
+            })()}
+          </span>
+          <span className={styles.compareGaugeDays}>Dosis</span>
+        </div>
+        <div className={styles.compareGaugeItem}>
+          <span style={{ fontSize: '32px' }}>📝</span>
+          <span className={styles.compareGaugeLabel}>
+            {(() => {
+              const days = period === 'weekly' ? 7 : 30;
+              const cutoff = new Date();
+              cutoff.setDate(cutoff.getDate() - days);
+              const cutoffStr = toLocalDateString(cutoff);
+              return insightsData.checkins.filter(c => normalizeDate(c.date) > cutoffStr).length;
+            })()}
+          </span>
+          <span className={styles.compareGaugeDays}>Reflexiones</span>
+        </div>
+      </div>
+      {comparisonData && (
+        <>
+          <div className={styles.summaryDivider} />
+          <p className={styles.cardSubtitle} style={{ marginTop: 8 }}>Bienestar: con dosis vs sin dosis</p>
+          <div className={styles.compareGauges}>
+            <ComparisonGauge score={comparisonData.withDose.wellbeing} label="Con Dosis" color="#4CAF50" days={comparisonData.withDose.count} />
+            <ComparisonGauge score={comparisonData.withoutDose.wellbeing} label="Sin Dosis" color="#9E9E9E" days={comparisonData.withoutDose.count} />
+          </div>
+        </>
+      )}
+    </>
+  ];
+
   return (
     <div className={styles.insights}>
       <div className={styles.header}>
@@ -470,353 +789,16 @@ const Insights: React.FC = () => {
         <button className={`${styles.periodButton} ${period === 'monthly' ? styles.active : ''}`} onClick={() => setPeriod('monthly')}>Mes</button>
       </div>
 
-      <div className={styles.content}>
-        {/* Gráfico de Estado Emocional */}
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>📈 Estado Emocional</h2>
-          <p className={styles.cardSubtitle}>{period === 'weekly' ? 'Evolución diaria' : 'Evolución semanal'}</p>
-          
-          <div className={styles.fieldSelectorContainer}>
-            <div className={styles.fieldSelectorActions}>
-              <button className={`${styles.fieldActionBtn} ${selectedFields.length === Object.keys(allFields).length ? styles.fieldActionBtnActive : ''}`} onClick={selectAllFields}>Todas</button>
-              <button className={styles.fieldActionBtn} onClick={clearFields}>Limpiar</button>
-            </div>
-            <div className={styles.fieldSelectorRow}>
-              {Object.entries(allFields).slice(0, 5).map(([key, field]) => (
-                <div key={key} className={styles.fieldChipWrapper}
-                  onMouseEnter={() => setHoveredField(key)}
-                  onMouseLeave={() => setHoveredField(null)}>
-                  <button
-                    className={styles.fieldChip}
-                    onClick={() => toggleField(key)}
-                    style={{
-                      borderColor: selectedFields.includes(key) ? field.color : '#E8C9A1',
-                      background: selectedFields.includes(key) ? `${field.color}20` : 'transparent'
-                    }}>
-                    {field.emoji}
-                  </button>
-                  {hoveredField === key && <div className={styles.fieldChipTooltip}>{field.label}</div>}
-                </div>
-              ))}
-            </div>
-            <div className={styles.fieldSelectorRow}>
-              {Object.entries(allFields).slice(5).map(([key, field]) => (
-                <div key={key} className={styles.fieldChipWrapper}
-                  onMouseEnter={() => setHoveredField(key)}
-                  onMouseLeave={() => setHoveredField(null)}>
-                  <button
-                    className={styles.fieldChip}
-                    onClick={() => toggleField(key)}
-                    style={{
-                      borderColor: selectedFields.includes(key) ? field.color : '#E8C9A1',
-                      background: selectedFields.includes(key) ? `${field.color}20` : 'transparent'
-                    }}>
-                    {field.emoji}
-                  </button>
-                  {hoveredField === key && <div className={styles.fieldChipTooltip}>{field.label}</div>}
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className={styles.carouselContainer} ref={carouselRef} onScroll={handleCarouselScroll}>
+        {sections.map((section, i) => (
+          <div key={i} className={styles.card}>{section}</div>
+        ))}
+      </div>
 
-          <div className={styles.chartContainer}>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={period === 'weekly' ? insightsData.emotional : weeklyData.map(w => ({ ...w, day: w.label }))} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E8C9A1" />
-                <XAxis dataKey={period === 'weekly' ? 'day' : 'label'} tick={{ fontSize: 10, fill: '#6B5D52' }} />
-                <YAxis domain={[0, 10]} tick={{ fontSize: 10, fill: '#6B5D52' }} width={30} />
-                <Tooltip content={<CustomTooltip />} />
-                {selectedFields.map(field => (
-                  <Line key={field} type="monotone" dataKey={field} stroke={allFields[field].color} strokeWidth={2} dot={{ r: 3, fill: allFields[field].color }} name={allFields[field].label} />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Bienestar General */}
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>{period === 'weekly' ? '🌟 Bienestar Semana' : '🌟 Bienestar Mes'}</h2>
-          <p className={styles.cardSubtitle}>Puntuación general basada en tus métricas</p>
-          <WellbeingGauge score={wellbeingScore} />
-
-          <div className={styles.miniGaugesGrid}>
-            <MiniGauge value={avgs.avgMood || avgs.mood} label="Ánimo" emoji="😊" color="#FF9800" fieldKey="mood" />
-            <MiniGauge value={avgs.avgEnergy || avgs.energy} label="Energía" emoji="⚡" color="#2196F3" fieldKey="energy" />
-            <MiniGauge value={avgs.avgAnxiety || avgs.anxiety} label="Ansiedad" emoji="😰" color="#F44336" fieldKey="anxiety" />
-            <MiniGauge value={avgs.avgFocus || avgs.focus} label="Enfoque" emoji="🎯" color="#4CAF50" fieldKey="focus" />
-            <MiniGauge value={avgs.avgSleep || avgs.sleep} label="Sueño" emoji="😴" color="#9C27B0" fieldKey="sleep" />
-            <MiniGauge value={avgs.avgSociability || avgs.sociability} label="Social" emoji="👥" color="#00BCD4" fieldKey="sociability" />
-            <MiniGauge value={avgs.avgRumination || avgs.rumination} label="Rumiación" emoji="🌀" color="#795548" fieldKey="rumination" />
-            <MiniGauge value={avgs.avgFunctionality || avgs.functionality} label="Función" emoji="✅" color="#607D8B" fieldKey="functionality" />
-            <MiniGauge value={avgs.avgProductivity || avgs.productivity} label="Productivo" emoji="📈" color="#E91E63" fieldKey="productivity" />
-            <MiniGauge value={avgs.avgConnection || avgs.connection} label="Conexión" emoji="❤️" color="#FF5722" fieldKey="connection" />
-          </div>
-        </div>
-
-        {/* Comparación Días con Dosis vs Sin Dosis */}
-        {comparisonData && (
-          <>
-            <div className={styles.card}>
-              <h2 className={styles.cardTitle}>⚖️ Comparación: Con vs Sin Dosis</h2>
-              <p className={styles.cardSubtitle}>Bienestar promedio según días de microdosis</p>
-              
-              <div className={styles.compareGauges}>
-                <ComparisonGauge 
-                  score={comparisonData.withDose.wellbeing} 
-                  label="Con Dosis" 
-                  color="#4CAF50"
-                  days={comparisonData.withDose.count}
-                />
-                <ComparisonGauge 
-                  score={comparisonData.withoutDose.wellbeing} 
-                  label="Sin Dosis" 
-                  color="#9E9E9E"
-                  days={comparisonData.withoutDose.count}
-                />
-              </div>
-            </div>
-
-            <div className={styles.card}>
-              <h2 className={styles.cardTitle}>🕸️ Métricas Comparadas</h2>
-              <p className={styles.cardSubtitle}>Radar comparativo de días con y sin dosis</p>
-              
-              <ComparisonRadarChart 
-                withDose={comparisonData.withDose} 
-                withoutDose={comparisonData.withoutDose} 
-              />
-
-              <div className={styles.radarLegend}>
-                <div className={styles.legendItem}>
-                  <span className={styles.legendDot} style={{ background: '#4CAF50' }}></span>
-                  <span>Con Dosis</span>
-                </div>
-                <div className={styles.legendItem}>
-                  <span className={styles.legendDot} style={{ background: '#9E9E9E' }}></span>
-                  <span>Sin Dosis</span>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Evolución Clínica - Baseline vs Follow-ups (solo en vista mensual) */}
-        {period === 'monthly' && baselineData && completedFollowUps.length > 0 && (() => {
-          const toNum = (v: unknown): number | null => { if (v === null || v === undefined) return null; const n = Number(v); return isNaN(n) ? null : n; };
-
-          const evolutionMetrics: Record<string, { label: string; emoji: string; color: string; lowerIsBetter: boolean; normalize: (v: number) => number; extract: (data: Record<string, any>) => number | null }> = {
-            depression: { label: 'Depresión', emoji: '😔', color: '#7B1FA2', lowerIsBetter: true, normalize: v => (v / 42) * 100, extract: d => calculateDASS(d)?.depression.scaled ?? null },
-            anxiety: { label: 'Ansiedad', emoji: '😰', color: '#F44336', lowerIsBetter: true, normalize: v => (v / 42) * 100, extract: d => calculateDASS(d)?.anxiety.scaled ?? null },
-            stress: { label: 'Estrés', emoji: '😤', color: '#FF9800', lowerIsBetter: true, normalize: v => (v / 42) * 100, extract: d => calculateDASS(d)?.stress.scaled ?? null },
-            positiveAffect: { label: 'Af. Positivo', emoji: '😊', color: '#4CAF50', lowerIsBetter: false, normalize: v => ((v - 10) / 40) * 100, extract: d => calculatePANAS(d)?.positiveAffect ?? null },
-            negativeAffect: { label: 'Af. Negativo', emoji: '😞', color: '#795548', lowerIsBetter: true, normalize: v => ((v - 10) / 40) * 100, extract: d => calculatePANAS(d)?.negativeAffect ?? null },
-            pss: { label: 'Estrés Percibido', emoji: '🧠', color: '#E91E63', lowerIsBetter: true, normalize: v => (v / 40) * 100, extract: d => calculatePSS(d)?.total ?? null },
-            lifeSat: { label: 'Satisfacción', emoji: '⭐', color: '#FFC107', lowerIsBetter: false, normalize: v => (v / 10) * 100, extract: d => toNum(d.life_satisfaction) },
-          };
-
-          // Determine which metrics have comparable data (baseline + at least 1 follow-up)
-          const allDataPoints = [baselineData, ...completedFollowUps];
-          const availableMetrics = Object.keys(evolutionMetrics).filter(key => {
-            const metric = evolutionMetrics[key];
-            const baseVal = metric.extract(baselineData);
-            if (baseVal === null) return false;
-            return completedFollowUps.some(fu => metric.extract(fu) !== null);
-          });
-
-          // Build chart data points
-          const chartData = allDataPoints.map((dp, idx) => {
-            const point: Record<string, any> = { label: idx === 0 ? 'Baseline' : (dp.monthName || `Mes ${idx}`) };
-            Object.entries(evolutionMetrics).forEach(([key, metric]) => {
-              const raw = metric.extract(dp);
-              if (raw !== null) point[key] = metric.normalize(raw);
-              point[`${key}_raw`] = raw;
-            });
-            return point;
-          });
-
-          // Compute changes (baseline vs last follow-up)
-          const lastFU = completedFollowUps[completedFollowUps.length - 1];
-
-          // Auto-select available metrics if current selection has none available
-          const effectiveSelection = selectedEvolutionMetrics.filter(k => availableMetrics.includes(k));
-          if (effectiveSelection.length === 0 && availableMetrics.length > 0) {
-            // Will auto-select on next render
-            setTimeout(() => setSelectedEvolutionMetrics(availableMetrics.slice(0, 3)), 0);
-          }
-          const activeMetrics = effectiveSelection.length > 0 ? effectiveSelection : availableMetrics.slice(0, 3);
-
-          const toggleEvolutionMetric = (key: string) => {
-            setSelectedEvolutionMetrics(prev => {
-              const current = prev.filter(k => availableMetrics.includes(k));
-              if (current.includes(key)) {
-                return current.length > 1 ? current.filter(k => k !== key) : current;
-              }
-              return [...current, key];
-            });
-          };
-
-          const EvolutionTooltip = ({ active, payload, label: tooltipLabel }: any) => {
-            if (active && payload && payload.length) {
-              return (
-                <div className={styles.tooltip}>
-                  <p className={styles.tooltipLabel}>{tooltipLabel}</p>
-                  {payload.map((p: any, i: number) => {
-                    const metric = evolutionMetrics[p.dataKey];
-                    const rawVal = p.payload[`${p.dataKey}_raw`];
-                    return (
-                      <p key={i} style={{ color: p.color, margin: '4px 0' }}>
-                        {metric?.emoji} {metric?.label}: {rawVal ?? '-'}
-                      </p>
-                    );
-                  })}
-                </div>
-              );
-            }
-            return null;
-          };
-
-          return (
-            <div className={styles.card}>
-              <h2 className={styles.cardTitle}>📈 Evolución Clínica</h2>
-              <p className={styles.cardSubtitle}>Comparación con tu baseline</p>
-
-              {/* Metric selector chips - only show metrics with data */}
-              <div className={styles.evolutionChips}>
-                {Object.entries(evolutionMetrics).map(([key, metric]) => {
-                  const hasData = availableMetrics.includes(key);
-                  return (
-                    <button
-                      key={key}
-                      className={`${styles.evolutionChip} ${activeMetrics.includes(key) ? styles.evolutionChipActive : ''}`}
-                      onClick={() => hasData && toggleEvolutionMetric(key)}
-                      style={{
-                        ...(activeMetrics.includes(key) ? { borderColor: metric.color, background: `${metric.color}15` } : {}),
-                        ...(!hasData ? { opacity: 0.35, cursor: 'default' } : {})
-                      }}
-                      title={!hasData ? 'Sin datos en follow-up' : metric.label}
-                    >
-                      <span>{metric.emoji}</span>
-                      <span className={styles.evolutionChipLabel}>{metric.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Line chart */}
-              {activeMetrics.length > 0 ? (
-                <div className={styles.chartContainer}>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E8C9A1" />
-                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#6B5D52' }} />
-                      <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#6B5D52' }} width={30} tickFormatter={(v: number) => `${v}%`} />
-                      <Tooltip content={<EvolutionTooltip />} />
-                      {activeMetrics.map(key => (
-                        <Line key={key} type="monotone" dataKey={key} stroke={evolutionMetrics[key].color} strokeWidth={2} dot={{ r: 4, fill: evolutionMetrics[key].color }} connectNulls />
-                      ))}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <p style={{ textAlign: 'center', color: '#6B5E50', padding: '20px 0', fontSize: '14px' }}>
-                  No hay métricas comparables aún. Completa todas las secciones de tu próximo follow-up.
-                </p>
-              )}
-
-              {/* Changes summary table */}
-              <div className={styles.evolutionChanges}>
-                <p className={styles.evolutionChangesTitle}>Cambios desde tu Baseline</p>
-                {Object.entries(evolutionMetrics).map(([key, metric]) => {
-                  const baseVal = metric.extract(baselineData);
-                  const lastVal = metric.extract(lastFU);
-                  const hasData = baseVal !== null && lastVal !== null;
-
-                  if (!hasData) {
-                    return (
-                      <div key={key} className={styles.evolutionChangeRow} style={{ opacity: 0.4 }}>
-                        <span className={styles.evolutionChangeEmoji}>{metric.emoji}</span>
-                        <span className={styles.evolutionChangeLabel}>{metric.label}</span>
-                        <span className={styles.evolutionChangeValues}>Sin datos</span>
-                        <span className={styles.evolutionChangeArrow} style={{ color: '#6B5E50' }}>—</span>
-                      </div>
-                    );
-                  }
-
-                  const diff = lastVal - baseVal;
-                  const pctChange = baseVal !== 0 ? Math.round(Math.abs(diff / baseVal) * 100) : 0;
-                  const improved = metric.lowerIsBetter ? diff < 0 : diff > 0;
-                  const unchanged = diff === 0;
-
-                  return (
-                    <div key={key} className={styles.evolutionChangeRow}>
-                      <span className={styles.evolutionChangeEmoji}>{metric.emoji}</span>
-                      <span className={styles.evolutionChangeLabel}>{metric.label}</span>
-                      <span className={styles.evolutionChangeValues}>{baseVal} → {lastVal}</span>
-                      <span className={styles.evolutionChangeArrow} style={{ color: unchanged ? '#6B5E50' : improved ? '#4CAF50' : '#F44336' }}>
-                        {unchanged ? '—' : diff > 0 ? `↑ ${pctChange}%` : `↓ ${pctChange}%`}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Resumen */}
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>📊 Resumen</h2>
-          <p className={styles.cardSubtitle}>Tu actividad en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
-          <div className={styles.compareGauges}>
-            <div className={styles.compareGaugeItem}>
-              <span style={{ fontSize: '32px' }}>💊</span>
-              <span className={styles.compareGaugeLabel}>
-                {(() => {
-                  const days = period === 'weekly' ? 7 : 30;
-                  const cutoff = new Date();
-                  cutoff.setDate(cutoff.getDate() - days);
-                  const cutoffStr = toLocalDateString(cutoff);
-                  return insightsData.doses.filter(d => normalizeDate(d.date) >= cutoffStr).length;
-                })()}
-              </span>
-              <span className={styles.compareGaugeDays}>Dosis</span>
-            </div>
-            <div className={styles.compareGaugeItem}>
-              <span style={{ fontSize: '32px' }}>📝</span>
-              <span className={styles.compareGaugeLabel}>
-                {(() => {
-                  const days = period === 'weekly' ? 7 : 30;
-                  const cutoff = new Date();
-                  cutoff.setDate(cutoff.getDate() - days);
-                  const cutoffStr = toLocalDateString(cutoff);
-                  return insightsData.checkins.filter(c => normalizeDate(c.date) >= cutoffStr).length;
-                })()}
-              </span>
-              <span className={styles.compareGaugeDays}>Reflexiones</span>
-            </div>
-          </div>
-
-          {comparisonData && (
-            <>
-              <div className={styles.summaryDivider} />
-              <p className={styles.cardSubtitle} style={{ marginTop: 8 }}>Bienestar: con dosis vs sin dosis</p>
-              <div className={styles.compareGauges}>
-                <ComparisonGauge
-                  score={comparisonData.withDose.wellbeing}
-                  label="Con Dosis"
-                  color="#4CAF50"
-                  days={comparisonData.withDose.count}
-                />
-                <ComparisonGauge
-                  score={comparisonData.withoutDose.wellbeing}
-                  label="Sin Dosis"
-                  color="#9E9E9E"
-                  days={comparisonData.withoutDose.count}
-                />
-              </div>
-            </>
-          )}
-        </div>
+      <div className={styles.dotsContainer}>
+        {sections.map((_, i) => (
+          <button key={i} className={`${styles.dot} ${activeCard === i ? styles.dotActive : ''}`} onClick={() => scrollToCard(i)} />
+        ))}
       </div>
 
       <BottomNav activePage="insights" />

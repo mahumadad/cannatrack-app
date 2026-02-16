@@ -577,6 +577,16 @@ const Settings: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Version info */}
+        <div className={styles.section} style={{ textAlign: 'center', paddingBottom: 8 }}>
+          <p style={{ fontSize: 11, color: '#999', margin: 0 }}>
+            DromedApp v{__APP_VERSION__}
+          </p>
+          <p style={{ fontSize: 10, color: '#bbb', margin: '2px 0 0' }}>
+            Build: {new Date(__BUILD_DATE__).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
       </div>
 
       {/* End Protocol Modal */}
