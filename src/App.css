@@ -183,6 +183,11 @@ input[type="range"]::-moz-range-thumb {
   animation: fadeIn 0.3s var(--ease-out, ease-out) forwards;
 }
 
+.pending-badge {
+  opacity: 0.85;
+  font-weight: 400;
+}
+
 /* ═══ Update banner ═══ */
 .update-banner {
   position: fixed;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { trackEvent } from '../utils/analytics';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
 import { useRecetas, invalidateRecetasCache } from '../hooks/useRecetas';
@@ -66,6 +67,10 @@ const MisRecetas: React.FC = () => {
   const { user } = useUser();
   const { recetas, loading, refetch: refetchRecetas } = useRecetas(user?.id);
   useSwipeBack();
+
+  useEffect(() => {
+    if (recetas && recetas.length > 0) trackEvent('receta_viewed');
+  }, [recetas]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);

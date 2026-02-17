@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { useToast } from './Toast';
 import api from '../utils/api';
+import { trackEvent } from '../utils/analytics';
 import styles from './BaselineForm.module.css';
 import type { Baseline } from '../types';
 import { calculateDASS, calculatePANAS, calculatePSS, getSeverityColor } from '../utils/followUpScoring';
@@ -180,6 +181,7 @@ const BaselineForm: React.FC = () => {
 
       if (goNext) {
         if (currentSection === sections.length - 1) {
+          trackEvent('baseline_completed');
           toast.success('¡Baseline completado!');
           navigate('/dashboard');
         } else {

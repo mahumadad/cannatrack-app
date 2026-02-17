@@ -64,10 +64,11 @@ describe('STORAGE_KEYS', () => {
     expect(STORAGE_KEYS.PREFERENCES).toBe('preferences');
     expect(STORAGE_KEYS.RECETA_DISMISSED).toBe('receta_card_dismissed');
     expect(STORAGE_KEYS.RECETA_DISMISSED_ID).toBe('receta_card_dismissed_id');
+    expect(STORAGE_KEYS.OFFLINE_QUEUE).toBe('offline_queue');
   });
 
-  it('tiene 5 keys', () => {
-    expect(Object.keys(STORAGE_KEYS)).toHaveLength(5);
+  it('tiene 6 keys', () => {
+    expect(Object.keys(STORAGE_KEYS)).toHaveLength(6);
   });
 
   it('todos los valores son strings', () => {

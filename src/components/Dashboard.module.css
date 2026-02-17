@@ -979,13 +979,6 @@
   font-size: 16px;
 }
 
-.miniGaugeLabel {
-  font-size: 10px;
-  font-weight: 600;
-  color: #4A3F35;
-  text-align: center;
-}
-
 .miniGaugeValue {
   font-size: 10px;
   color: var(--color-text-secondary);

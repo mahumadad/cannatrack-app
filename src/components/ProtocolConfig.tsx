@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from './Toast';
 import { ArrowLeft, ArrowRight, CheckCircle } from '@phosphor-icons/react';
 import api from '../utils/api';
+import { trackEvent } from '../utils/analytics';
 import DosePicker from './DosePicker';
 import { INTERNAL_SUBSTANCE, DOSE_UNIT } from '../utils/doseOptions';
 import styles from './ProtocolConfig.module.css';
@@ -129,6 +130,7 @@ const ProtocolConfig: React.FC = () => {
         startDate: protocol.frequency === 'intuitive' ? null : protocol.startDate
       });
 
+      trackEvent('protocol_configured', { frequency: protocol.frequency });
       toast!.success('¡Protocolo guardado!');
       navigate('/dashboard');
     } catch (error) {

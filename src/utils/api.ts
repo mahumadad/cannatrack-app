@@ -1,5 +1,6 @@
 import config from '../config';
 import storage, { STORAGE_KEYS } from './storage';
+import { queueMutation } from './offlineQueue';
 
 const DEFAULT_TIMEOUT: number = 10000;
 const MAX_RETRIES: number = 2;
@@ -60,11 +61,18 @@ const fetchWithRetry = async (url: string, options: RequestInit = {}): Promise<R
 let csrfToken: string | null = null;
 
 // Permite actualizar el token desde fuera (e.g. ProtectedRoute verify)
-export const updateCsrfToken = (token: string) => { csrfToken = token; };
+export const updateCsrfToken = (token: string) => {
+  csrfToken = token;
+  try { if (token) sessionStorage.setItem('csrf_token', token); } catch {}
+};
 
 const getCsrfToken = (): string | null => {
-  // Primero intentar desde memoria, luego fallback a cookie
+  // 3-tier fallback: memory → sessionStorage → cookie
   if (csrfToken) return csrfToken;
+  try {
+    const stored = sessionStorage.getItem('csrf_token');
+    if (stored) { csrfToken = stored; return stored; }
+  } catch {}
   const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
   return match ? decodeURIComponent(match[1]) : null;
 };
@@ -98,7 +106,7 @@ const handleResponse = async (response: Response, options?: RequestOptions): Pro
   // Capturar CSRF token del response header si el servidor lo envía
   const newCsrf = response.headers.get('x-csrf-token');
   if (newCsrf) {
-    csrfToken = newCsrf;
+    updateCsrfToken(newCsrf);
   }
 
   // Si el backend hizo un silent refresh, actualizar el token en localStorage
@@ -142,6 +150,25 @@ interface ApiClient {
   delete: (path: string, options?: RequestOptions) => Promise<any>;
 }
 
+/** Wrap a mutation call — if offline + network error, queue for later */
+const withOfflineQueue = async (
+  method: 'POST' | 'PUT' | 'DELETE',
+  path: string,
+  body: unknown,
+  fn: () => Promise<any>
+): Promise<any> => {
+  try {
+    return await fn();
+  } catch (err) {
+    // Queue only on network errors when truly offline
+    if (err instanceof Error && err.name === 'TypeError' && !navigator.onLine) {
+      queueMutation(method, path, body);
+      throw new Error('Sin conexión. Tu cambio se guardará y se enviará automáticamente al reconectar.');
+    }
+    throw err;
+  }
+};
+
 const api: ApiClient = {
   get: async (path: string, options?: RequestOptions): Promise<any> => {
     const response = await fetchWithRetry(`${config.API_URL}${path}`, { headers: getHeaders('GET') });
@@ -149,29 +176,35 @@ const api: ApiClient = {
   },
 
   post: async (path: string, body: unknown, options?: RequestOptions): Promise<any> => {
-    const response = await fetchWithRetry(`${config.API_URL}${path}`, {
-      method: 'POST',
-      headers: getHeaders('POST'),
-      body: JSON.stringify(body)
+    return withOfflineQueue('POST', path, body, async () => {
+      const response = await fetchWithRetry(`${config.API_URL}${path}`, {
+        method: 'POST',
+        headers: getHeaders('POST'),
+        body: JSON.stringify(body)
+      });
+      return handleResponse(response, options);
     });
-    return handleResponse(response, options);
   },
 
   put: async (path: string, body: unknown, options?: RequestOptions): Promise<any> => {
-    const response = await fetchWithRetry(`${config.API_URL}${path}`, {
-      method: 'PUT',
-      headers: getHeaders('PUT'),
-      body: JSON.stringify(body)
+    return withOfflineQueue('PUT', path, body, async () => {
+      const response = await fetchWithRetry(`${config.API_URL}${path}`, {
+        method: 'PUT',
+        headers: getHeaders('PUT'),
+        body: JSON.stringify(body)
+      });
+      return handleResponse(response, options);
     });
-    return handleResponse(response, options);
   },
 
   delete: async (path: string, options?: RequestOptions): Promise<any> => {
-    const response = await fetchWithRetry(`${config.API_URL}${path}`, {
-      method: 'DELETE',
-      headers: getHeaders('DELETE')
+    return withOfflineQueue('DELETE', path, null, async () => {
+      const response = await fetchWithRetry(`${config.API_URL}${path}`, {
+        method: 'DELETE',
+        headers: getHeaders('DELETE')
+      });
+      return handleResponse(response, options);
     });
-    return handleResponse(response, options);
   }
 };
 

@@ -23,7 +23,8 @@ export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'access_token',
   PREFERENCES: 'preferences',
   RECETA_DISMISSED: 'receta_card_dismissed',
-  RECETA_DISMISSED_ID: 'receta_card_dismissed_id'
+  RECETA_DISMISSED_ID: 'receta_card_dismissed_id',
+  OFFLINE_QUEUE: 'offline_queue'
 } as const;
 
 export default storage;

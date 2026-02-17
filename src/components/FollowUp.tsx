@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { useToast } from './Toast';
 import api from '../utils/api';
+import { trackEvent } from '../utils/analytics';
 import styles from './FollowUp.module.css';
 import useSwipeBack from '../hooks/useSwipeBack';
 import type { FollowUp as FollowUpType, FollowUpInfo, FollowUpMonthSummary } from '../types';
@@ -204,6 +205,7 @@ const FollowUp: React.FC = () => {
 
       if (goNext) {
         if (currentSection === sections.length - 1) {
+          trackEvent('followup_completed');
           toast!.success('¡Follow-up completado!');
           navigate('/dashboard');
         } else {

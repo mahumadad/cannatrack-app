@@ -22,7 +22,8 @@ const MisSolicitudes = React.lazy(() => import('./components/MisSolicitudes'));
 const SolicitudDetalle = React.lazy(() => import('./components/SolicitudDetalle'));
 const MisRecetas = React.lazy(() => import('./components/MisRecetas'));
 import storage, { STORAGE_KEYS } from './utils/storage';
-import { updateCsrfToken } from './utils/api';
+import api, { updateCsrfToken } from './utils/api';
+import { processMutationQueue, getMutationQueueLength } from './utils/offlineQueue';
 import config from './config';
 import './theme.css';
 import './fonts.css';
@@ -99,6 +100,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 function App() {
   const isOnline = useOnlineStatus();
+  const [pendingCount, setPendingCount] = useState(0);
   useRegisterSW({ immediate: true });
 
   useEffect(() => {
@@ -106,14 +108,42 @@ function App() {
     storage.removeItem('theme');
   }, []);
 
+  // Process offline queue when connectivity returns
+  useEffect(() => {
+    if (isOnline) {
+      const pending = getMutationQueueLength();
+      if (pending > 0) {
+        processMutationQueue(api).then(({ processed }) => {
+          setPendingCount(getMutationQueueLength());
+          if (processed > 0) {
+            console.log(`[OfflineQueue] ${processed} cambios sincronizados`);
+          }
+        });
+      } else {
+        setPendingCount(0);
+      }
+    } else {
+      setPendingCount(getMutationQueueLength());
+    }
+  }, [isOnline]);
+
   return (
     <ErrorBoundary>
     <ToastProvider>
       {!isOnline && (
-        <div className="offline-banner">Sin conexión a internet</div>
+        <div className="offline-banner">
+          Sin conexión a internet
+          {pendingCount > 0 && (
+            <span className="pending-badge"> · {pendingCount} cambio{pendingCount !== 1 ? 's' : ''} pendiente{pendingCount !== 1 ? 's' : ''}</span>
+          )}
+        </div>
       )}
       <Router>
-        <Suspense fallback={null}>
+        <Suspense fallback={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+            <div style={{ width: 32, height: 32, border: '3px solid #EBE5DC', borderTopColor: '#A68050', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          </div>
+        }>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Navigate to="/login" />} />

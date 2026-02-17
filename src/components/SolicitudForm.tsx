@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { trackEvent } from '../utils/analytics';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
 import { useRecetas } from '../hooks/useRecetas';
@@ -259,6 +260,7 @@ const SolicitudForm: React.FC = () => {
         recipeMicro,
         recipeMacro
       });
+      trackEvent('solicitud_created', { items: cart.length });
       setSuccess(result.submission_id);
     } catch (error: any) {
       toast.error(error.message || 'Error al enviar solicitud');

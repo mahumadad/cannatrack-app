@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
+import { trackEvent } from '../utils/analytics';
 import { calcWellbeingPercent } from '../utils/wellbeing';
 import { useToast } from './Toast';
 import { ArrowLeft, Calendar, PencilSimple, Warning, Pill } from '@phosphor-icons/react';
@@ -149,6 +150,7 @@ const Reflect: React.FC = () => {
       const path = existingCheckin ? `/api/checkins/${existingCheckin.id}` : `/api/checkins`;
       const body = { user_id: user!.id, date: selectedDate, ...formData };
       const data = existingCheckin ? await api.put(path, body) : await api.post(path, body);
+      trackEvent('dose_logged', { isEdit: !!existingCheckin });
       toast!.success('¡Check-in guardado! ✅');
       storage.removeItem(`reflect_draft_${selectedDate}`);
       setExistingCheckin(data);
