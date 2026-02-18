@@ -6,6 +6,7 @@ import { Package, Truck, ArrowsClockwise, Receipt, ShoppingBag, ArrowLeft, MapPi
 import styles from './ShopifyStore.module.css';
 import BottomNav from './BottomNav';
 import { useUser } from '../hooks/useUser';
+import storage, { STORAGE_KEYS } from '../utils/storage';
 import { useRecetas } from '../hooks/useRecetas';
 import { formatCLP } from '../utils/formatters';
 import useSwipeBack from '../hooks/useSwipeBack';
@@ -26,6 +27,23 @@ const ShopifyStore: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('orders');
   useSwipeBack();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+
+  // Membership gate
+  const [membershipStatus, setMembershipStatus] = useState<string>('none');
+  const [membershipExpires, setMembershipExpires] = useState<string | null>(null);
+
+  useEffect(() => {
+    const stored = storage.getItem(STORAGE_KEYS.USER);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setMembershipStatus(parsed.membership_status || 'none');
+        setMembershipExpires(parsed.membership_expires_at || null);
+      } catch {
+        // silencioso
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user?.id) {
@@ -384,8 +402,53 @@ const ShopifyStore: React.FC = () => {
   const orders = storeData?.orders || [];
   const subscriptions = storeData?.subscriptions || [];
 
+  // Membership gate: block store if membership is not active
+  const isExpired = membershipStatus === 'expired';
+  const daysExpired = membershipExpires
+    ? Math.floor((Date.now() - new Date(membershipExpires).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+  const blockStore = membershipStatus !== 'active' && !(isExpired && daysExpired < 5);
+  const showWarning = isExpired && daysExpired < 5 && daysExpired >= 0;
+
+  if (blockStore && membershipStatus !== 'active') {
+    return (
+      <div className={styles.store}>
+        <div className={styles.membershipGate}>
+          <ShoppingBag size={48} weight="light" style={{ color: '#A68050', opacity: 0.5 }} />
+          <h2 style={{ fontSize: '18px', color: '#333', margin: '16px 0 8px' }}>
+            {membershipStatus === 'pending_payment' ? 'Pago de membresia pendiente' :
+             membershipStatus === 'expired' ? 'Tu membresia ha expirado' :
+             'Membresia requerida'}
+          </h2>
+          <p style={{ fontSize: '14px', color: '#666', textAlign: 'center', maxWidth: '300px', lineHeight: 1.6 }}>
+            {membershipStatus === 'pending_payment'
+              ? 'Tu inscripcion fue aprobada. Completa el pago de tu membresia para acceder al dispensario.'
+              : membershipStatus === 'expired'
+              ? 'Renueva tu membresia para volver a acceder al dispensario.'
+              : 'Necesitas una membresia activa para acceder al dispensario. Si aun no te has inscrito, hazlo desde la pagina de inicio.'}
+          </p>
+        </div>
+        <BottomNav activePage="store" />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.store}>
+      {showWarning && (
+        <div style={{
+          background: '#FFF3E0',
+          border: '1px solid #FFE082',
+          borderRadius: '10px',
+          padding: '12px 16px',
+          marginBottom: '16px',
+          fontSize: '13px',
+          color: '#E65100',
+          fontWeight: 500
+        }}>
+          Tu membresia vence pronto. Renuevala para mantener acceso al dispensario.
+        </div>
+      )}
       <div className={styles.header}>
         <button className={styles.backButton} onClick={() => navigate(-1)}>
           <ArrowLeft size={20} weight="bold" />

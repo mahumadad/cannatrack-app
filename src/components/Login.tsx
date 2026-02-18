@@ -155,6 +155,11 @@ const Login: React.FC = () => {
           Iniciar con tu cuenta de cliente
         </button>
 
+        <div className={styles.switchAuth}>
+          <span>¿No eres miembro? </span>
+          <a href={import.meta.env.VITE_ENROLLMENT_URL || '/inscripcion'} target="_blank" rel="noopener noreferrer">Inscríbete aquí</a>
+        </div>
+
       </div>
     </div>
   );
