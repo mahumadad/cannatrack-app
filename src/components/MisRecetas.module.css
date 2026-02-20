@@ -146,6 +146,7 @@
 }
 
 .estadoActiva { background: #E8F5E9; color: #2E7D32; }
+.estadoPendiente { background: #FFF3E0; color: #E65100; }
 .estadoVencida { background: #FFEBEE; color: #C62828; }
 .estadoCompletada { background: #F5F5F5; color: #757575; }
 

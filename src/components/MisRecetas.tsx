@@ -134,9 +134,11 @@ const MisRecetas: React.FC = () => {
   const getEstadoClass = (estado: string): string => {
     const map: Record<string, string> = {
       activa: styles.estadoActiva,
+      pendiente: styles.estadoPendiente,
       vencida: styles.estadoVencida,
       completada: styles.estadoCompletada,
-      cancelada: styles.estadoVencida
+      cancelada: styles.estadoVencida,
+      reemplazada: styles.estadoVencida
     };
     return map[estado] || '';
   };
@@ -144,9 +146,11 @@ const MisRecetas: React.FC = () => {
   const getEstadoLabel = (estado: string): string => {
     const map: Record<string, string> = {
       activa: 'Activa',
+      pendiente: 'Pendiente',
       vencida: 'Vencida',
       completada: 'Completada',
-      cancelada: 'Cancelada'
+      cancelada: 'Cancelada',
+      reemplazada: 'Reemplazada'
     };
     return map[estado] || estado;
   };
@@ -274,34 +278,36 @@ const MisRecetas: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Barras de saldo (siempre visibles) */}
-                <div className={styles.saldoSection}>
-                  {receta.total_micro_autorizado > 0 && (
-                    <div className={styles.saldoRow}>
-                      <div className={styles.saldoLabel}>
-                        <span className={styles.saldoName}>
-                          <Pill size={13} weight="bold" /> Microdosis {receta.gramaje_micro && `(${receta.gramaje_micro})`}
-                        </span>
-                        <span className={styles.saldoCount}>{receta.saldo_micro} / {receta.total_micro_autorizado} caps</span>
+                {/* Barras de saldo (solo para activa y pendiente) */}
+                {['activa', 'pendiente'].includes(receta.estado) && (
+                  <div className={styles.saldoSection}>
+                    {receta.total_micro_autorizado > 0 && (
+                      <div className={styles.saldoRow}>
+                        <div className={styles.saldoLabel}>
+                          <span className={styles.saldoName}>
+                            <Pill size={13} weight="bold" /> Microdosis {receta.gramaje_micro && `(${receta.gramaje_micro})`}
+                          </span>
+                          <span className={styles.saldoCount}>{receta.saldo_micro} / {receta.total_micro_autorizado} caps</span>
+                        </div>
+                        <div className={styles.saldoBar}>
+                          <div className={`${styles.saldoFill} ${getSaldoClass(microPct)}`} style={{ width: `${microPct}%` }} />
+                        </div>
                       </div>
-                      <div className={styles.saldoBar}>
-                        <div className={`${styles.saldoFill} ${getSaldoClass(microPct)}`} style={{ width: `${microPct}%` }} />
-                      </div>
-                    </div>
-                  )}
+                    )}
 
-                  {receta.total_macro_autorizado > 0 && (
-                    <div className={styles.saldoRow}>
-                      <div className={styles.saldoLabel}>
-                        <span className={styles.saldoName}>Macrodosis {receta.gramaje_macro && `(${receta.gramaje_macro})`}</span>
-                        <span className={styles.saldoCount}>{receta.saldo_macro} / {receta.total_macro_autorizado}</span>
+                    {receta.total_macro_autorizado > 0 && (
+                      <div className={styles.saldoRow}>
+                        <div className={styles.saldoLabel}>
+                          <span className={styles.saldoName}>Macrodosis {receta.gramaje_macro && `(${receta.gramaje_macro})`}</span>
+                          <span className={styles.saldoCount}>{receta.saldo_macro} / {receta.total_macro_autorizado}</span>
+                        </div>
+                        <div className={styles.saldoBar}>
+                          <div className={`${styles.saldoFill} ${getSaldoClass(macroPct)}`} style={{ width: `${macroPct}%` }} />
+                        </div>
                       </div>
-                      <div className={styles.saldoBar}>
-                        <div className={`${styles.saldoFill} ${getSaldoClass(macroPct)}`} style={{ width: `${macroPct}%` }} />
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Detalles expandibles */}
                 {isExpanded && (

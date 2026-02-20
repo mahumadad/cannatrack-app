@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useToast } from './Toast';
-import { Package, Truck, ArrowsClockwise, Receipt, ShoppingBag, ArrowLeft, MapPin, Tag, CurrencyDollar, Prescription, ClipboardText, Plus, CreditCard } from '@phosphor-icons/react';
+import { Package, Truck, ArrowsClockwise, Receipt, ShoppingBag, ArrowLeft, MapPin, Tag, CurrencyDollar, Prescription, ClipboardText, Plus, CreditCard, CaretDown, CaretUp } from '@phosphor-icons/react';
 import styles from './ShopifyStore.module.css';
 import BottomNav from './BottomNav';
 import { useUser } from '../hooks/useUser';
@@ -27,6 +27,7 @@ const ShopifyStore: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('orders');
   useSwipeBack();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [expandedRecetaId, setExpandedRecetaId] = useState<string | null>(null);
 
   // Membership gate
   const [membershipStatus, setMembershipStatus] = useState<string>('none');
@@ -618,81 +619,95 @@ const ShopifyStore: React.FC = () => {
             </div>
 
             {recetasActivas.length > 0 ? (
-              recetasActivas.map(receta => (
-                <div key={receta.id} className={styles.recetaDetailCard} style={{ marginBottom: 12 }}>
-                  <div className={styles.recetaCardHeader}>
-                    <Prescription size={24} weight="duotone" />
-                    <h3>Receta Activa{receta.medico_nombre ? ` — ${receta.medico_nombre}` : ''}</h3>
-                  </div>
-
-                  {receta.total_micro_autorizado > 0 && (
-                    <div className={styles.recetaSaldoRow}>
-                      <div className={styles.recetaSaldoLabel}>
-                        <span>Microdosis</span>
-                        {receta.gramaje_micro && <span className={styles.recetaGramaje}>{receta.gramaje_micro}</span>}
-                      </div>
-                      <div className={styles.recetaSaldoBar}>
-                        <div
-                          className={styles.recetaSaldoFill}
-                          style={{
-                            width: `${Math.round((receta.saldo_micro / receta.total_micro_autorizado) * 100)}%`,
-                            background: receta.saldo_micro > receta.total_micro_autorizado * 0.2 ? 'var(--color-success)' : 'var(--color-danger)'
-                          }}
-                        />
-                      </div>
-                      <span className={styles.recetaSaldoCount}>
-                        {receta.saldo_micro}/{receta.total_micro_autorizado} caps
-                      </span>
+              recetasActivas.map(receta => {
+                const isRecetaExpanded = expandedRecetaId === receta.id;
+                return (
+                  <div key={receta.id} className={styles.recetaDetailCard} style={{ marginBottom: 12 }}>
+                    <div className={styles.recetaCardHeader} onClick={() => setExpandedRecetaId(isRecetaExpanded ? null : receta.id)}>
+                      <Prescription size={24} weight="duotone" />
+                      <h3>Receta Activa{receta.medico_nombre ? ` — ${receta.medico_nombre}` : ''}</h3>
+                      {isRecetaExpanded ? <CaretUp size={16} weight="bold" style={{ color: '#999', marginLeft: 'auto' }} /> : <CaretDown size={16} weight="bold" style={{ color: '#999', marginLeft: 'auto' }} />}
                     </div>
-                  )}
 
-                  {receta.total_macro_autorizado > 0 && (
-                    <div className={styles.recetaSaldoRow}>
-                      <div className={styles.recetaSaldoLabel}>
-                        <span>Macrodosis</span>
-                        {receta.gramaje_macro && <span className={styles.recetaGramaje}>{receta.gramaje_macro}</span>}
-                      </div>
-                      <div className={styles.recetaSaldoBar}>
-                        <div
-                          className={styles.recetaSaldoFill}
-                          style={{
-                            width: `${Math.round((receta.saldo_macro / receta.total_macro_autorizado) * 100)}%`,
-                            background: receta.saldo_macro > receta.total_macro_autorizado * 0.2 ? 'var(--color-success)' : 'var(--color-danger)'
-                          }}
-                        />
-                      </div>
-                      <span className={styles.recetaSaldoCount}>
-                        {receta.saldo_macro}/{receta.total_macro_autorizado}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className={styles.recetaMetaGrid}>
-                    {receta.paciente_nombre && (
-                      <div className={styles.recetaMetaItem}>
-                        <span className={styles.recetaMetaLabel}>Paciente</span>
-                        <span className={styles.recetaMetaValue}>{receta.paciente_nombre}</span>
+                    {receta.total_micro_autorizado > 0 && (
+                      <div className={styles.recetaSaldoRow}>
+                        <div className={styles.recetaSaldoLabel}>
+                          <span>Microdosis</span>
+                          {receta.gramaje_micro && <span className={styles.recetaGramaje}>{receta.gramaje_micro}</span>}
+                        </div>
+                        <div className={styles.recetaSaldoBar}>
+                          <div
+                            className={styles.recetaSaldoFill}
+                            style={{
+                              width: `${Math.round((receta.saldo_micro / receta.total_micro_autorizado) * 100)}%`,
+                              background: receta.saldo_micro > receta.total_micro_autorizado * 0.2 ? 'var(--color-success)' : 'var(--color-danger)'
+                            }}
+                          />
+                        </div>
+                        <span className={styles.recetaSaldoCount}>
+                          {receta.saldo_micro}/{receta.total_micro_autorizado} caps
+                        </span>
                       </div>
                     )}
-                    {receta.fecha_emision && (
-                      <div className={styles.recetaMetaItem}>
-                        <span className={styles.recetaMetaLabel}>Emitida</span>
-                        <span className={styles.recetaMetaValue}>{formatDate(receta.fecha_emision)}</span>
+
+                    {receta.total_macro_autorizado > 0 && (
+                      <div className={styles.recetaSaldoRow}>
+                        <div className={styles.recetaSaldoLabel}>
+                          <span>Macrodosis</span>
+                          {receta.gramaje_macro && <span className={styles.recetaGramaje}>{receta.gramaje_macro}</span>}
+                        </div>
+                        <div className={styles.recetaSaldoBar}>
+                          <div
+                            className={styles.recetaSaldoFill}
+                            style={{
+                              width: `${Math.round((receta.saldo_macro / receta.total_macro_autorizado) * 100)}%`,
+                              background: receta.saldo_macro > receta.total_macro_autorizado * 0.2 ? 'var(--color-success)' : 'var(--color-danger)'
+                            }}
+                          />
+                        </div>
+                        <span className={styles.recetaSaldoCount}>
+                          {receta.saldo_macro}/{receta.total_macro_autorizado}
+                        </span>
                       </div>
                     )}
-                    {receta.fecha_vencimiento && (
-                      <div className={styles.recetaMetaItem}>
-                        <span className={styles.recetaMetaLabel}>Vencimiento</span>
-                        <span className={styles.recetaMetaValue}>{formatDate(receta.fecha_vencimiento)}</span>
+
+                    {isRecetaExpanded && (
+                      <div className={styles.recetaMetaGrid}>
+                        {receta.paciente_nombre && (
+                          <div className={styles.recetaMetaItem}>
+                            <span className={styles.recetaMetaLabel}>Paciente</span>
+                            <span className={styles.recetaMetaValue}>{receta.paciente_nombre}</span>
+                          </div>
+                        )}
+                        {receta.fecha_emision && (
+                          <div className={styles.recetaMetaItem}>
+                            <span className={styles.recetaMetaLabel}>Emitida</span>
+                            <span className={styles.recetaMetaValue}>{formatDate(receta.fecha_emision)}</span>
+                          </div>
+                        )}
+                        {receta.fecha_vencimiento && (
+                          <div className={styles.recetaMetaItem}>
+                            <span className={styles.recetaMetaLabel}>Vencimiento</span>
+                            <span className={styles.recetaMetaValue}>{formatDate(receta.fecha_vencimiento)}</span>
+                          </div>
+                        )}
+                        {receta.protocolo && (
+                          <div className={styles.recetaMetaItem}>
+                            <span className={styles.recetaMetaLabel}>Protocolo</span>
+                            <span className={styles.recetaMetaValue}>{receta.protocolo}</span>
+                          </div>
+                        )}
+                        {receta.duracion && (
+                          <div className={styles.recetaMetaItem}>
+                            <span className={styles.recetaMetaLabel}>Duracion</span>
+                            <span className={styles.recetaMetaValue}>{receta.duracion}</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-
-                  <button className={styles.recetaDetailBtn} onClick={() => navigate('/store/recetas')}>
-                    Ver detalles completos
-                  </button>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className={styles.emptyState}>
                 <Prescription size={48} weight="light" />
@@ -720,7 +735,7 @@ const ShopifyStore: React.FC = () => {
                         r.estado === 'vencida' ? styles.recetaPasadaVencida :
                         styles.recetaPasadaCancelada
                       }`}>
-                        {r.estado === 'completada' ? 'Completada' : r.estado === 'vencida' ? 'Vencida' : 'Cancelada'}
+                        {r.estado === 'completada' ? 'Completada' : r.estado === 'vencida' ? 'Vencida' : r.estado === 'reemplazada' ? 'Reemplazada' : 'Cancelada'}
                       </span>
                     </div>
                     <div className={styles.recetaPasadaMeta}>

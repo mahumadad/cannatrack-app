@@ -628,6 +628,7 @@
   gap: 10px;
   margin-bottom: 20px;
   color: var(--color-primary);
+  cursor: pointer;
 }
 
 .recetaCardHeader h3 {
@@ -829,7 +830,8 @@
   color: #E65100;
 }
 
-.recetaPasadaCancelada {
+.recetaPasadaCancelada,
+.recetaPasadaReemplazada {
   background: #F5F5F5;
   color: #666;
 }
