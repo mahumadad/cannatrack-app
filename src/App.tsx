@@ -118,6 +118,20 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
         if (res.ok) {
           const csrf = res.headers.get('x-csrf-token');
           if (csrf) updateCsrfToken(csrf);
+          // Sync membership data from verify response to localStorage
+          res.json().then((data: { user?: { membership_status?: string; membership_expires_at?: string | null } }) => {
+            if (data.user) {
+              const stored = storage.getItem(STORAGE_KEYS.USER);
+              if (stored) {
+                try {
+                  const parsed = JSON.parse(stored);
+                  parsed.membership_status = data.user.membership_status || 'none';
+                  parsed.membership_expires_at = data.user.membership_expires_at || null;
+                  storage.setItem(STORAGE_KEYS.USER, JSON.stringify(parsed));
+                } catch { /* ignore parse errors */ }
+              }
+            }
+          }).catch(() => { /* ignore json parse errors */ });
           setStatus('valid');
         } else if (res.status === 503) {
           // Supabase caído / circuit breaker — no borrar sesión,
