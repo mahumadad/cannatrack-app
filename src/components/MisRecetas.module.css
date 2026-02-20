@@ -507,38 +507,6 @@
   border-radius: 12px;
 }
 
-.uploadTypeLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  margin-bottom: 8px;
-}
-
-.uploadTypeRow {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.uploadTypeBtn {
-  flex: 1;
-  padding: 10px;
-  border: 1.5px solid var(--color-border);
-  border-radius: 10px;
-  background: transparent;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.uploadTypeBtnActive {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-  color: white;
-}
-
 .uploadFileLabel {
   display: flex;
   align-items: center;

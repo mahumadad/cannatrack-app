@@ -74,7 +74,6 @@ const MisRecetas: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [showUpload, setShowUpload] = useState(false);
-  const [uploadType, setUploadType] = useState<'micro' | 'macro' | 'ambas'>('ambas');
   const [uploadFile, setUploadFile] = useState<string | null>(null);
   const [uploadFileName, setUploadFileName] = useState<string>('');
   const [uploading, setUploading] = useState(false);
@@ -106,8 +105,7 @@ const MisRecetas: React.FC = () => {
     setUploading(true);
     try {
       const result = await api.post(`/api/recetas/${user.id}/upload`, {
-        recipeFile: uploadFile,
-        type: uploadType
+        recipeFile: uploadFile
       });
       toast.success(result.action === 'updated' ? 'Receta actualizada' : 'Receta subida exitosamente');
       setShowUpload(false);
@@ -210,28 +208,6 @@ const MisRecetas: React.FC = () => {
       {/* Upload form */}
       {showUpload && (
         <div className={styles.uploadForm}>
-          <p className={styles.uploadTypeLabel}>Tipo de receta:</p>
-          <div className={styles.uploadTypeRow}>
-            <button
-              className={`${styles.uploadTypeBtn} ${uploadType === 'ambas' ? styles.uploadTypeBtnActive : ''}`}
-              onClick={() => setUploadType('ambas')}
-            >
-              Micro + Macro
-            </button>
-            <button
-              className={`${styles.uploadTypeBtn} ${uploadType === 'micro' ? styles.uploadTypeBtnActive : ''}`}
-              onClick={() => setUploadType('micro')}
-            >
-              Solo Micro
-            </button>
-            <button
-              className={`${styles.uploadTypeBtn} ${uploadType === 'macro' ? styles.uploadTypeBtnActive : ''}`}
-              onClick={() => setUploadType('macro')}
-            >
-              Solo Macro
-            </button>
-          </div>
-
           <label className={styles.uploadFileLabel}>
             <input
               type="file"

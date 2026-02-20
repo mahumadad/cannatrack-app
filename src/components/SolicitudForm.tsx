@@ -43,17 +43,14 @@ const SolicitudForm: React.FC = () => {
   // Macro selection state
   const [selectedMacro, setSelectedMacro] = useState<string | null>(null);
 
-  // Recetas & contact
-  const [recipeMicro, setRecipeMicro] = useState<string | null>(null);
-  const [recipeMicroName, setRecipeMicroName] = useState('');
-  const [recipeMacro, setRecipeMacro] = useState<string | null>(null);
-  const [recipeMacroName, setRecipeMacroName] = useState('');
+  // Receta & contact
+  const [recipeFile, setRecipeFile] = useState<string | null>(null);
+  const [recipeFileName, setRecipeFileName] = useState('');
   const [email, setEmail] = useState('');
   const [telefono, setTelefono] = useState('');
   const [notas, setNotas] = useState('');
 
-  const microFileRef = useRef<HTMLInputElement>(null);
-  const macroFileRef = useRef<HTMLInputElement>(null);
+  const recipeFileRef = useRef<HTMLInputElement>(null);
 
   // Derived: find receta for micro and macro from all active recetas
   // Con saldo — para banners y auto-selección de gramaje
@@ -240,13 +237,10 @@ const SolicitudForm: React.FC = () => {
       toast.error('Email es requerido');
       return;
     }
-    // Solo exigir receta si no hay receta activa para ese tipo
-    if (hasMicro && !recetaMicro && !recipeMicro) {
-      toast.error('Sube la receta de microdosis');
-      return;
-    }
-    if (hasMacro && !recetaMacro && !recipeMacro) {
-      toast.error('Sube la receta de macrodosis');
+    // Solo exigir receta si no hay receta activa
+    const needsReceta = (hasMicro && !recetaMicro) || (hasMacro && !recetaMacro);
+    if (needsReceta && !recipeFile) {
+      toast.error('Sube tu receta médica');
       return;
     }
 
@@ -257,8 +251,8 @@ const SolicitudForm: React.FC = () => {
         email,
         telefono: telefono || null,
         notas: notas || null,
-        recipeMicro,
-        recipeMacro
+        recipeMicro: recipeFile,
+        recipeMacro: null
       });
       trackEvent('solicitud_created', { items: cart.length });
       setSuccess(result.submission_id);
@@ -275,9 +269,8 @@ const SolicitudForm: React.FC = () => {
   const canGoNext = () => {
     if (step === 'recetas') {
       if (loadingRecetas) return false; // Esperar a que carguen las recetas
-      // Solo exigir receta si no hay receta activa para ese tipo
-      if (hasMicro && !recetaMicro && !recipeMicro) return false;
-      if (hasMacro && !recetaMacro && !recipeMacro) return false;
+      const needsReceta = (hasMicro && !recetaMicro) || (hasMacro && !recetaMacro);
+      if (needsReceta && !recipeFile) return false;
       return !!email;
     }
     return true;
@@ -601,16 +594,10 @@ const SolicitudForm: React.FC = () => {
             )}
 
             {/* ── Warnings ── */}
-            {hasMicro && !recetaMicro && !recipeMicro && (
+            {((hasMicro && !recetaMicro) || (hasMacro && !recetaMacro)) && !recipeFile && (
               <div className={styles.warningBanner}>
                 <Warning size={16} weight="fill" />
-                <span>No tienes receta de microdosis activa. Sube una para continuar.</span>
-              </div>
-            )}
-            {hasMacro && !recetaMacro && !recipeMacro && (
-              <div className={styles.warningBanner}>
-                <Warning size={16} weight="fill" />
-                <span>No tienes receta de macrodosis activa. Sube una para continuar.</span>
+                <span>No tienes receta activa. Sube una para continuar.</span>
               </div>
             )}
             {hasMicro && recetaMicroConSaldo && cartMicroCaps > recetaMicroConSaldo.saldo_micro && (
@@ -645,42 +632,20 @@ const SolicitudForm: React.FC = () => {
               </div>
             )}
 
-            {/* ── Upload sections ── */}
-            {hasMicro && (
-              <>
-                <h2 className={styles.sectionTitle}>Receta Microdosis</h2>
-                <p className={styles.sectionSubtitle}>
-                  {recetaMicro ? 'Opcional — ya tienes receta micro activa' : 'Sube la foto o PDF de tu receta'}
-                </p>
-                <input ref={microFileRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => handleFileSelect(e, setRecipeMicro, setRecipeMicroName)} />
-                <div
-                  className={`${styles.uploadArea} ${recipeMicro ? styles.uploadAreaFilled : ''}`}
-                  onClick={() => microFileRef.current?.click()}
-                >
-                  <UploadSimple size={32} weight="light" className={styles.uploadIcon} />
-                  <p className={styles.uploadText}>{recipeMicro ? 'Cambiar archivo' : 'Toca para subir'}</p>
-                  {recipeMicroName && <p className={styles.uploadFileName}>{recipeMicroName}</p>}
-                </div>
-              </>
-            )}
-
-            {hasMacro && (
-              <>
-                <h2 className={styles.sectionTitle}>Receta Macrodosis</h2>
-                <p className={styles.sectionSubtitle}>
-                  {recetaMacro ? 'Opcional — ya tienes receta macro activa' : 'Sube la foto o PDF de tu receta'}
-                </p>
-                <input ref={macroFileRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => handleFileSelect(e, setRecipeMacro, setRecipeMacroName)} />
-                <div
-                  className={`${styles.uploadArea} ${recipeMacro ? styles.uploadAreaFilled : ''}`}
-                  onClick={() => macroFileRef.current?.click()}
-                >
-                  <UploadSimple size={32} weight="light" className={styles.uploadIcon} />
-                  <p className={styles.uploadText}>{recipeMacro ? 'Cambiar archivo' : 'Toca para subir'}</p>
-                  {recipeMacroName && <p className={styles.uploadFileName}>{recipeMacroName}</p>}
-                </div>
-              </>
-            )}
+            {/* ── Upload section (single file, AI auto-detects type) ── */}
+            <h2 className={styles.sectionTitle}>Receta</h2>
+            <p className={styles.sectionSubtitle}>
+              {(recetaMicro || recetaMacro) ? 'Opcional — ya tienes receta activa' : 'Sube la foto o PDF de tu receta'}
+            </p>
+            <input ref={recipeFileRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => handleFileSelect(e, setRecipeFile, setRecipeFileName)} />
+            <div
+              className={`${styles.uploadArea} ${recipeFile ? styles.uploadAreaFilled : ''}`}
+              onClick={() => recipeFileRef.current?.click()}
+            >
+              <UploadSimple size={32} weight="light" className={styles.uploadIcon} />
+              <p className={styles.uploadText}>{recipeFile ? 'Cambiar archivo' : 'Toca para subir'}</p>
+              {recipeFileName && <p className={styles.uploadFileName}>{recipeFileName}</p>}
+            </div>
 
             <h2 className={styles.sectionTitle}>Contacto</h2>
             <div className={styles.formField}>
