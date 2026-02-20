@@ -414,6 +414,17 @@ export interface Solicitud {
   cancelado_por?: string;
   cancelado_razon?: string;
   aprobado_at?: string;
+  // AI-extracted fields (receta solicitudes)
+  ai_confianza?: string;
+  ai_paciente_nombre?: string;
+  ai_medico_nombre?: string;
+  ai_fecha_emision?: string;
+  ai_total_micro?: number;
+  ai_total_macro?: number;
+  ai_gramaje_micro?: string;
+  ai_gramaje_macro?: string;
+  ai_protocolo?: string;
+  ai_duracion?: string;
   created_at: string;
   updated_at: string;
 }

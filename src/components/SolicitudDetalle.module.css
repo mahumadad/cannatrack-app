@@ -77,6 +77,40 @@
   color: var(--color-text-secondary);
 }
 
+.tipoBadgeRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.tipoBadgeReceta {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.tipoBadgeDispensacion {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: #E3F2FD;
+  color: #1976D2;
+}
+
+.recetaNoData {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: 12px 0;
+  margin: 0;
+}
+
 /* ============ CARD ============ */
 .card {
   background: white;

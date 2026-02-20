@@ -4,7 +4,7 @@ import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
 import useSwipeBack from '../hooks/useSwipeBack';
-import { ArrowLeft, ShoppingBag, User, CreditCard, XCircle } from '@phosphor-icons/react';
+import { ArrowLeft, ShoppingBag, User, CreditCard, XCircle, Prescription, Stethoscope, Calendar } from '@phosphor-icons/react';
 import styles from './SolicitudDetalle.module.css';
 import type { Solicitud, SolicitudEstado } from '../types';
 
@@ -90,6 +90,7 @@ const SolicitudDetalle: React.FC = () => {
 
   const status = STATUS_MAP[solicitud.estado] || { text: solicitud.estado, className: '' };
   const items = solicitud.cart_json || [];
+  const isReceta = solicitud.tipo === 'receta';
 
   return (
     <div className={styles.page}>
@@ -104,26 +105,92 @@ const SolicitudDetalle: React.FC = () => {
       <div className={styles.content}>
         {/* Status header */}
         <div className={styles.statusHeader}>
-          <div className={`${styles.statusBadgeLarge} ${status.className}`}>{status.text}</div>
+          <div className={styles.tipoBadgeRow}>
+            <span className={isReceta ? styles.tipoBadgeReceta : styles.tipoBadgeDispensacion}>
+              {isReceta ? 'Receta' : 'Dispensación'}
+            </span>
+            <div className={`${styles.statusBadgeLarge} ${status.className}`}>{status.text}</div>
+          </div>
           <div className={styles.submissionId}>{solicitud.submission_id} · {formatDate(solicitud.created_at)}</div>
         </div>
 
-        {/* Cart items */}
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>
-            <ShoppingBag size={18} weight="bold" /> Productos
-          </h3>
-          {items.map((item, i) => (
-            <div key={i} className={styles.cartItem}>
-              <span className={styles.cartItemLabel}>{item.displayLabel}</span>
-              <span className={styles.cartItemPrice}>{formatCLP(item.lineTotal)}</span>
+        {isReceta ? (
+          /* ── Receta solicitud view ── */
+          <>
+            {/* Receta info */}
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>
+                <Prescription size={18} weight="bold" /> Datos de la receta
+              </h3>
+              {solicitud.ai_medico_nombre && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Médico</span>
+                  <span className={styles.detailValue}>{solicitud.ai_medico_nombre}</span>
+                </div>
+              )}
+              {solicitud.ai_paciente_nombre && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Paciente</span>
+                  <span className={styles.detailValue}>{solicitud.ai_paciente_nombre}</span>
+                </div>
+              )}
+              {solicitud.ai_fecha_emision && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Fecha emisión</span>
+                  <span className={styles.detailValue}>{solicitud.ai_fecha_emision}</span>
+                </div>
+              )}
+              {(solicitud.ai_total_micro != null && solicitud.ai_total_micro > 0) && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Micro autorizado</span>
+                  <span className={styles.detailValue}>{solicitud.ai_total_micro} dosis {solicitud.ai_gramaje_micro && `(${solicitud.ai_gramaje_micro})`}</span>
+                </div>
+              )}
+              {(solicitud.ai_total_macro != null && solicitud.ai_total_macro > 0) && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Macro autorizado</span>
+                  <span className={styles.detailValue}>{solicitud.ai_total_macro} dosis</span>
+                </div>
+              )}
+              {solicitud.ai_protocolo && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Protocolo</span>
+                  <span className={styles.detailValue}>{solicitud.ai_protocolo}</span>
+                </div>
+              )}
+              {solicitud.ai_duracion && (
+                <div className={styles.detailRow}>
+                  <span className={styles.detailLabel}>Duración</span>
+                  <span className={styles.detailValue}>{solicitud.ai_duracion}</span>
+                </div>
+              )}
+              {/* Fallback if no AI data was extracted */}
+              {!solicitud.ai_medico_nombre && !solicitud.ai_paciente_nombre && !solicitud.ai_fecha_emision && (
+                <p className={styles.recetaNoData}>Receta en proceso de revisión</p>
+              )}
             </div>
-          ))}
-          <div className={styles.cartTotal}>
-            <span className={styles.cartTotalLabel}>Total</span>
-            <span className={styles.cartTotalPrice}>{formatCLP(solicitud.total_estimado)}</span>
-          </div>
-        </div>
+          </>
+        ) : (
+          /* ── Dispensación solicitud view ── */
+          <>
+            {/* Cart items */}
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>
+                <ShoppingBag size={18} weight="bold" /> Productos
+              </h3>
+              {items.map((item, i) => (
+                <div key={i} className={styles.cartItem}>
+                  <span className={styles.cartItemLabel}>{item.displayLabel}</span>
+                  <span className={styles.cartItemPrice}>{formatCLP(item.lineTotal)}</span>
+                </div>
+              ))}
+              <div className={styles.cartTotal}>
+                <span className={styles.cartTotalLabel}>Total</span>
+                <span className={styles.cartTotalPrice}>{formatCLP(solicitud.total_estimado)}</span>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Contact info */}
         <div className={styles.card}>
@@ -158,8 +225,8 @@ const SolicitudDetalle: React.FC = () => {
           </div>
         )}
 
-        {/* Payment button (if approved) */}
-        {solicitud.estado === 'aprobado' && solicitud.draft_order_url && (
+        {/* Payment button (if approved dispensación) */}
+        {!isReceta && solicitud.estado === 'aprobado' && solicitud.draft_order_url && (
           <a href={solicitud.draft_order_url} target="_blank" rel="noopener noreferrer" className={styles.paymentBtn}>
             <CreditCard size={18} weight="bold" /> Ir al pago
           </a>
