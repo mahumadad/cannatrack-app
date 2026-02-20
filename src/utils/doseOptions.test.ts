@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   DOSE_OPTIONS, INTERNAL_SUBSTANCE, DOSE_UNIT,
   parseGramaje, parseProtocolo, extractCustomPattern,
-  extractEveryXDays, parseDuracion, estimateDuration
+  extractEveryXDays, parseDuracion, estimateDuration,
+  inferFrequencyFromDosesAndDuration
 } from './doseOptions';
 
 describe('DOSE_OPTIONS', () => {
@@ -204,5 +205,45 @@ describe('estimateDuration', () => {
   it('retorna null si totalDoses <= 0', () => {
     expect(estimateDuration(0, 'fadiman')).toBeNull();
     expect(estimateDuration(-1, 'fadiman')).toBeNull();
+  });
+});
+
+describe('inferFrequencyFromDosesAndDuration', () => {
+  it('infiere "cada 4 días" de 23 dosis / 90 días', () => {
+    expect(inferFrequencyFromDosesAndDuration(23, 90))
+      .toEqual({ frequency: 'every_x_days', everyXDays: 4 });
+  });
+
+  it('infiere "cada 3 días" de 30 dosis / 90 días', () => {
+    expect(inferFrequencyFromDosesAndDuration(30, 90))
+      .toEqual({ frequency: 'every_x_days', everyXDays: 3 });
+  });
+
+  it('infiere "cada 5 días" de 12 dosis / 60 días', () => {
+    expect(inferFrequencyFromDosesAndDuration(12, 60))
+      .toEqual({ frequency: 'every_x_days', everyXDays: 5 });
+  });
+
+  it('infiere "cada 7 días" (semanal)', () => {
+    expect(inferFrequencyFromDosesAndDuration(4, 28))
+      .toEqual({ frequency: 'every_x_days', everyXDays: 7 });
+  });
+
+  it('retorna null si intervalo > 14', () => {
+    expect(inferFrequencyFromDosesAndDuration(2, 90)).toBeNull();
+  });
+
+  it('retorna null si totalDoses es 0 o null', () => {
+    expect(inferFrequencyFromDosesAndDuration(0, 90)).toBeNull();
+    expect(inferFrequencyFromDosesAndDuration(null, 90)).toBeNull();
+  });
+
+  it('retorna null si durationDays es 0 o null', () => {
+    expect(inferFrequencyFromDosesAndDuration(23, 0)).toBeNull();
+    expect(inferFrequencyFromDosesAndDuration(23, null)).toBeNull();
+  });
+
+  it('retorna null si undefined', () => {
+    expect(inferFrequencyFromDosesAndDuration(undefined, undefined)).toBeNull();
   });
 });

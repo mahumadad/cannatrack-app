@@ -141,3 +141,25 @@ export function estimateDuration(
       return null;
   }
 }
+
+/**
+ * Infer dosing frequency when protocolo is null but we have total doses and duration.
+ * Returns { frequency, everyXDays } if a reasonable "cada X días" pattern can be inferred,
+ * or null if inference is not possible.
+ */
+export function inferFrequencyFromDosesAndDuration(
+  totalDoses: number | null | undefined,
+  durationDays: number | null | undefined
+): { frequency: 'every_x_days'; everyXDays: number } | null {
+  if (!totalDoses || !durationDays || totalDoses <= 0 || durationDays <= 0) return null;
+
+  const interval = durationDays / totalDoses;
+
+  // Only infer if the interval is a reasonable whole-ish number (1-14 days)
+  // and the rounding error is small (within 0.3 days)
+  const rounded = Math.round(interval);
+  if (rounded < 1 || rounded > 14) return null;
+  if (Math.abs(interval - rounded) > 0.3) return null;
+
+  return { frequency: 'every_x_days', everyXDays: rounded };
+}

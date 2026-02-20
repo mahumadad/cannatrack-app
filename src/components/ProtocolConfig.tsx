@@ -8,7 +8,8 @@ import DosePicker from './DosePicker';
 import {
   INTERNAL_SUBSTANCE, DOSE_UNIT, DOSE_OPTIONS,
   parseGramaje, parseProtocolo, extractCustomPattern,
-  extractEveryXDays, parseDuracion, estimateDuration
+  extractEveryXDays, parseDuracion, estimateDuration,
+  inferFrequencyFromDosesAndDuration
 } from '../utils/doseOptions';
 import { useRecetas } from '../hooks/useRecetas';
 import styles from './ProtocolConfig.module.css';
@@ -70,11 +71,25 @@ const ProtocolConfig: React.FC = () => {
   const recetaSuggestions = useMemo(() => {
     if (!activeReceta) return null;
 
-    const suggestedFrequency = parseProtocolo(activeReceta.protocolo);
+    let suggestedFrequency = parseProtocolo(activeReceta.protocolo);
     const suggestedDose = parseGramaje(activeReceta.gramaje_micro);
     const suggestedDuration = parseDuracion(activeReceta.duracion);
     const suggestedCustomPattern = extractCustomPattern(activeReceta.protocolo);
-    const suggestedEveryXDays = extractEveryXDays(activeReceta.protocolo);
+    let suggestedEveryXDays = extractEveryXDays(activeReceta.protocolo);
+
+    // Inference fallback: if protocolo is null but we have doses + duration, try to infer
+    let inferred = false;
+    if (!suggestedFrequency) {
+      const inference = inferFrequencyFromDosesAndDuration(
+        activeReceta.total_micro_autorizado,
+        suggestedDuration
+      );
+      if (inference) {
+        suggestedFrequency = inference.frequency;
+        suggestedEveryXDays = inference.everyXDays;
+        inferred = true;
+      }
+    }
 
     return {
       frequency: suggestedFrequency,
@@ -86,6 +101,7 @@ const ProtocolConfig: React.FC = () => {
       rawProtocolo: activeReceta.protocolo,
       rawGramaje: activeReceta.gramaje_micro,
       rawDuracion: activeReceta.duracion,
+      inferred,
     };
   }, [activeReceta]);
 
@@ -175,9 +191,7 @@ const ProtocolConfig: React.FC = () => {
         setEveryXDays(s.everyXDays);
       }
     } else {
-      // No recognized protocol → default to custom 1on/2off
-      setProtocol(prev => ({ ...prev, frequency: 'custom' }));
-      setCustomPattern({ on: 1, off: 2 });
+      // No recognized protocol and no inference — keep initial default (fadiman)
     }
 
     // Apply dose
@@ -277,9 +291,7 @@ const ProtocolConfig: React.FC = () => {
   const isIntuitive = protocol.frequency === 'intuitive';
 
   // Which frequency should show "Sugerido" badge
-  const suggestedFreq = recetaSuggestions
-    ? (recetaSuggestions.frequency || 'custom') // null protocol → suggest custom
-    : null;
+  const suggestedFreq = recetaSuggestions?.frequency || null;
 
   // Helper to build frequency card className
   const freqCardClass = (freq: string) => {
@@ -310,7 +322,7 @@ const ProtocolConfig: React.FC = () => {
       </div>
 
       {/* Receta suggestion banner */}
-      {recetaSuggestions && (recetaSuggestions.rawGramaje || recetaSuggestions.rawProtocolo || recetaSuggestions.rawDuracion || recetaSuggestions.totalMicro > 0) && (
+      {recetaSuggestions && (recetaSuggestions.rawGramaje || recetaSuggestions.rawProtocolo || recetaSuggestions.rawDuracion || recetaSuggestions.totalMicro > 0 || recetaSuggestions.inferred) && (
         <div className={styles.recetaBanner}>
           <span className={styles.recetaBannerIcon}>📋</span>
           <div className={styles.recetaBannerContent}>
@@ -321,6 +333,9 @@ const ProtocolConfig: React.FC = () => {
               )}
               {recetaSuggestions.rawProtocolo && (
                 <>Protocolo: <strong>{recetaSuggestions.rawProtocolo}</strong> · </>
+              )}
+              {!recetaSuggestions.rawProtocolo && recetaSuggestions.inferred && recetaSuggestions.everyXDays && (
+                <>Frecuencia estimada: <strong>cada {recetaSuggestions.everyXDays} días</strong> · </>
               )}
               {recetaSuggestions.totalMicro > 0 && (
                 <>{recetaSuggestions.totalMicro} cápsulas autorizadas</>
