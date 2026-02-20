@@ -182,7 +182,7 @@ const ShopifyStore: React.FC = () => {
           </div>
           <div className={styles.orderRight}>
             <span className={styles.orderTotal}>{formatCLP(sol.total_estimado)}</span>
-            <span className={`${styles.statusBadge} ${styles.statusPendingPayment}`}>Pago pendiente</span>
+            <span className={`${styles.statusBadge} ${styles.statusPendingPayment}`}>Suscripción pendiente</span>
           </div>
         </div>
 
@@ -410,23 +410,62 @@ const ShopifyStore: React.FC = () => {
   const blockStore = membershipStatus !== 'active' && !(isExpired && daysExpired < 5);
   const showWarning = isExpired && daysExpired < 5 && daysExpired >= 0;
 
+  const [subscribing, setSubscribing] = useState(false);
+
+  const handleSubscribe = async () => {
+    setSubscribing(true);
+    try {
+      const { data } = await api.post('/api/membership/subscribe');
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        toast.error('No se pudo obtener el enlace de pago');
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al crear suscripción';
+      toast.error(message);
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
   if (blockStore && membershipStatus !== 'active') {
     return (
       <div className={styles.store}>
         <div className={styles.membershipGate}>
           <ShoppingBag size={48} weight="light" style={{ color: '#A68050', opacity: 0.5 }} />
           <h2 style={{ fontSize: '18px', color: '#333', margin: '16px 0 8px' }}>
-            {membershipStatus === 'pending_payment' ? 'Pago de membresia pendiente' :
-             membershipStatus === 'expired' ? 'Tu membresia ha expirado' :
-             'Membresia requerida'}
+            {membershipStatus === 'pending_payment' ? 'Suscripción pendiente' :
+             membershipStatus === 'expired' ? 'Tu membresía ha expirado' :
+             'Membresía requerida'}
           </h2>
           <p style={{ fontSize: '14px', color: '#666', textAlign: 'center', maxWidth: '300px', lineHeight: 1.6 }}>
             {membershipStatus === 'pending_payment'
-              ? 'Tu inscripcion fue aprobada. Completa el pago de tu membresia para acceder al dispensario.'
+              ? 'Tu inscripción fue aprobada. Activa tu suscripción para acceder al dispensario.'
               : membershipStatus === 'expired'
-              ? 'Renueva tu membresia para volver a acceder al dispensario.'
-              : 'Necesitas una membresia activa para acceder al dispensario. Si aun no te has inscrito, hazlo desde la pagina de inicio.'}
+              ? 'Renueva tu membresía para volver a acceder al dispensario.'
+              : 'Necesitas una membresía activa para acceder al dispensario. Si aún no te has inscrito, hazlo desde la página de inicio.'}
           </p>
+          {(membershipStatus === 'pending_payment' || membershipStatus === 'expired') && (
+            <button
+              onClick={handleSubscribe}
+              disabled={subscribing}
+              style={{
+                marginTop: '16px',
+                padding: '14px 32px',
+                backgroundColor: '#A68050',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '15px',
+                fontWeight: 600,
+                cursor: subscribing ? 'not-allowed' : 'pointer',
+                opacity: subscribing ? 0.7 : 1
+              }}
+            >
+              {subscribing ? 'Redirigiendo...' : membershipStatus === 'expired' ? 'Renovar membresía' : 'Activar membresía'}
+            </button>
+          )}
         </div>
         <BottomNav activePage="store" />
       </div>
