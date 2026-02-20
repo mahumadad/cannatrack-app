@@ -1,15 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from './Toast';
 import { ArrowLeft, ArrowRight, CheckCircle } from '@phosphor-icons/react';
 import api from '../utils/api';
 import { trackEvent } from '../utils/analytics';
 import DosePicker from './DosePicker';
-import { INTERNAL_SUBSTANCE, DOSE_UNIT } from '../utils/doseOptions';
+import {
+  INTERNAL_SUBSTANCE, DOSE_UNIT, DOSE_OPTIONS,
+  parseGramaje, parseProtocolo, extractCustomPattern,
+  extractEveryXDays, parseDuracion, estimateDuration
+} from '../utils/doseOptions';
+import { useRecetas } from '../hooks/useRecetas';
 import styles from './ProtocolConfig.module.css';
 import { useUser } from '../hooks/useUser';
 import { toLocalDateString } from '../utils/dateHelpers';
-import type { Protocol, CustomDays, CustomPattern, ProtocolFrequency, FrequencyValue } from '../types';
+import type { Protocol, CustomDays, CustomPattern, ProtocolFrequency, FrequencyValue, Receta, DoseOption } from '../types';
 
 interface ProtocolFormState {
   frequency: string;
@@ -27,6 +32,7 @@ const ProtocolConfig: React.FC = () => {
   const { user } = useUser();
   const [loading, setLoading] = useState<boolean>(false);
   const [existingProtocol, setExistingProtocol] = useState<Protocol | null>(null);
+  const [protocolLoaded, setProtocolLoaded] = useState<boolean>(false);
   const [step, setStep] = useState<number>(1);
 
   const [protocol, setProtocol] = useState<ProtocolFormState>({
@@ -51,6 +57,70 @@ const ProtocolConfig: React.FC = () => {
 
   const [everyXDays, setEveryXDays] = useState<number>(3);
   const [customPattern, setCustomPattern] = useState<CustomPattern>({ on: 1, off: 2 });
+  const [suggestionsApplied, setSuggestionsApplied] = useState<boolean>(false);
+
+  // ─── Receta suggestions ──────────────────────────────────────
+
+  const { recetas: allRecetas } = useRecetas(user?.id);
+
+  const activeReceta = useMemo(() => {
+    return allRecetas.find((r: Receta) => r.estado === 'activa') || null;
+  }, [allRecetas]);
+
+  const recetaSuggestions = useMemo(() => {
+    if (!activeReceta) return null;
+
+    const suggestedFrequency = parseProtocolo(activeReceta.protocolo);
+    const suggestedDose = parseGramaje(activeReceta.gramaje_micro);
+    const suggestedDuration = parseDuracion(activeReceta.duracion);
+    const suggestedCustomPattern = extractCustomPattern(activeReceta.protocolo);
+    const suggestedEveryXDays = extractEveryXDays(activeReceta.protocolo);
+
+    return {
+      frequency: suggestedFrequency,
+      dose: suggestedDose,
+      duration: suggestedDuration,
+      customPattern: suggestedCustomPattern,
+      everyXDays: suggestedEveryXDays,
+      totalMicro: activeReceta.total_micro_autorizado || 0,
+      rawProtocolo: activeReceta.protocolo,
+      rawGramaje: activeReceta.gramaje_micro,
+      rawDuracion: activeReceta.duracion,
+    };
+  }, [activeReceta]);
+
+  // Extra dose option if receta gramaje not in presets
+  const extraDoseOptions = useMemo((): DoseOption[] => {
+    if (!recetaSuggestions?.dose) return [];
+    const exists = DOSE_OPTIONS.some(o => o.value === recetaSuggestions.dose);
+    if (exists) return [];
+    const val = recetaSuggestions.dose;
+    const mg = Math.round(val * 1000);
+    return [{ value: val, label: `${val}g`, sublabel: `${mg}mg` }];
+  }, [recetaSuggestions]);
+
+  // Estimated duration based on current frequency + total authorized doses
+  const estimatedDuration = useMemo(() => {
+    if (!recetaSuggestions?.totalMicro) return null;
+    if (recetaSuggestions.duration) return null; // explicit duration takes precedence
+
+    let freqValue: Record<string, unknown> | null = null;
+    switch (protocol.frequency) {
+      case 'custom':
+        freqValue = customPattern;
+        break;
+      case 'every_x_days':
+        freqValue = { days: everyXDays };
+        break;
+      case 'specific_days':
+        freqValue = customDays;
+        break;
+    }
+
+    return estimateDuration(recetaSuggestions.totalMicro, protocol.frequency, freqValue);
+  }, [recetaSuggestions, protocol.frequency, customPattern, everyXDays, customDays]);
+
+  // ─── Load existing protocol ──────────────────────────────────
 
   useEffect(() => {
     if (user?.id) {
@@ -81,10 +151,58 @@ const ProtocolConfig: React.FC = () => {
           setCustomPattern(data.frequency_value);
         }
       }
-    } catch (error) {
-      toast!.error('Error al cargar protocolo');
+    } catch {
+      // No existing protocol — that's fine
+    } finally {
+      setProtocolLoaded(true);
     }
   };
+
+  // ─── Apply receta suggestions (only for NEW protocols) ───────
+
+  useEffect(() => {
+    if (!protocolLoaded || existingProtocol || suggestionsApplied || !recetaSuggestions) return;
+
+    const s = recetaSuggestions;
+
+    // Apply frequency
+    if (s.frequency) {
+      setProtocol(prev => ({ ...prev, frequency: s.frequency! }));
+      if (s.frequency === 'custom' && s.customPattern) {
+        setCustomPattern(s.customPattern);
+      }
+      if (s.frequency === 'every_x_days' && s.everyXDays) {
+        setEveryXDays(s.everyXDays);
+      }
+    } else {
+      // No recognized protocol → default to custom 1on/2off
+      setProtocol(prev => ({ ...prev, frequency: 'custom' }));
+      setCustomPattern({ on: 1, off: 2 });
+    }
+
+    // Apply dose
+    if (s.dose) {
+      setProtocol(prev => ({ ...prev, dose: s.dose! }));
+    }
+
+    // Apply explicit duration
+    if (s.duration) {
+      setProtocol(prev => ({ ...prev, duration: s.duration! }));
+    }
+
+    setSuggestionsApplied(true);
+  }, [protocolLoaded, existingProtocol, suggestionsApplied, recetaSuggestions]);
+
+  // Update estimated duration when frequency changes (for new protocols without explicit duration)
+  useEffect(() => {
+    if (!suggestionsApplied || existingProtocol) return;
+    if (recetaSuggestions?.duration) return; // explicit duration — don't override
+    if (estimatedDuration && !protocol.duration) {
+      setProtocol(prev => ({ ...prev, duration: estimatedDuration }));
+    }
+  }, [estimatedDuration, suggestionsApplied, existingProtocol, recetaSuggestions]);
+
+  // ─── Handlers ────────────────────────────────────────────────
 
   const handleFrequencyChange = (freq: string) => {
     setProtocol(prev => ({ ...prev, frequency: freq }));
@@ -103,7 +221,7 @@ const ProtocolConfig: React.FC = () => {
 
     try {
       let frequencyValue = null;
-      
+
       switch (protocol.frequency) {
         case 'specific_days':
           frequencyValue = customDays;
@@ -130,10 +248,14 @@ const ProtocolConfig: React.FC = () => {
         startDate: protocol.frequency === 'intuitive' ? null : protocol.startDate
       });
 
-      trackEvent('protocol_configured', { frequency: protocol.frequency });
+      trackEvent('protocol_configured', {
+        frequency: protocol.frequency,
+        had_receta_suggestions: !!recetaSuggestions,
+        followed_receta_dose: recetaSuggestions?.dose === Number(protocol.dose),
+      });
       toast!.success('¡Protocolo guardado!');
       navigate('/dashboard');
-    } catch (error) {
+    } catch {
       toast!.error('Error al guardar el protocolo');
     } finally {
       setLoading(false);
@@ -144,15 +266,27 @@ const ProtocolConfig: React.FC = () => {
     if (!dateStr) return '';
     const [year, month, day] = dateStr.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('es-ES', { 
-      weekday: 'long', 
-      day: 'numeric', 
+    return date.toLocaleDateString('es-ES', {
+      weekday: 'long',
+      day: 'numeric',
       month: 'long',
       year: 'numeric'
     });
   };
 
   const isIntuitive = protocol.frequency === 'intuitive';
+
+  // Which frequency should show "Sugerido" badge
+  const suggestedFreq = recetaSuggestions
+    ? (recetaSuggestions.frequency || 'custom') // null protocol → suggest custom
+    : null;
+
+  // Helper to build frequency card className
+  const freqCardClass = (freq: string) => {
+    const isActive = protocol.frequency === freq;
+    const isRecommended = suggestedFreq === freq && !isActive;
+    return `${styles.frequencyCard} ${isActive ? styles.active : ''} ${isRecommended ? styles.frequencyCardRecommended : ''}`;
+  };
 
   return (
     <div className={styles.protocol}>
@@ -175,6 +309,30 @@ const ProtocolConfig: React.FC = () => {
         <div className={`${styles.stepDot} ${step >= 2 ? styles.stepActive : ''}`}>2</div>
       </div>
 
+      {/* Receta suggestion banner */}
+      {recetaSuggestions && (recetaSuggestions.rawGramaje || recetaSuggestions.rawProtocolo || recetaSuggestions.rawDuracion || recetaSuggestions.totalMicro > 0) && (
+        <div className={styles.recetaBanner}>
+          <span className={styles.recetaBannerIcon}>📋</span>
+          <div className={styles.recetaBannerContent}>
+            <div className={styles.recetaBannerTitle}>Tu receta sugiere</div>
+            <div className={styles.recetaBannerDetail}>
+              {recetaSuggestions.rawGramaje && (
+                <>Dosis: <strong>{recetaSuggestions.rawGramaje}</strong> · </>
+              )}
+              {recetaSuggestions.rawProtocolo && (
+                <>Protocolo: <strong>{recetaSuggestions.rawProtocolo}</strong> · </>
+              )}
+              {recetaSuggestions.totalMicro > 0 && (
+                <>{recetaSuggestions.totalMicro} cápsulas autorizadas</>
+              )}
+              {recetaSuggestions.rawDuracion && (
+                <> · Duración: <strong>{recetaSuggestions.rawDuracion}</strong></>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className={styles.form}>
 
         {step === 1 && (
@@ -184,7 +342,7 @@ const ProtocolConfig: React.FC = () => {
               <h2 className={styles.sectionTitle}>🔄 Tipo de Protocolo</h2>
 
               <div className={styles.frequencyOptions}>
-                <label className={`${styles.frequencyCard} ${protocol.frequency === 'intuitive' ? styles.active : ''}`}>
+                <label className={freqCardClass('intuitive')}>
                   <input
                     type="radio"
                     name="frequency"
@@ -199,7 +357,7 @@ const ProtocolConfig: React.FC = () => {
                   </div>
                 </label>
 
-                <label className={`${styles.frequencyCard} ${protocol.frequency === 'fadiman' ? styles.active : ''}`}>
+                <label className={freqCardClass('fadiman')}>
                   <input
                     type="radio"
                     name="frequency"
@@ -214,7 +372,7 @@ const ProtocolConfig: React.FC = () => {
                   </div>
                 </label>
 
-                <label className={`${styles.frequencyCard} ${protocol.frequency === 'stamets' ? styles.active : ''}`}>
+                <label className={freqCardClass('stamets')}>
                   <input
                     type="radio"
                     name="frequency"
@@ -229,7 +387,7 @@ const ProtocolConfig: React.FC = () => {
                   </div>
                 </label>
 
-                <label className={`${styles.frequencyCard} ${protocol.frequency === 'every_x_days' ? styles.active : ''}`}>
+                <label className={freqCardClass('every_x_days')}>
                   <input
                     type="radio"
                     name="frequency"
@@ -243,7 +401,7 @@ const ProtocolConfig: React.FC = () => {
                   </div>
                 </label>
 
-                <label className={`${styles.frequencyCard} ${protocol.frequency === 'specific_days' ? styles.active : ''}`}>
+                <label className={freqCardClass('specific_days')}>
                   <input
                     type="radio"
                     name="frequency"
@@ -257,7 +415,7 @@ const ProtocolConfig: React.FC = () => {
                   </div>
                 </label>
 
-                <label className={`${styles.frequencyCard} ${protocol.frequency === 'custom' ? styles.active : ''}`}>
+                <label className={freqCardClass('custom')}>
                   <input
                     type="radio"
                     name="frequency"
@@ -396,6 +554,8 @@ const ProtocolConfig: React.FC = () => {
               <DosePicker
                 selectedDose={Number(protocol.dose)}
                 onSelect={(val) => setProtocol(prev => ({ ...prev, dose: val }))}
+                recommendedDose={recetaSuggestions?.dose ?? null}
+                extraOptions={extraDoseOptions}
               />
             </div>
 
@@ -414,6 +574,16 @@ const ProtocolConfig: React.FC = () => {
                   placeholder="Ejemplo: 30 días"
                 />
                 <p className={styles.hint}>¿Por cuántos días planeas seguir este protocolo? Déjalo vacío si no lo sabes aún.</p>
+                {estimatedDuration && (
+                  <p className={styles.durationHint}>
+                    📋 Con {recetaSuggestions?.totalMicro} cápsulas y este protocolo: ~{estimatedDuration} días
+                  </p>
+                )}
+                {recetaSuggestions?.rawDuracion && (
+                  <p className={styles.durationHint}>
+                    📋 Receta sugiere: {recetaSuggestions.rawDuracion}
+                  </p>
+                )}
               </div>
             )}
 

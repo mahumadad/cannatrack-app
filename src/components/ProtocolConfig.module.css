@@ -442,3 +442,83 @@
   border-color: var(--color-primary);
   background: #FFF8F0;
 }
+
+/* ============ RECETA SUGGESTION BANNER ============ */
+.recetaBanner {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #FFF8F0, #FFF3E0);
+  border: 1.5px solid #FFCC80;
+  border-radius: 12px;
+  margin: 0 20px 16px;
+  font-size: 13px;
+  color: #6B5B4E;
+  line-height: 1.5;
+}
+
+.recetaBannerIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.recetaBannerContent {
+  flex: 1;
+}
+
+.recetaBannerTitle {
+  font-weight: 700;
+  color: #4A3F35;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.recetaBannerDetail {
+  font-size: 12px;
+  color: #6B5B4E;
+}
+
+.recetaBannerDetail strong {
+  color: var(--color-primary);
+}
+
+/* ============ FREQUENCY CARD RECOMMENDED ============ */
+.frequencyCardRecommended {
+  border-color: #DBC4A8;
+  border-style: dashed;
+  background: #FFFCF8;
+  animation: freqPulse 2s ease-in-out 3;
+  position: relative;
+}
+
+.frequencyCardRecommended::after {
+  content: 'Sugerido';
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #D4A574;
+  background: #FFF3E0;
+  padding: 1px 8px;
+  border-radius: 8px;
+  letter-spacing: 0.3px;
+}
+
+@keyframes freqPulse {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  50% {
+    box-shadow: 0 2px 16px rgba(166, 128, 80, 0.25);
+  }
+}
+
+/* ============ DURATION HINT ============ */
+.durationHint {
+  font-size: 12px;
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-top: 6px;
+}

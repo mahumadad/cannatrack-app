@@ -79,3 +79,35 @@
 .compactGrid .doseSublabel {
   font-size: 10px;
 }
+
+/* ============ RECOMMENDED (receta suggestion) ============ */
+.recommended {
+  border-color: #DBC4A8;
+  border-style: dashed;
+  background: #FFFCF8;
+  animation: softPulse 2s ease-in-out 3;
+  position: relative;
+}
+
+.recommended::after {
+  content: 'Sugerido';
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #D4A574;
+  background: #FFF3E0;
+  padding: 1px 8px;
+  border-radius: 8px;
+  letter-spacing: 0.3px;
+}
+
+@keyframes softPulse {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  50% {
+    box-shadow: 0 2px 16px rgba(166, 128, 80, 0.25);
+  }
+}
