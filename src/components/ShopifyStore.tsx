@@ -31,6 +31,7 @@ const ShopifyStore: React.FC = () => {
   // Membership gate
   const [membershipStatus, setMembershipStatus] = useState<string>('none');
   const [membershipExpires, setMembershipExpires] = useState<string | null>(null);
+  const [subscribing, setSubscribing] = useState(false);
 
   useEffect(() => {
     const stored = storage.getItem(STORAGE_KEYS.USER);
@@ -409,8 +410,6 @@ const ShopifyStore: React.FC = () => {
     : 0;
   const blockStore = membershipStatus !== 'active' && !(isExpired && daysExpired < 5);
   const showWarning = isExpired && daysExpired < 5 && daysExpired >= 0;
-
-  const [subscribing, setSubscribing] = useState(false);
 
   const handleSubscribe = async () => {
     setSubscribing(true);

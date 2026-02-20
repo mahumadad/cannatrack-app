@@ -81,7 +81,7 @@ const Settings: React.FC = () => {
     try {
       const data = await api.get(`/api/protocol/${userId}`);
       setProtocol(data);
-      if (data.dose_time) setDoseReminder(data.dose_time);
+      if (data?.dose_time) setDoseReminder(data.dose_time);
     } catch (error) {
       toast!.error('Error al cargar protocolo');
     }
