@@ -29,6 +29,20 @@ import './theme.css';
 import './fonts.css';
 import './App.css';
 
+/**
+ * Root route handler: if the URL has Supabase magic link hash tokens,
+ * redirect to /auth/callback (which will handle the token exchange).
+ * Otherwise, redirect to /dashboard as usual.
+ */
+const MagicLinkOrDashboard: React.FC = () => {
+  const hash = window.location.hash;
+  if (hash && hash.includes('access_token=') && hash.includes('refresh_token=')) {
+    // Supabase magic link redirect — forward to AuthCallback with the hash intact
+    return <Navigate to={`/auth/callback${hash}`} replace />;
+  }
+  return <Navigate to="/dashboard" replace />;
+};
+
 // Verifica token contra el backend antes de renderizar rutas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [status, setStatus] = useState<'loading' | 'valid' | 'invalid' | 'error'>('loading');
@@ -161,7 +175,7 @@ function App() {
           <Route path="/store/solicitudes" element={<ProtectedRoute><MisSolicitudes /></ProtectedRoute>} />
           <Route path="/store/solicitudes/:id" element={<ProtectedRoute><SolicitudDetalle /></ProtectedRoute>} />
           <Route path="/store/recetas" element={<ProtectedRoute><MisRecetas /></ProtectedRoute>} />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/" element={<MagicLinkOrDashboard />} />
         </Routes>
         </Suspense>
       </Router>

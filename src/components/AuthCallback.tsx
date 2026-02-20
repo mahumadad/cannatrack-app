@@ -16,6 +16,24 @@ const ERROR_MESSAGES: Record<string, string> = {
   server_error: 'Error del servidor'
 };
 
+/**
+ * Parse hash fragment tokens from Supabase magic link redirect.
+ * Supabase redirects to: {site_url}#access_token=...&refresh_token=...&type=magiclink
+ */
+function parseHashTokens(): { access_token: string; refresh_token: string } | null {
+  const hash = window.location.hash.substring(1); // Remove #
+  if (!hash) return null;
+
+  const params = new URLSearchParams(hash);
+  const access_token = params.get('access_token');
+  const refresh_token = params.get('refresh_token');
+
+  if (access_token && refresh_token) {
+    return { access_token, refresh_token };
+  }
+  return null;
+}
+
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -37,6 +55,37 @@ const AuthCallback: React.FC = () => {
     // Evitar que StrictMode ejecute el exchange dos veces
     if (exchangeCalledRef.current) return;
 
+    // 1. Check for magic link tokens in hash fragment
+    const hashTokens = parseHashTokens();
+    if (hashTokens) {
+      exchangeCalledRef.current = true;
+      // Clear hash from URL to avoid re-processing
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+
+      (async () => {
+        try {
+          const data = await api.post('/api/auth/verify-magiclink', hashTokens, { skipAuthRedirect: true });
+
+          if (!data.user) {
+            throw new Error('Error al procesar magic link');
+          }
+
+          storage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
+          if (data.access_token) {
+            storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
+          }
+
+          navigate('/dashboard');
+        } catch (err) {
+          console.error('[AuthCallback] Magic link error:', err);
+          setError('Magic link invalido o expirado');
+          setTimeout(() => navigate('/login'), 3000);
+        }
+      })();
+      return;
+    }
+
+    // 2. Shopify OAuth code exchange
     if (codeParam) {
       exchangeCalledRef.current = true;
       (async () => {
@@ -49,7 +98,7 @@ const AuthCallback: React.FC = () => {
 
           // Guardar datos de usuario (no-sensibles) en localStorage
           storage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
-          // Guardar token para producción cross-origin (Bearer fallback)
+          // Guardar token para produccion cross-origin (Bearer fallback)
           if (data.access_token) {
             storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
           }
