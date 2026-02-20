@@ -558,8 +558,7 @@ const ShopifyStore: React.FC = () => {
             ) : (
               solicitudes.map(sol => {
                 const items = sol.cart_json || [];
-                const firstItem = items[0];
-                const moreCount = items.length - 1;
+                const isReceta = sol.tipo === 'receta';
                 const statusMap: Record<string, { text: string; cls: string }> = {
                   pendiente: { text: 'Pendiente', cls: styles.statusPending },
                   pre_aprobado: { text: 'Pre-aprobado', cls: styles.statusInTransit },
@@ -580,14 +579,23 @@ const ShopifyStore: React.FC = () => {
                         <span className={styles.orderDate}>{formatDate(sol.created_at)}</span>
                       </div>
                       <div className={styles.orderRight}>
-                        <span className={styles.orderTotal}>{formatCLP(sol.total_estimado)}</span>
-                        <span className={`${styles.statusBadge} ${status.cls}`}>{status.text}</span>
+                        {!isReceta && <span className={styles.orderTotal}>{formatCLP(sol.total_estimado)}</span>}
+                        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                          <span className={`${styles.statusBadge} ${isReceta ? styles.tipoBadgeReceta : styles.tipoBadgeDispensacion}`}>
+                            {isReceta ? 'Receta' : 'Dispensación'}
+                          </span>
+                          <span className={`${styles.statusBadge} ${status.cls}`}>{status.text}</span>
+                        </div>
                       </div>
                     </div>
                     <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {items.map((item: any, i: number) => (
-                        <span key={i}>{item.displayLabel}</span>
-                      ))}
+                      {isReceta ? (
+                        <span>Solicitud de receta</span>
+                      ) : (
+                        items.map((item: any, i: number) => (
+                          <span key={i}>{item.displayLabel}</span>
+                        ))
+                      )}
                     </div>
                   </div>
                 );

@@ -352,6 +352,9 @@
 .statusInTransit { background: #E3F2FD; color: #1976D2; }
 .statusDefault { background: #F5F5F5; color: #757575; }
 
+.tipoBadgeReceta { background: #FFF3E0; color: #E65100; }
+.tipoBadgeDispensacion { background: #E3F2FD; color: #1976D2; }
+
 /* ============ TRACKING BAR ============ */
 .trackingBar {
   display: flex;

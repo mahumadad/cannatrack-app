@@ -401,6 +401,7 @@ export interface Solicitud {
   user_id: string;
   receta_id: string | null;
   estado: SolicitudEstado;
+  tipo?: 'dispensacion' | 'receta';
   email: string;
   telefono?: string;
   notas_cliente?: string;
