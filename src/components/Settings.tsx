@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Trash, ClipboardText, Bell, BellRinging, User, SignOut, Warning, CaretRight, PencilSimple, Phone, MapPin, Tag, CalendarBlank, SpinnerGap, Envelope, Lock, Key } from '@phosphor-icons/react';
+import { ArrowLeft, Clock, Trash, ClipboardText, Bell, BellRinging, User, SignOut, Warning, CaretRight, PencilSimple, Phone, MapPin, CalendarBlank, SpinnerGap, Envelope, Lock, Key, Shield } from '@phosphor-icons/react';
 import styles from './Settings.module.css';
 import { useToast } from './Toast';
 import api from '../utils/api';
@@ -348,16 +348,26 @@ const Settings: React.FC = () => {
               </div>
             </div>
 
-            {/* Tags */}
-            {shopifyProfile?.tags && shopifyProfile.tags.length > 0 && (
+            {/* Membership */}
+            {user?.membership_status && user.membership_status !== 'none' && (
               <div className={styles.profileDetail}>
-                <Tag size={18} weight="regular" className={styles.detailIcon} />
+                <Shield size={18} weight="regular" className={styles.detailIcon} />
                 <div className={styles.detailContent}>
-                  <span className={styles.detailLabel}>Etiquetas</span>
-                  <div className={styles.tagList}>
-                    {shopifyProfile.tags.map((tag, i) => (
-                      <span key={i} className={styles.tag}>{tag}</span>
-                    ))}
+                  <span className={styles.detailLabel}>Membresía</span>
+                  <div className={styles.membershipInfo}>
+                    <span className={`${styles.membershipBadge} ${user.membership_status === 'active' ? styles.membershipActive : user.membership_status === 'pending_payment' ? styles.membershipPending : styles.membershipExpired}`}>
+                      {user.membership_status === 'active' ? 'Activa' : user.membership_status === 'pending_payment' ? 'Pendiente de pago' : 'Expirada'}
+                    </span>
+                    {user.membership_started_at && (
+                      <span className={styles.membershipDetail}>
+                        Miembro desde {new Date(user.membership_started_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                    )}
+                    {user.membership_expires_at && (
+                      <span className={styles.membershipDetail}>
+                        {user.membership_status === 'active' ? 'Vigente hasta' : 'Venció el'} {new Date(user.membership_expires_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

@@ -119,13 +119,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
           const csrf = res.headers.get('x-csrf-token');
           if (csrf) updateCsrfToken(csrf);
           // Sync membership data from verify response to localStorage
-          res.json().then((data: { user?: { membership_status?: string; membership_expires_at?: string | null } }) => {
+          res.json().then((data: { user?: { membership_status?: string; membership_started_at?: string | null; membership_expires_at?: string | null } }) => {
             if (data.user) {
               const stored = storage.getItem(STORAGE_KEYS.USER);
               if (stored) {
                 try {
                   const parsed = JSON.parse(stored);
                   parsed.membership_status = data.user.membership_status || 'none';
+                  parsed.membership_started_at = data.user.membership_started_at || null;
                   parsed.membership_expires_at = data.user.membership_expires_at || null;
                   storage.setItem(STORAGE_KEYS.USER, JSON.stringify(parsed));
                 } catch { /* ignore parse errors */ }

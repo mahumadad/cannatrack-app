@@ -419,20 +419,41 @@
   line-height: 1.4;
 }
 
-.tagList {
+.membershipInfo {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
   margin-top: 2px;
 }
 
-.tag {
+.membershipBadge {
+  display: inline-block;
   font-size: 12px;
+  font-weight: 700;
   padding: 3px 10px;
-  background: var(--color-surface-warm);
   border-radius: 20px;
-  color: var(--color-primary);
-  font-weight: 600;
+  width: fit-content;
+}
+
+.membershipActive {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.membershipPending {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.membershipExpired {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+.membershipDetail {
+  font-size: 13px;
+  color: #6B5B4E;
+  line-height: 1.4;
 }
 
 .addressList {
