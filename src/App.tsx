@@ -1,5 +1,5 @@
-import React, { Suspense, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ToastProvider } from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -31,16 +31,65 @@ import './App.css';
 
 /**
  * Root route handler: if the URL has Supabase magic link hash tokens,
- * redirect to /auth/callback (which will handle the token exchange).
- * Otherwise, redirect to /dashboard as usual.
+ * exchange them for a session via the backend. Otherwise redirect to /dashboard.
+ *
+ * We process the tokens HERE instead of navigating to /auth/callback because
+ * React Router's <Navigate> strips hash fragments from the URL.
  */
 const MagicLinkOrDashboard: React.FC = () => {
-  const hash = window.location.hash;
-  if (hash && hash.includes('access_token=') && hash.includes('refresh_token=')) {
-    // Supabase magic link redirect — forward to AuthCallback with the hash intact
-    return <Navigate to={`/auth/callback${hash}`} replace />;
+  const navigate = useNavigate();
+  const [processing, setProcessing] = useState(false);
+  const calledRef = useRef(false);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('access_token=') || !hash.includes('refresh_token=')) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+
+    // Parse tokens from hash fragment
+    const params = new URLSearchParams(hash.substring(1));
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+
+    if (!access_token || !refresh_token || calledRef.current) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+
+    calledRef.current = true;
+    setProcessing(true);
+
+    // Clear hash from URL
+    window.history.replaceState(null, '', window.location.pathname);
+
+    // Exchange tokens with backend
+    api.post('/api/auth/verify-magiclink', { access_token, refresh_token }, { skipAuthRedirect: true })
+      .then((data: { user?: { id: string; email: string; name?: string }; access_token?: string }) => {
+        if (!data.user) throw new Error('No user returned');
+        storage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
+        if (data.access_token) {
+          storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
+        }
+        navigate('/dashboard', { replace: true });
+      })
+      .catch((err: Error) => {
+        console.error('[MagicLink] Error:', err);
+        navigate('/login', { replace: true });
+      });
+  }, [navigate]);
+
+  if (processing) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <div style={{ width: 32, height: 32, border: '3px solid #EBE5DC', borderTopColor: '#A68050', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      </div>
+    );
   }
-  return <Navigate to="/dashboard" replace />;
+
+  return null;
 };
 
 // Verifica token contra el backend antes de renderizar rutas protegidas
