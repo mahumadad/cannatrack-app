@@ -4,18 +4,31 @@ import { ArrowLeft, Clock, Trash, ClipboardText, Bell, BellRinging, User, SignOu
 import styles from './Settings.module.css';
 import { useToast } from './Toast';
 import api from '../utils/api';
+import { useQueryClient } from '@tanstack/react-query';
 import { requestNotificationPermission, getNotificationPermission, startNotificationScheduler, stopNotificationScheduler } from '../utils/notifications';
 import storage, { STORAGE_KEYS } from '../utils/storage';
-import { invalidateRecetasCache } from '../hooks/useRecetas';
+import { useProtocol, useBaseline, useShopifyProfile, useHasPassword, useDeleteProtocol, useUpdateShopifyName, useChangePassword, useCreatePassword } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
-import type { User as UserType, Protocol, Baseline, ShopifyCustomerProfile } from '../types';
+import type { User as UserType } from '../types';
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
+  const qc = useQueryClient();
   const [user, setUser] = useState<UserType | null>(null);
-  const [protocol, setProtocol] = useState<Protocol | null>(null);
-  const [baseline, setBaseline] = useState<Baseline | null>(null);
+
+  // React Query hooks (enabled once user.id is available)
+  const { data: protocol } = useProtocol(user?.id);
+  const { data: baseline } = useBaseline(user?.id);
+  const { data: shopifyProfile, isLoading: loadingShopify } = useShopifyProfile(user?.id);
+  const { data: hasPasswordData } = useHasPassword();
+  const hasPassword = hasPasswordData?.hasPassword ?? null;
+
+  // Mutation hooks
+  const deleteProtocol = useDeleteProtocol(user?.id);
+  const updateName = useUpdateShopifyName(user?.id);
+  const changePassword = useChangePassword();
+  const createPassword = useCreatePassword();
 
   // Preferences
   const [doseReminder, setDoseReminder] = useState<string>('09:00');
@@ -34,32 +47,24 @@ const Settings: React.FC = () => {
   const [showTimeModal, setShowTimeModal] = useState<string | null>(null);
   const [tempTime, setTempTime] = useState<string>('');
 
-  // Shopify profile
-  const [shopifyProfile, setShopifyProfile] = useState<ShopifyCustomerProfile | null>(null);
-  const [loadingShopify, setLoadingShopify] = useState<boolean>(false);
+  // Shopify profile editing
   const [editingName, setEditingName] = useState<boolean>(false);
   const [editFirstName, setEditFirstName] = useState<string>('');
   const [editLastName, setEditLastName] = useState<string>('');
   const [savingName, setSavingName] = useState<boolean>(false);
 
   // Password management
-  const [hasPassword, setHasPassword] = useState<boolean | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
   const [currentPassword, setCurrentPassword] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [savingPassword, setSavingPassword] = useState<boolean>(false);
 
+  // Load user from localStorage + saved preferences
   useEffect(() => {
     const userData = JSON.parse(storage.getItem(STORAGE_KEYS.USER) || '{}');
     setUser(userData);
-    if (userData.id) {
-      loadProtocol(userData.id);
-      loadBaseline(userData.id);
-      loadShopifyProfile(userData.id);
-      checkHasPassword();
-    }
-    
+
     // Load saved preferences
     const savedPrefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
     if (savedPrefs.doseReminder) setDoseReminder(savedPrefs.doseReminder);
@@ -71,41 +76,15 @@ const Settings: React.FC = () => {
     setNotificationPermission(getNotificationPermission());
   }, []);
 
+  // Sync doseReminder from protocol data
+  useEffect(() => {
+    if (protocol?.dose_time) setDoseReminder(protocol.dose_time);
+  }, [protocol]);
+
   const savePreferences = (newPrefs: Record<string, any>) => {
     const currentPrefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
     const updated = { ...currentPrefs, ...newPrefs };
     storage.setItem(STORAGE_KEYS.PREFERENCES, JSON.stringify(updated));
-  };
-
-  const loadProtocol = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/protocol/${userId}`);
-      setProtocol(data);
-      if (data?.dose_time) setDoseReminder(data.dose_time);
-    } catch (error) {
-      toast!.error('Error al cargar protocolo');
-    }
-  };
-
-  const loadBaseline = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/baseline/${userId}`);
-      setBaseline(data);
-    } catch (error) {
-      toast!.error('Error al cargar baseline');
-    }
-  };
-
-  const loadShopifyProfile = async (userId: string) => {
-    setLoadingShopify(true);
-    try {
-      const data = await api.get(`/api/shopify/profile/${userId}`, { skipAuthRedirect: true });
-      setShopifyProfile(data);
-    } catch {
-      // Silently fail — Shopify data is supplementary
-    } finally {
-      setLoadingShopify(false);
-    }
   };
 
   const handleEditName = () => {
@@ -121,7 +100,7 @@ const Settings: React.FC = () => {
     }
     setSavingName(true);
     try {
-      await api.put(`/api/shopify/profile/${user!.id}`, {
+      await updateName.mutateAsync({
         firstName: editFirstName.trim(),
         lastName: editLastName.trim()
       });
@@ -129,23 +108,12 @@ const Settings: React.FC = () => {
       const updatedUser = { ...user!, name: newName };
       setUser(updatedUser);
       storage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
-      await loadShopifyProfile(user!.id);
       setEditingName(false);
       toast!.success('Nombre actualizado');
     } catch {
       toast!.error('Error al actualizar nombre');
     } finally {
       setSavingName(false);
-    }
-  };
-
-  const checkHasPassword = async () => {
-    try {
-      const data = await api.get('/api/auth/has-password');
-      setHasPassword(data.hasPassword);
-    } catch {
-      // Default to true if check fails
-      setHasPassword(true);
     }
   };
 
@@ -169,10 +137,11 @@ const Settings: React.FC = () => {
 
     setSavingPassword(true);
     try {
-      const endpoint = hasPassword ? '/api/auth/change-password' : '/api/auth/create-password';
-      const body = hasPassword ? { currentPassword, newPassword } : { password: newPassword };
-      await api.post(endpoint, body);
-      setHasPassword(true);
+      if (hasPassword) {
+        await changePassword.mutateAsync({ currentPassword, newPassword });
+      } else {
+        await createPassword.mutateAsync({ password: newPassword });
+      }
       setShowPasswordModal(false);
       setCurrentPassword('');
       setNewPassword('');
@@ -188,10 +157,9 @@ const Settings: React.FC = () => {
 
   const handleEndProtocol = async () => {
     try {
-      await api.delete(`/api/protocol/${user!.id}`);
-      setProtocol(null);
+      await deleteProtocol.mutateAsync();
       setShowEndProtocolModal(false);
-    } catch (error) {
+    } catch {
       toast!.error('Error al terminar protocolo');
     }
   };
@@ -204,7 +172,7 @@ const Settings: React.FC = () => {
     }
     // Limpiar datos de sesión del usuario (namespaced)
     stopNotificationScheduler();
-    invalidateRecetasCache();
+    qc.clear();
     storage.removeItem(STORAGE_KEYS.USER);
     storage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     storage.removeItem(STORAGE_KEYS.PREFERENCES);

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
 import { trackEvent } from '../utils/analytics';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
-import { useRecetas } from '../hooks/useRecetas';
+import { useRecetasQuery, useCatalog, useShopifyProfile, useCreateSolicitud } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
 import { ArrowLeft, Check, UploadSimple, ShoppingCart, Trash, CheckCircle, Pill, Warning, CalendarBlank, User } from '@phosphor-icons/react';
 import styles from './SolicitudForm.module.css';
@@ -25,11 +24,13 @@ const SolicitudForm: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast()!;
   const { user } = useUser();
-  const { recetas: allRecetas, loading: loadingRecetas } = useRecetas(user?.id);
+  const { data: allRecetas = [], isLoading: loadingRecetas } = useRecetasQuery(user?.id);
   useSwipeBack();
   const recetasActivas = allRecetas.filter((r: Receta) => r.estado === 'activa');
 
-  const [catalog, setCatalog] = useState<ProductCatalog | null>(null);
+  const { data: catalog } = useCatalog();
+  const { data: shopifyProfile } = useShopifyProfile(user?.id);
+  const createSolicitud = useCreateSolicitud();
   const [step, setStep] = useState<Step>('micro');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -62,31 +63,10 @@ const SolicitudForm: React.FC = () => {
   const recetaMacro = hasAnyReceta ? recetasActivas[0] : null;
 
   useEffect(() => {
-    loadCatalog();
-    if (user) {
-      if (user.email) setEmail(user.email);
-      loadContactInfo(user.id);
-    }
-  }, [user]);
-
-  const loadCatalog = async () => {
-    try {
-      const data = await api.get('/api/catalog/products');
-      setCatalog(data);
-    } catch {
-      toast.error('Error al cargar catálogo');
-    }
-  };
-
-  const loadContactInfo = async (userId: string) => {
-    try {
-      const profile = await api.get(`/api/shopify/profile/${userId}`, { skipAuthRedirect: true });
-      if (profile?.emailAddress?.emailAddress) setEmail(profile.emailAddress.emailAddress);
-      if (profile?.phoneNumber?.phoneNumber) setTelefono(profile.phoneNumber.phoneNumber);
-    } catch {
-      // Shopify data is supplementary — silently ignore
-    }
-  };
+    if (user?.email) setEmail(user.email);
+    if (shopifyProfile?.emailAddress?.emailAddress) setEmail(shopifyProfile.emailAddress.emailAddress);
+    if (shopifyProfile?.phoneNumber?.phoneNumber) setTelefono(shopifyProfile.phoneNumber.phoneNumber);
+  }, [user, shopifyProfile]);
 
   // Auto-select gramaje and max capsulas from active micro receta once catalog loads
   useEffect(() => {
@@ -246,7 +226,7 @@ const SolicitudForm: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const result = await api.post('/api/solicitudes', {
+      const result = await createSolicitud.mutateAsync({
         cart,
         email,
         telefono: telefono || null,

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { useToast } from './Toast';
-import api from '../utils/api';
 import { trackEvent } from '../utils/analytics';
+import { useBaseline, useSaveBaseline } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
 import styles from './BaselineForm.module.css';
 import type { Baseline } from '../types';
@@ -64,22 +64,16 @@ const BaselineForm: React.FC = () => {
     { id: 'funcionamiento', title: 'Funcionamiento', icon: '⚡', description: 'Tu nivel basal' }
   ];
 
-  useEffect(() => {
-    if (user?.id) loadExistingBaseline(user.id);
-  }, [user]);
+  const { data: existingBaselineData } = useBaseline(user?.id);
+  const saveMutation = useSaveBaseline();
 
-  const loadExistingBaseline = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/baseline/${userId}`);
-      if (data) {
-        setExistingBaseline(data);
-        setFormData(prev => ({ ...prev, ...data }));
-        setIsLocked(data.is_locked === true);
-      }
-    } catch (error) {
-      toast.error('Error al cargar baseline');
+  useEffect(() => {
+    if (existingBaselineData) {
+      setExistingBaseline(existingBaselineData as Baseline);
+      setFormData(prev => ({ ...prev, ...existingBaselineData }));
+      setIsLocked((existingBaselineData as Baseline).is_locked === true);
     }
-  };
+  }, [existingBaselineData]);
 
   const handleChange = (field: string, value: string | number) => {
     if (isLocked) return;
@@ -179,7 +173,7 @@ const BaselineForm: React.FC = () => {
         dataToSave.locked_at = null;
       }
 
-      await api.post('/api/baseline', dataToSave);
+      await saveMutation.mutateAsync(dataToSave);
 
       if (goNext) {
         if (currentSection === sections.length - 1) {

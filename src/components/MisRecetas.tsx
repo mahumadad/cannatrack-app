@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
 import { trackEvent } from '../utils/analytics';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
-import { useRecetas, invalidateRecetasCache } from '../hooks/useRecetas';
+import { useRecetasQuery, useUploadReceta } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
 import { ArrowLeft, Prescription, Calendar, UserCircle, Clock, FileText, CaretDown, CaretUp, Pill, Eye, X, Plus, Image as ImageIcon } from '@phosphor-icons/react';
 import styles from './MisRecetas.module.css';
@@ -65,7 +64,8 @@ const MisRecetas: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast()!;
   const { user } = useUser();
-  const { recetas, loading, refetch: refetchRecetas } = useRecetas(user?.id);
+  const { data: recetas = [], isLoading: loading } = useRecetasQuery(user?.id);
+  const uploadReceta = useUploadReceta(user?.id);
   useSwipeBack();
 
   useEffect(() => {
@@ -104,15 +104,11 @@ const MisRecetas: React.FC = () => {
     if (!uploadFile || !user?.id) return;
     setUploading(true);
     try {
-      const result = await api.post(`/api/recetas/${user.id}/upload`, {
-        recipeFile: uploadFile
-      });
+      const result = await uploadReceta.mutateAsync({ recipeFile: uploadFile });
       toast.success(result.action === 'updated' ? 'Receta actualizada' : 'Receta subida exitosamente');
       setShowUpload(false);
       setUploadFile(null);
       setUploadFileName('');
-      invalidateRecetasCache();
-      refetchRecetas();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Error al subir receta');
     } finally {

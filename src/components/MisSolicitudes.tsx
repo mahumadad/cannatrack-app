@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
-import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
+import { useSolicitudes } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
 import { ArrowLeft, Plus } from '@phosphor-icons/react';
 import { EmptyInbox } from './EmptyStates';
@@ -28,27 +27,9 @@ const formatDate = (dateStr: string): string =>
 
 const MisSolicitudes: React.FC = () => {
   const navigate = useNavigate();
-  const toast = useToast()!;
   const { user } = useUser();
   useSwipeBack();
-  const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (user?.id) loadSolicitudes(user.id);
-  }, [user]);
-
-  const loadSolicitudes = async (userId: string) => {
-    setLoading(true);
-    try {
-      const data = await api.get(`/api/solicitudes/${userId}`);
-      setSolicitudes(data);
-    } catch {
-      toast.error('Error al cargar solicitudes');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: solicitudes = [], isLoading: loading } = useSolicitudes(user?.id);
 
   const getItemsList = (sol: Solicitud): string[] => {
     const items = sol.cart_json || [];

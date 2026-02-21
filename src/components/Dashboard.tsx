@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import WeeklyCalendar from './WeeklyCalendar';
 import Confetti from './Confetti';
@@ -7,42 +7,55 @@ import { SkeletonCard, SkeletonCalendar } from './Skeleton';
 import DoseSection from './DoseSection';
 import DayDetailModal from './DayDetailModal';
 import BottomNav from './BottomNav';
-import { Calendar, Warning, ClipboardText, Notepad, Prescription, X } from '@phosphor-icons/react';
-import api from '../utils/api';
+import { ClipboardText, Notepad, Prescription, X } from '@phosphor-icons/react';
 import { INTERNAL_SUBSTANCE } from '../utils/doseOptions';
 import { startNotificationScheduler, stopNotificationScheduler, cleanupFiredNotifications } from '../utils/notifications';
 import { toLocalDateString } from '../utils/dateHelpers';
 import styles from './Dashboard.module.css';
 import fieldLabels from '../utils/fieldLabels';
 import { useUser } from '../hooks/useUser';
-import { useRecetas } from '../hooks/useRecetas';
+import { useRecetasQuery, useProtocol, useBaseline, useDoses, useFollowUpCurrent, useRandomQuote, useAddDose, useDeleteDose, useDeleteCheckin } from '../hooks/queries';
 import storage, { STORAGE_KEYS } from '../utils/storage';
-import type { Protocol, Baseline, DoseLog, CalendarDay, FollowUpInfo, FollowUpMonthSummary, CustomDoseState, Quote, Receta } from '../types';
+import type { DoseLog, CalendarDay, FollowUpMonthSummary, CustomDoseState, Receta } from '../types';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast()!;
   const { user } = useUser();
-  const [protocol, setProtocol] = useState<Protocol | null>(null);
-  const [baseline, setBaseline] = useState<Baseline | null>(null);
+
+  // React Query hooks
+  const { data: protocol, isLoading: loadingProtocol } = useProtocol(user?.id);
+  const { data: baseline } = useBaseline(user?.id);
+  const { data: recentDoses = [], isLoading: loadingDoses } = useDoses(user?.id, 60);
+  const { data: followUpInfo } = useFollowUpCurrent(user?.id);
+  const { data: quote } = useRandomQuote();
+  const { data: allRecetas = [] } = useRecetasQuery(user?.id);
+
+  // Mutations
+  const addDose = useAddDose();
+  const deleteDoseMutation = useDeleteDose();
+  const deleteCheckinMutation = useDeleteCheckin();
+
+  // Derived loading state
+  const loading = loadingProtocol || loadingDoses;
+
+  // Derived dose values
+  const today = toLocalDateString(new Date());
+  const todayDoses = useMemo(() => recentDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === today), [recentDoses, today]);
+  const lastDose = recentDoses.length > 0 ? recentDoses[0] : null;
+
+  // Local UI state
   const [showDoseModal, setShowDoseModal] = useState<boolean>(false);
   const [showAddDoseModal, setShowAddDoseModal] = useState<boolean>(false);
   const [showDayDetailModal, setShowDayDetailModal] = useState<boolean>(false);
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
-  const [todayDoses, setTodayDoses] = useState<DoseLog[]>([]);
   const [customDose, setCustomDose] = useState<CustomDoseState>({ amount: 0.1, unit: 'g' });
   const [refreshKey, setRefreshKey] = useState<number>(0);
   const [nextDoseDate, setNextDoseDate] = useState<Date | null>(null);
-  const [lastDose, setLastDose] = useState<DoseLog | null>(null);
-  const [recentDoses, setRecentDoses] = useState<DoseLog[]>([]);
-  const [followUpInfo, setFollowUpInfo] = useState<FollowUpInfo | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
-  const [quote, setQuote] = useState<Quote>({ text: '', emoji: '✨' });
 
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-  const { recetas: allRecetas } = useRecetas(user?.id);
   const recetaActiva = allRecetas.find((r: Receta) => r.estado === 'activa') || null;
   const [recetaCardDismissed, setRecetaCardDismissed] = useState<boolean>(() => {
     return storage.getItem(STORAGE_KEYS.RECETA_DISMISSED) === 'true';
@@ -56,10 +69,8 @@ const Dashboard: React.FC = () => {
     storage.setItem(STORAGE_KEYS.RECETA_DISMISSED, 'true');
   };
 
+  // Notification scheduler (mount/unmount)
   useEffect(() => {
-    loadRandomQuote();
-
-    // Start notification scheduler if enabled
     const prefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
     if (prefs.notificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
       cleanupFiredNotifications();
@@ -71,9 +82,19 @@ const Dashboard: React.FC = () => {
     };
   }, []);
 
+  // Sync customDose when protocol loads
   useEffect(() => {
-    if (user?.id) loadAllData(user.id);
-  }, [user]);
+    if (protocol?.dose && protocol?.unit) {
+      setCustomDose({ amount: protocol.dose, unit: protocol.unit });
+    }
+  }, [protocol]);
+
+  // Sync selectedDay doses when recentDoses changes
+  useEffect(() => {
+    if (selectedDay && recentDoses.length > 0) {
+      setSelectedDay(prev => prev ? { ...prev, doses: recentDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === prev.dateString) } : prev);
+    }
+  }, [recentDoses]);
 
   // Auto-open dose modal from FAB on other pages
   useEffect(() => {
@@ -83,25 +104,6 @@ const Dashboard: React.FC = () => {
     }
   }, [searchParams, loading]);
 
-  const loadRandomQuote = async () => {
-    try {
-      const data = await api.get('/api/quotes/random');
-      setQuote(data);
-    } catch (error) {
-      setQuote({ text: 'Hoy es un buen día para estar bien', emoji: '🌞' });
-    }
-  };
-
-  const loadAllData = async (userId: string) => {
-    setLoading(true);
-    await Promise.all([
-      loadProtocol(userId),
-      loadBaseline(userId),
-      loadDoses(userId),
-      loadFollowUpInfo(userId)
-    ]);
-    setLoading(false);
-  };
 
   // Track receta card dismiss state
   useEffect(() => {
@@ -126,47 +128,6 @@ const Dashboard: React.FC = () => {
   // Countdown timer logic is now self-contained in CountdownTimer component
   // (rendered inside DoseSection), so Dashboard no longer re-renders every second.
 
-  const loadProtocol = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/protocol/${userId}`);
-      setProtocol(data);
-      if (data?.dose && data?.unit) {
-        setCustomDose({ amount: data.dose, unit: data.unit });
-      }
-    } catch (error) {
-      toast.error('Error al cargar protocolo');
-    }
-  };
-
-  const loadBaseline = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/baseline/${userId}`);
-      setBaseline(data);
-    } catch (error) {
-      toast.error('Error al cargar baseline');
-    }
-  };
-
-  const loadDoses = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/doses/${userId}?days=60`);
-      const today = toLocalDateString(new Date());
-      setTodayDoses(data.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === today));
-      setRecentDoses(data);
-      if (data.length > 0) setLastDose(data[0]);
-    } catch (error) {
-      toast.error('Error al cargar dosis');
-    }
-  };
-
-  const loadFollowUpInfo = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/followups/current/${userId}`);
-      setFollowUpInfo(data);
-    } catch (error) {
-      toast.error('Error al cargar follow-up');
-    }
-  };
 
   // Calcular dias programados segun protocolo (ciclo fijo desde start_date)
   const getScheduledDays = (): Set<string> => {
@@ -272,11 +233,10 @@ const Dashboard: React.FC = () => {
       return;
     }
     try {
-      await api.post('/api/doses', { userId: user!.id, timestamp: new Date().toISOString(), substance: INTERNAL_SUBSTANCE, dose: protocol.dose, unit: protocol.unit, notes: '' });
+      await addDose.mutateAsync({ userId: user!.id, timestamp: new Date().toISOString(), substance: INTERNAL_SUBSTANCE, dose: protocol.dose, unit: protocol.unit, notes: '' });
       setShowDoseModal(false);
       setShowConfetti(true);
       toast.success('¡Dosis registrada!');
-      loadDoses(user!.id);
       setRefreshKey(prev => prev + 1);
     } catch (error) {
       toast.error('Error al registrar la dosis');
@@ -285,11 +245,10 @@ const Dashboard: React.FC = () => {
 
   const handleAddCustomDose = async () => {
     try {
-      await api.post('/api/doses', { userId: user!.id, timestamp: new Date().toISOString(), substance: INTERNAL_SUBSTANCE, dose: parseFloat(String(customDose.amount)), unit: customDose.unit, notes: isIntuitive ? '' : 'Dosis adicional' });
+      await addDose.mutateAsync({ userId: user!.id, timestamp: new Date().toISOString(), substance: INTERNAL_SUBSTANCE, dose: parseFloat(String(customDose.amount)), unit: customDose.unit, notes: isIntuitive ? '' : 'Dosis adicional' });
       setShowAddDoseModal(false);
       setShowConfetti(true);
       toast.success('¡Dosis registrada!');
-      loadDoses(user!.id);
       setRefreshKey(prev => prev + 1);
     } catch (error) {
       toast.error('Error al registrar la dosis');
@@ -300,14 +259,8 @@ const Dashboard: React.FC = () => {
     if (!selectedDay) return;
     try {
       const timestamp = new Date(selectedDay.dateString + 'T12:00:00');
-      await api.post('/api/doses', { userId: user!.id, timestamp: timestamp.toISOString(), substance: INTERNAL_SUBSTANCE, dose: parseFloat(String(customDose.amount)), unit: customDose.unit, notes: 'Dosis manual' });
+      await addDose.mutateAsync({ userId: user!.id, timestamp: timestamp.toISOString(), substance: INTERNAL_SUBSTANCE, dose: parseFloat(String(customDose.amount)), unit: customDose.unit, notes: 'Dosis manual' });
       toast.success('Dosis agregada');
-      const allDoses = await api.get(`/api/doses/${user!.id}?days=60`);
-      const today = toLocalDateString(new Date());
-      setRecentDoses(allDoses);
-      setTodayDoses(allDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === today));
-      if (allDoses.length > 0) setLastDose(allDoses[0]);
-      setSelectedDay(prev => prev ? { ...prev, doses: allDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === selectedDay!.dateString) } : prev);
       setRefreshKey(prev => prev + 1);
     } catch (error) {
       toast.error('Error al agregar dosis');
@@ -317,14 +270,8 @@ const Dashboard: React.FC = () => {
   const handleDeleteDose = async (doseId: string) => {
     if (!await toast.confirm('¿Eliminar esta dosis? Esta acción no se puede deshacer.')) return;
     try {
-      await api.delete(`/api/doses/${doseId}`);
+      await deleteDoseMutation.mutateAsync(doseId);
       toast.info('Dosis eliminada');
-      const allDoses = await api.get(`/api/doses/${user!.id}?days=60`);
-      const today = toLocalDateString(new Date());
-      setRecentDoses(allDoses);
-      setTodayDoses(allDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === today));
-      setLastDose(allDoses.length > 0 ? allDoses[0] : null);
-      setSelectedDay(prev => prev ? { ...prev, doses: allDoses.filter((d: DoseLog) => toLocalDateString(new Date(d.date)) === selectedDay!.dateString) } : prev);
       setRefreshKey(prev => prev + 1);
     } catch (error) {
       toast.error('Error al eliminar');
@@ -334,7 +281,7 @@ const Dashboard: React.FC = () => {
   const handleDeleteCheckin = async (checkinId: string) => {
     if (!await toast.confirm('¿Eliminar esta reflexión? Esta acción no se puede deshacer.')) return;
     try {
-      await api.delete(`/api/checkins/${checkinId}`);
+      await deleteCheckinMutation.mutateAsync(checkinId);
       toast.info('Reflexión eliminada');
       setSelectedDay(prev => prev ? { ...prev, checkin: null } : prev);
       setRefreshKey(prev => prev + 1);
@@ -500,13 +447,13 @@ const Dashboard: React.FC = () => {
 
       <div className={styles.greetingSection}>
         <h1 className={styles.greeting}>{getGreeting()}, {user?.name || 'Usuario'}</h1>
-        <p className={styles.quote}>{quote.text} {quote.emoji}</p>
+        <p className={styles.quote}>{quote?.text || 'Hoy es un buen día para estar bien'} {quote?.emoji || '🌞'}</p>
       </div>
 
-      <WeeklyCalendar key={refreshKey} userId={user?.id} onDayClick={handleDayClick} refreshKey={refreshKey} followUpDates={getFollowUpDates()} followUpCompletedDates={getFollowUpCompletedDates()} protocol={protocol} doses={recentDoses} />
+      <WeeklyCalendar key={refreshKey} userId={user?.id} onDayClick={handleDayClick} refreshKey={refreshKey} followUpDates={getFollowUpDates()} followUpCompletedDates={getFollowUpCompletedDates()} protocol={protocol ?? null} doses={recentDoses} />
 
       <DoseSection
-        protocol={protocol}
+        protocol={protocol ?? null}
         isIntuitive={isIntuitive}
         todayDoses={todayDoses}
         lastDose={lastDose}
@@ -532,7 +479,7 @@ const Dashboard: React.FC = () => {
           customDose={customDose}
           setCustomDose={setCustomDose}
           fieldLabels={fieldLabels}
-          followUpInfo={followUpInfo}
+          followUpInfo={followUpInfo ?? null}
           handleDeleteDose={handleDeleteDose}
           handleDeleteCheckin={handleDeleteCheckin}
           handleEditCheckin={handleEditCheckin}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Pill, BookOpen, Calendar, CaretLeft, CaretRight } from '@phosphor-icons/react';
-import api from '../utils/api';
 import { toLocalDateString } from '../utils/dateHelpers';
+import { useDoses, useCheckins } from '../hooks/queries';
 import styles from './WeeklyCalendar.module.css';
 import type { Protocol, DoseLog, Checkin, CalendarDay } from '../types';
 
@@ -20,9 +20,6 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, ref
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [days, setDays] = useState<CalendarDay[]>([]);
-  const [doses, setDoses] = useState<DoseLog[]>([]);
-  const [checkins, setCheckins] = useState<Checkin[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [protocolDays, setProtocolDays] = useState<Set<string>>(new Set());
   const [isSliding, setIsSliding] = useState<boolean>(false);
 
@@ -31,18 +28,11 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, ref
 
   const isIntuitive = protocol?.frequency === 'intuitive';
 
-  // Sync external doses from parent (Dashboard passes 60-day doses)
-  useEffect(() => {
-    if (externalDoses) {
-      setDoses(externalDoses);
-    }
-  }, [externalDoses]);
+  // Fetch own doses only if parent doesn't provide them
+  const { data: fetchedDoses = [] } = useDoses(!externalDoses ? userId : undefined, 60);
+  const doses = externalDoses || fetchedDoses;
 
-  useEffect(() => {
-    if (userId) {
-      loadData();
-    }
-  }, [userId, refreshKey, viewMode, currentMonth]);
+  const { data: checkins = [], isLoading: loading } = useCheckins(userId, 60);
 
   useEffect(() => {
     if (isIntuitive) {
@@ -57,29 +47,6 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, ref
   useEffect(() => {
     generateDays();
   }, [viewMode, currentMonth, protocolDays, followUpDates, followUpCompletedDates, weekOffset]);
-
-  const loadData = async () => {
-    setLoading(true);
-
-    // Skip dose fetch if parent already provides doses
-    if (!externalDoses) {
-      try {
-        const dosesData = await api.get(`/api/doses/${userId}?days=60`);
-        setDoses(dosesData);
-      } catch (error) {
-        console.error('Error loading doses:', error);
-      }
-    }
-
-    try {
-      const checkinsData = await api.get(`/api/checkins/${userId}?days=60`);
-      setCheckins(checkinsData);
-    } catch (error) {
-      console.error('Error loading checkins:', error);
-    }
-
-    setLoading(false);
-  };
 
   const generateDays = () => {
     const today = new Date();

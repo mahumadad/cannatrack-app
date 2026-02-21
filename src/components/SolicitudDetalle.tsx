@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
+import { useSolicitudDetail, useCancelSolicitud } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
 import { ArrowLeft, ShoppingBag, User, CreditCard, XCircle, Prescription, Stethoscope, Calendar } from '@phosphor-icons/react';
 import styles from './SolicitudDetalle.module.css';
@@ -31,37 +31,16 @@ const SolicitudDetalle: React.FC = () => {
   const toast = useToast()!;
   const { user } = useUser();
   useSwipeBack();
-  const [solicitud, setSolicitud] = useState<Solicitud | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: solicitud, isLoading: loading } = useSolicitudDetail(user?.id, id);
+  const cancelMutation = useCancelSolicitud(user?.id);
   const [cancelling, setCancelling] = useState(false);
 
-  useEffect(() => {
-    if (user?.id && id) loadSolicitud(user.id, id);
-  }, [user, id]);
-
-  const loadSolicitud = async (userId: string, solId: string) => {
-    setLoading(true);
-    try {
-      const data = await api.get(`/api/solicitudes/${userId}/${solId}`);
-      setSolicitud(data);
-    } catch {
-      toast.error('Error al cargar solicitud');
-      navigate('/store/solicitudes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleCancel = async () => {
-    if (!user?.id || !id) return;
+    if (!id) return;
     setCancelling(true);
     try {
-      await api.put(`/api/solicitudes/${user.id}/${id}/cancelar`, {
-        razon: 'Cancelado por el usuario'
-      });
+      await cancelMutation.mutateAsync(id);
       toast.success('Solicitud cancelada');
-      // Reload to show updated state
-      await loadSolicitud(user.id, id);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Error al cancelar solicitud';
       toast.error(message);

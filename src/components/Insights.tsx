@@ -1,19 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
 import { toLocalDateString, normalizeDate } from '../utils/dateHelpers';
 import { calcWellbeing } from '../utils/wellbeing';
-import { calculateDASS, calculatePANAS, calculatePSS, getSeverityColor } from '../utils/followUpScoring';
+import { calculateDASS, calculatePANAS, calculatePSS } from '../utils/followUpScoring';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { EmptyChart } from './EmptyStates';
 import BottomNav from './BottomNav';
-import { useToast } from './Toast';
 import styles from './Insights.module.css';
 import sharedFieldLabels from '../utils/fieldLabels';
 import { useUser } from '../hooks/useUser';
 import useSwipeBack from '../hooks/useSwipeBack';
-import type { InsightsData, ComparisonData, ComparisonAverages, Checkin, DoseLog, EmotionalDataPoint } from '../types';
+import { useCheckins, useDoses, useBaseline, useFollowUpsCompleted } from '../hooks/queries';
+import type { InsightsData, ComparisonData, ComparisonAverages, Checkin, DoseLog } from '../types';
 
 interface PeriodAverages {
   [key: string]: string | number | undefined;
@@ -22,12 +21,18 @@ interface PeriodAverages {
 
 const Insights: React.FC = () => {
   const navigate = useNavigate();
-  const toast = useToast()!;
   const { user } = useUser();
+
+  const { data: rawCheckins = [], isLoading: loadingCheckins } = useCheckins(user?.id, 30);
+  const { data: rawDoses = [], isLoading: loadingDoses } = useDoses(user?.id, 30);
+  const { data: rawBaseline } = useBaseline(user?.id);
+  const { data: rawFollowUps = [] } = useFollowUpsCompleted(user?.id);
+
+  const loading = loadingCheckins || loadingDoses;
+
   const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly');
   const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
   const [weeklyData, setWeeklyData] = useState<Record<string, any>[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [selectedFields, setSelectedFields] = useState<string[]>(['mood', 'energy']);
   const [hoveredField, setHoveredField] = useState<string | null>(null);
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
@@ -63,10 +68,66 @@ const Insights: React.FC = () => {
   const radarFields = ['mood', 'anxiety', 'energy', 'sleep', 'focus', 'sociability', 'rumination', 'functionality', 'productivity', 'connection'];
 
   useEffect(() => {
-    if (user?.id) {
-      loadInsights(user.id);
+    if (rawBaseline?.is_locked) setBaselineData(rawBaseline);
+    if (Array.isArray(rawFollowUps) && rawFollowUps.length > 0) setCompletedFollowUps(rawFollowUps);
+  }, [rawBaseline, rawFollowUps]);
+
+  useEffect(() => {
+    if (rawCheckins.length === 0) {
+      setInsightsData(null);
+      return;
     }
-  }, [user]);
+
+    const checkins = rawCheckins;
+    const doses = rawDoses;
+
+    const last7Days = checkins.slice(0, 7).reverse();
+    const emotional = last7Days.map((c: any) => ({
+      day: new Date(c.date).toLocaleDateString('es-ES', { weekday: 'short' }),
+      ...Object.keys(allFields).reduce((acc: any, key: string) => ({ ...acc, [key]: c[key] || 5 }), {})
+    }));
+
+    const avgMood = (checkins.reduce((sum: number, c: any) => sum + (c.mood || 5), 0) / checkins.length).toFixed(1);
+    const avgEnergy = (checkins.reduce((sum: number, c: any) => sum + (c.energy || 5), 0) / checkins.length).toFixed(1);
+    const avgAnxiety = (checkins.reduce((sum: number, c: any) => sum + (c.anxiety || 5), 0) / checkins.length).toFixed(1);
+    const avgFocus = (checkins.reduce((sum: number, c: any) => sum + (c.focus || 5), 0) / checkins.length).toFixed(1);
+    const avgSleep = (checkins.reduce((sum: number, c: any) => sum + (c.sleep || 5), 0) / checkins.length).toFixed(1);
+    const avgSociability = (checkins.reduce((sum: number, c: any) => sum + (c.sociability || 5), 0) / checkins.length).toFixed(1);
+    const avgRumination = (checkins.reduce((sum: number, c: any) => sum + (c.rumination || 5), 0) / checkins.length).toFixed(1);
+    const avgFunctionality = (checkins.reduce((sum: number, c: any) => sum + (c.functionality || 5), 0) / checkins.length).toFixed(1);
+    const avgProductivity = (checkins.reduce((sum: number, c: any) => sum + (c.productivity || 5), 0) / checkins.length).toFixed(1);
+    const avgConnection = (checkins.reduce((sum: number, c: any) => sum + (c.connection || 5), 0) / checkins.length).toFixed(1);
+
+    setInsightsData({
+      emotional,
+      avgMood, avgEnergy, avgAnxiety, avgFocus, avgSleep,
+      avgSociability, avgRumination, avgFunctionality, avgProductivity, avgConnection,
+      totalDoses: doses.length,
+      totalCheckins: checkins.length,
+      checkins,
+      doses
+    });
+
+    const weeks = [];
+    for (let i = 0; i < 4; i++) {
+      const weekCheckins = checkins.slice(i * 7, (i + 1) * 7);
+      if (weekCheckins.length > 0) {
+        const firstDate = new Date(weekCheckins[weekCheckins.length - 1].date);
+        const lastDate = new Date(weekCheckins[0].date);
+        const formatDay = (d: Date) => d.getDate();
+        const formatMonth = (d: Date) => d.toLocaleDateString('es-ES', { month: 'short' });
+        const weekLabel = firstDate.getMonth() === lastDate.getMonth()
+          ? `${formatDay(firstDate)}-${formatDay(lastDate)} ${formatMonth(lastDate)}`
+          : `${formatDay(firstDate)} ${formatMonth(firstDate)}-${formatDay(lastDate)} ${formatMonth(lastDate)}`;
+        const weekPoint: Record<string, any> = { label: weekLabel };
+        Object.keys(allFields).forEach(field => {
+          weekPoint[field] = (weekCheckins.reduce((s: number, c: any) => s + (c[field] || 5), 0) / weekCheckins.length).toFixed(1);
+        });
+        weeks.push(weekPoint);
+      }
+    }
+    setWeeklyData(weeks.reverse());
+  }, [rawCheckins, rawDoses]);
 
   useEffect(() => {
     if (!insightsData?.checkins) return;
@@ -103,81 +164,6 @@ const Insights: React.FC = () => {
       calculateComparison(insightsData.checkins, insightsData.doses, days);
     }
   }, [period, insightsData?.checkins, insightsData?.doses]);
-
-  const loadInsights = async (userId: string) => {
-    setLoading(true);
-    try {
-      const [checkins, doses, baseline, followUps] = await Promise.all([
-        api.get(`/api/checkins/${userId}?days=30`),
-        api.get(`/api/doses/${userId}?days=30`),
-        api.get(`/api/baseline/${userId}`).catch(() => null),
-        api.get(`/api/followups/completed/${userId}`).catch(() => [])
-      ]);
-
-      if (baseline?.is_locked) setBaselineData(baseline);
-      if (Array.isArray(followUps)) setCompletedFollowUps(followUps);
-
-      if (checkins.length > 0) {
-        const last7Days = checkins.slice(0, 7).reverse();
-        const emotional = last7Days.map((c: any) => ({
-          day: new Date(c.date).toLocaleDateString('es-ES', { weekday: 'short' }),
-          ...Object.keys(allFields).reduce((acc: any, key: string) => ({ ...acc, [key]: c[key] || 5 }), {})
-        }));
-
-        const avgMood = (checkins.reduce((sum: number, c: any) => sum + (c.mood || 5), 0) / checkins.length).toFixed(1);
-        const avgEnergy = (checkins.reduce((sum: number, c: any) => sum + (c.energy || 5), 0) / checkins.length).toFixed(1);
-        const avgAnxiety = (checkins.reduce((sum: number, c: any) => sum + (c.anxiety || 5), 0) / checkins.length).toFixed(1);
-        const avgFocus = (checkins.reduce((sum: number, c: any) => sum + (c.focus || 5), 0) / checkins.length).toFixed(1);
-        const avgSleep = (checkins.reduce((sum: number, c: any) => sum + (c.sleep || 5), 0) / checkins.length).toFixed(1);
-        const avgSociability = (checkins.reduce((sum: number, c: any) => sum + (c.sociability || 5), 0) / checkins.length).toFixed(1);
-        const avgRumination = (checkins.reduce((sum: number, c: any) => sum + (c.rumination || 5), 0) / checkins.length).toFixed(1);
-        const avgFunctionality = (checkins.reduce((sum: number, c: any) => sum + (c.functionality || 5), 0) / checkins.length).toFixed(1);
-        const avgProductivity = (checkins.reduce((sum: number, c: any) => sum + (c.productivity || 5), 0) / checkins.length).toFixed(1);
-        const avgConnection = (checkins.reduce((sum: number, c: any) => sum + (c.connection || 5), 0) / checkins.length).toFixed(1);
-
-        setInsightsData({
-          emotional,
-          avgMood,
-          avgEnergy,
-          avgAnxiety,
-          avgFocus,
-          avgSleep,
-          avgSociability,
-          avgRumination,
-          avgFunctionality,
-          avgProductivity,
-          avgConnection,
-          totalDoses: doses.length,
-          totalCheckins: checkins.length,
-          checkins,
-          doses
-        });
-
-        const weeks = [];
-        for (let i = 0; i < 4; i++) {
-          const weekCheckins = checkins.slice(i * 7, (i + 1) * 7);
-          if (weekCheckins.length > 0) {
-            const firstDate = new Date(weekCheckins[weekCheckins.length - 1].date);
-            const lastDate = new Date(weekCheckins[0].date);
-            const formatDay = (d: Date) => d.getDate();
-            const formatMonth = (d: Date) => d.toLocaleDateString('es-ES', { month: 'short' });
-            const weekLabel = firstDate.getMonth() === lastDate.getMonth()
-              ? `${formatDay(firstDate)}-${formatDay(lastDate)} ${formatMonth(lastDate)}`
-              : `${formatDay(firstDate)} ${formatMonth(firstDate)}-${formatDay(lastDate)} ${formatMonth(lastDate)}`;
-            const weekPoint: Record<string, any> = { label: weekLabel };
-            Object.keys(allFields).forEach(field => {
-              weekPoint[field] = (weekCheckins.reduce((s: number, c: any) => s + (c[field] || 5), 0) / weekCheckins.length).toFixed(1);
-            });
-            weeks.push(weekPoint);
-          }
-        }
-        setWeeklyData(weeks.reverse());
-      }
-    } catch (error) {
-      toast.error('Error al cargar análisis');
-    }
-    setLoading(false);
-  };
 
   const calculateComparison = (checkins: Checkin[], doses: DoseLog[], periodDays: number = 30) => {
     const cutoffDate = new Date();

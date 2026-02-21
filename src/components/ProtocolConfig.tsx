@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from './Toast';
 import { ArrowLeft, ArrowRight, CheckCircle } from '@phosphor-icons/react';
-import api from '../utils/api';
 import { trackEvent } from '../utils/analytics';
 import DosePicker from './DosePicker';
 import {
@@ -11,7 +10,7 @@ import {
   extractEveryXDays, parseDuracion, estimateDuration,
   inferFrequencyFromDosesAndDuration
 } from '../utils/doseOptions';
-import { useRecetas } from '../hooks/useRecetas';
+import { useRecetasQuery, useProtocol, useSaveProtocol } from '../hooks/queries';
 import styles from './ProtocolConfig.module.css';
 import { useUser } from '../hooks/useUser';
 import { toLocalDateString } from '../utils/dateHelpers';
@@ -35,6 +34,9 @@ const ProtocolConfig: React.FC = () => {
   const [existingProtocol, setExistingProtocol] = useState<Protocol | null>(null);
   const [protocolLoaded, setProtocolLoaded] = useState<boolean>(false);
   const [step, setStep] = useState<number>(1);
+
+  const { data: existingProtocolData } = useProtocol(user?.id);
+  const saveProtocol = useSaveProtocol();
 
   const [protocol, setProtocol] = useState<ProtocolFormState>({
     frequency: 'fadiman',
@@ -62,7 +64,7 @@ const ProtocolConfig: React.FC = () => {
 
   // ─── Receta suggestions ──────────────────────────────────────
 
-  const { recetas: allRecetas } = useRecetas(user?.id);
+  const { data: allRecetas = [] } = useRecetasQuery(user?.id);
 
   const activeReceta = useMemo(() => {
     return allRecetas.find((r: Receta) => r.estado === 'activa') || null;
@@ -136,43 +138,31 @@ const ProtocolConfig: React.FC = () => {
     return estimateDuration(recetaSuggestions.totalMicro, protocol.frequency, freqValue);
   }, [recetaSuggestions, protocol.frequency, customPattern, everyXDays, customDays]);
 
-  // ─── Load existing protocol ──────────────────────────────────
+  // ─── Sync existing protocol from query ──────────────────────
 
   useEffect(() => {
-    if (user?.id) {
-      loadExistingProtocol(user.id);
-    }
-  }, [user]);
+    if (existingProtocolData) {
+      setExistingProtocol(existingProtocolData);
+      setProtocol({
+        frequency: existingProtocolData.frequency,
+        frequencyValue: existingProtocolData.frequency_value,
+        doseTime: existingProtocolData.dose_time || '09:00',
+        dose: existingProtocolData.dose,
+        unit: existingProtocolData.unit,
+        duration: existingProtocolData.duration,
+        startDate: existingProtocolData.start_date || toLocalDateString()
+      });
 
-  const loadExistingProtocol = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/protocol/${userId}`);
-      if (data) {
-        setExistingProtocol(data);
-        setProtocol({
-          frequency: data.frequency,
-          frequencyValue: data.frequency_value,
-          doseTime: data.dose_time || '09:00',
-          dose: data.dose,
-          unit: data.unit,
-          duration: data.duration,
-          startDate: data.start_date || toLocalDateString()
-        });
-
-        if (data.frequency === 'specific_days' && data.frequency_value) {
-          setCustomDays(data.frequency_value);
-        } else if (data.frequency === 'every_x_days' && data.frequency_value) {
-          setEveryXDays(data.frequency_value.days);
-        } else if (data.frequency === 'custom' && data.frequency_value) {
-          setCustomPattern(data.frequency_value);
-        }
+      if (existingProtocolData.frequency === 'specific_days' && existingProtocolData.frequency_value) {
+        setCustomDays(existingProtocolData.frequency_value);
+      } else if (existingProtocolData.frequency === 'every_x_days' && existingProtocolData.frequency_value) {
+        setEveryXDays(existingProtocolData.frequency_value.days);
+      } else if (existingProtocolData.frequency === 'custom' && existingProtocolData.frequency_value) {
+        setCustomPattern(existingProtocolData.frequency_value);
       }
-    } catch {
-      // No existing protocol — that's fine
-    } finally {
-      setProtocolLoaded(true);
     }
-  };
+    setProtocolLoaded(true);
+  }, [existingProtocolData]);
 
   // ─── Apply receta suggestions (only for NEW protocols) ───────
 
@@ -250,7 +240,7 @@ const ProtocolConfig: React.FC = () => {
           frequencyValue = null;
       }
 
-      await api.post('/api/protocol', {
+      await saveProtocol.mutateAsync({
         userId: user!.id,
         frequency: protocol.frequency,
         frequencyValue: frequencyValue,

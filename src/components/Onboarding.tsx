@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
 import { useToast } from './Toast';
+import { useUserRecord, useSaveBaseline, useMarkOnboarding } from '../hooks/queries';
 import {
   Sparkle,
   NotePencil,
@@ -34,26 +34,24 @@ const Onboarding: React.FC = () => {
     life_satisfaction: 5,
   });
 
+  const { data: userData, isLoading: loadingUser } = useUserRecord(user?.id);
+  const saveBaseline = useSaveBaseline();
+  const markOnboarding = useMarkOnboarding(user?.id);
+
   useEffect(() => {
     if (!user?.id) {
       if (user !== null) navigate('/login');
       return;
     }
-    checkOnboardingStatus(user.id);
   }, [user]);
 
-  const checkOnboardingStatus = async (userId: string) => {
-    try {
-      const userData = await api.get(`/api/users/${userId}`);
-      if (userData?.onboarding_completed) {
-        navigate('/dashboard');
-        return;
-      }
-    } catch (error) {
-      toast!.error('Error al verificar onboarding');
+  useEffect(() => {
+    if (userData?.onboarding_completed) {
+      navigate('/dashboard');
+      return;
     }
-    setLoading(false);
-  };
+    if (userData) setLoading(false);
+  }, [userData]);
 
   const totalSteps = 5;
 
@@ -73,7 +71,7 @@ const Onboarding: React.FC = () => {
     if (!user?.id) return;
 
     try {
-      await api.post('/api/baseline', {
+      await saveBaseline.mutateAsync({
         user_id: user.id,
         usual_focus: data.usual_focus,
         usual_creativity: data.usual_creativity,
@@ -81,7 +79,7 @@ const Onboarding: React.FC = () => {
         life_satisfaction: data.life_satisfaction,
       });
 
-      await api.put(`/api/users/${user.id}/onboarding`, { completed: true });
+      await markOnboarding.mutateAsync();
 
       navigate('/dashboard');
     } catch (error) {

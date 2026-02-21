@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { useToast } from './Toast';
-import api from '../utils/api';
 import { trackEvent } from '../utils/analytics';
+import { useFollowUpCurrent, useSubmitFollowUp } from '../hooks/queries';
 import styles from './FollowUp.module.css';
 import useSwipeBack from '../hooks/useSwipeBack';
 import type { FollowUp as FollowUpType, FollowUpInfo, FollowUpMonthSummary } from '../types';
@@ -42,6 +42,7 @@ const FollowUp: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useUser();
+  const [monthYear, setMonthYear] = useState<string | undefined>(searchParams.get('month') || undefined);
   const [currentSection, setCurrentSection] = useState<number>(0);
   const [saving, setSaving] = useState<boolean>(false);
   const [followUpInfo, setFollowUpInfo] = useState<FollowUpInfo | null>(null);
@@ -52,6 +53,9 @@ const FollowUp: React.FC = () => {
   const [formData, setFormData] = useState<FollowUpFormData>({ ...defaultFormData });
   const [subStep, setSubStep] = useState<number>(0);
   useSwipeBack();
+
+  const { data: followUpData } = useFollowUpCurrent(user?.id, monthYear);
+  const submitFollowUp = useSubmitFollowUp();
 
   const sectionSubSteps: Record<string, number> = {
     intro: 1, dass: 3, panas: 2, pss: 2,
@@ -72,43 +76,28 @@ const FollowUp: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (user?.id) {
-      const monthParam = searchParams.get('month');
-      loadFollowUpInfo(user.id, monthParam || undefined);
-    }
-  }, [user]);
+    if (followUpData) {
+      setFollowUpInfo(followUpData);
+      setCanComplete(followUpData.canComplete ?? false);
 
-  const loadFollowUpInfo = async (userId: string, monthYear?: string) => {
-    try {
-      const url = monthYear
-        ? `/api/followups/current/${userId}?month_year=${monthYear}`
-        : `/api/followups/current/${userId}`;
-      const data = await api.get(url);
-      setFollowUpInfo(data);
-      setCanComplete(data.canComplete ?? false);
-
-      if (data.allMonths) {
-        setAllMonths(data.allMonths);
+      if (followUpData.allMonths) {
+        setAllMonths(followUpData.allMonths);
       }
 
-      if (data.existing) {
-        setExistingFollowUp(data.existing);
-        setFormData({ ...defaultFormData, ...data.existing });
+      if (followUpData.existing) {
+        setExistingFollowUp(followUpData.existing);
+        setFormData({ ...defaultFormData, ...followUpData.existing });
       } else {
         setExistingFollowUp(null);
         setFormData({ ...defaultFormData });
       }
       setCurrentSection(0);
       setSubStep(0);
-    } catch (error) {
-      toast!.error('Error al cargar follow-up');
     }
-  };
+  }, [followUpData]);
 
-  const switchMonth = (monthYear: string) => {
-    if (user?.id) {
-      loadFollowUpInfo(user.id, monthYear);
-    }
+  const switchMonth = (newMonthYear: string) => {
+    setMonthYear(newMonthYear);
   };
 
   const handleChange = (field: string, value: string | number) => {
@@ -201,7 +190,7 @@ const FollowUp: React.FC = () => {
         payload.completed_at = new Date().toISOString();
       }
 
-      await api.post('/api/followups', payload);
+      await submitFollowUp.mutateAsync(payload);
 
       if (goNext) {
         if (currentSection === sections.length - 1) {

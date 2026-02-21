@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
 import { useToast } from './Toast';
 import { Package, Truck, ArrowsClockwise, Receipt, ShoppingBag, ArrowLeft, MapPin, Tag, CurrencyDollar, Prescription, ClipboardText, Plus, CreditCard, CaretDown, CaretUp } from '@phosphor-icons/react';
 import styles from './ShopifyStore.module.css';
 import BottomNav from './BottomNav';
 import { useUser } from '../hooks/useUser';
 import storage, { STORAGE_KEYS } from '../utils/storage';
-import { useRecetas } from '../hooks/useRecetas';
+import { useRecetasQuery, useStoreData, useSolicitudes, useMembershipSubscribe } from '../hooks/queries';
 import { formatCLP } from '../utils/formatters';
 import useSwipeBack from '../hooks/useSwipeBack';
 import type { ShopifyOrder, ShopifySubscription, ShopifyStoreData, Receta, Solicitud } from '../types';
@@ -18,12 +17,12 @@ const ShopifyStore: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast()!;
   const { user } = useUser();
-  const { recetas: allRecetas } = useRecetas(user?.id);
+  const { data: allRecetas = [] } = useRecetasQuery(user?.id);
   const recetasActivas = allRecetas.filter((r: Receta) => r.estado === 'activa');
   const recetasPasadas = allRecetas.filter((r: Receta) => r.estado !== 'activa');
-  const [storeData, setStoreData] = useState<ShopifyStoreData | null>(null);
-  const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { data: storeData, isLoading: loadingStore } = useStoreData(user?.id);
+  const { data: solicitudes = [] } = useSolicitudes(user?.id);
+  const loading = loadingStore;
   const [activeTab, setActiveTab] = useState<Tab>('orders');
   useSwipeBack();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -46,34 +45,6 @@ const ShopifyStore: React.FC = () => {
       }
     }
   }, [user]);
-
-  useEffect(() => {
-    if (user?.id) {
-      loadStoreData(user.id);
-      loadSolicitudes(user.id);
-    }
-  }, [user]);
-
-  const loadStoreData = async (userId: string) => {
-    setLoading(true);
-    try {
-      const data = await api.get(`/api/shopify/store/${userId}`, { skipAuthRedirect: true });
-      setStoreData(data);
-    } catch {
-      // Silencioso — el usuario puede no tener Shopify conectado
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadSolicitudes = async (userId: string) => {
-    try {
-      const data = await api.get(`/api/solicitudes/${userId}`);
-      setSolicitudes(data || []);
-    } catch {
-      // Silencioso
-    }
-  };
 
   const formatPrice = (amount: string, currency: string): string => {
     return new Intl.NumberFormat('es-CL', {
@@ -412,10 +383,11 @@ const ShopifyStore: React.FC = () => {
   const blockStore = membershipStatus !== 'active' && !(isExpired && daysExpired < 5);
   const showWarning = isExpired && daysExpired < 5 && daysExpired >= 0;
 
+  const subscribeMutation = useMembershipSubscribe();
   const handleSubscribe = async () => {
     setSubscribing(true);
     try {
-      const data = await api.post('/api/membership/subscribe', {});
+      const data = await subscribeMutation.mutateAsync();
       if (data?.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {

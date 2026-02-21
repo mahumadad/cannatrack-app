@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import api from '../utils/api';
 import { trackEvent } from '../utils/analytics';
 import { calcWellbeingPercent } from '../utils/wellbeing';
 import { useToast } from './Toast';
@@ -9,6 +8,7 @@ import BottomNav from './BottomNav';
 import styles from './Reflect.module.css';
 import sharedFieldLabels from '../utils/fieldLabels';
 import { useUser } from '../hooks/useUser';
+import { useCheckins, useCreateCheckin, useUpdateCheckin } from '../hooks/queries';
 import { toLocalDateString } from '../utils/dateHelpers';
 import storage from '../utils/storage';
 import useSwipeBack from '../hooks/useSwipeBack';
@@ -46,11 +46,14 @@ const Reflect: React.FC = () => {
   const [currentSection, setCurrentSection] = useState<number>(0);
   const [existingCheckin, setExistingCheckin] = useState<Checkin | null>(null);
   const [saving, setSaving] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<string>(dateParam || toLocalDateString());
   const [hoveredField, setHoveredField] = useState<string | null>(null);
   useSwipeBack();
+
+  const { data: allCheckins = [], isLoading: loading } = useCheckins(user?.id, 30);
+  const createCheckin = useCreateCheckin();
+  const updateCheckin = useUpdateCheckin();
 
   const [formData, setFormData] = useState<ReflectFormData>({
     mood: 5, anxiety: 5, energy: 5, sleep: 5, focus: 5,
@@ -73,38 +76,25 @@ const Reflect: React.FC = () => {
   const radarFields = ['mood', 'anxiety', 'energy', 'sleep', 'focus', 'sociability', 'rumination', 'functionality', 'productivity', 'connection'];
 
   useEffect(() => {
-    if (user?.id) loadExistingCheckin(user.id, selectedDate);
-  }, [user, selectedDate]);
-
-  const loadExistingCheckin = async (userId: string, date: string) => {
-    setLoading(true);
-    try {
-      const data = await api.get(`/api/checkins/${userId}?days=30`);
-      const existing = data.find((c: Checkin) => c.date === date);
-      if (existing) {
-        setExistingCheckin(existing);
-        setFormData({
-          mood: existing.mood || 5, anxiety: existing.anxiety || 5, energy: existing.energy || 5,
-          sleep: existing.sleep || 5, focus: existing.focus || 5, sociability: existing.sociability || 5,
-          rumination: existing.rumination || 5, functionality: existing.functionality || 5,
-          productivity: existing.productivity || 5, connection: existing.connection || 5,
-          change_perceived: existing.change_perceived || '', change_attribution: existing.change_attribution || '',
-          adverse_event: existing.adverse_event || 'no', adverse_type: existing.adverse_type || '',
-          adverse_intensity: existing.adverse_intensity || '', adverse_duration: existing.adverse_duration || '',
-          adverse_interference: existing.adverse_interference || '', adverse_help: existing.adverse_help || ''
-        });
-        setIsEditing(false);
-      } else {
-        setExistingCheckin(null);
-        setIsEditing(true);
-      }
-    } catch (error) {
-      toast!.error('Error al cargar check-in');
+    const existing = allCheckins.find((c: Checkin) => c.date === selectedDate);
+    if (existing) {
+      setExistingCheckin(existing);
+      setFormData({
+        mood: existing.mood || 5, anxiety: existing.anxiety || 5, energy: existing.energy || 5,
+        sleep: existing.sleep || 5, focus: existing.focus || 5, sociability: existing.sociability || 5,
+        rumination: existing.rumination || 5, functionality: existing.functionality || 5,
+        productivity: existing.productivity || 5, connection: existing.connection || 5,
+        change_perceived: existing.change_perceived || '', change_attribution: existing.change_attribution || '',
+        adverse_event: existing.adverse_event || 'no', adverse_type: existing.adverse_type || '',
+        adverse_intensity: existing.adverse_intensity || '', adverse_duration: existing.adverse_duration || '',
+        adverse_interference: existing.adverse_interference || '', adverse_help: existing.adverse_help || ''
+      });
+      setIsEditing(false);
+    } else {
+      setExistingCheckin(null);
       setIsEditing(true);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [allCheckins, selectedDate]);
 
   // Cargar borrador de localStorage al cambiar de fecha
   useEffect(() => {
@@ -147,9 +137,13 @@ const Reflect: React.FC = () => {
   const handleSaveCheckin = async () => {
     setSaving(true);
     try {
-      const path = existingCheckin ? `/api/checkins/${existingCheckin.id}` : `/api/checkins`;
       const body = { user_id: user!.id, date: selectedDate, ...formData };
-      const data = existingCheckin ? await api.put(path, body) : await api.post(path, body);
+      let data;
+      if (existingCheckin) {
+        data = await updateCheckin.mutateAsync({ id: existingCheckin.id, body });
+      } else {
+        data = await createCheckin.mutateAsync(body);
+      }
       trackEvent('dose_logged', { isEdit: !!existingCheckin });
       toast!.success('¡Check-in guardado! ✅');
       storage.removeItem(`reflect_draft_${selectedDate}`);
