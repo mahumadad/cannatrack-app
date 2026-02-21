@@ -113,8 +113,8 @@ const MisRecetas: React.FC = () => {
       setUploadFileName('');
       invalidateRecetasCache();
       refetchRecetas();
-    } catch (err: any) {
-      toast.error(err.message || 'Error al subir receta');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al subir receta');
     } finally {
       setUploading(false);
     }

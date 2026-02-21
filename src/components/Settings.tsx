@@ -178,8 +178,8 @@ const Settings: React.FC = () => {
       setNewPassword('');
       setConfirmPassword('');
       toast!.success(hasPassword ? 'Contraseña actualizada' : 'Contraseña creada exitosamente');
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || 'Error al guardar contraseña';
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al guardar contraseña';
       toast!.error(msg);
     } finally {
       setSavingPassword(false);
@@ -276,7 +276,7 @@ const Settings: React.FC = () => {
       <div className={styles.header}>
         <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={24} weight="bold" /></button>
         <h1 className={styles.title}>Configuración</h1>
-        <div style={{ width: '40px' }}></div>
+        <div className={styles.headerSpacer}></div>
       </div>
 
       <div className={styles.content}>
@@ -589,11 +589,11 @@ const Settings: React.FC = () => {
         </div>
 
         {/* Version info */}
-        <div className={styles.section} style={{ textAlign: 'center', paddingBottom: 8 }}>
-          <p style={{ fontSize: 11, color: '#999', margin: 0 }}>
+        <div className={`${styles.section} ${styles.versionSection}`}>
+          <p className={styles.versionText}>
             DromedApp v{__APP_VERSION__}
           </p>
-          <p style={{ fontSize: 10, color: '#bbb', margin: '2px 0 0' }}>
+          <p className={styles.buildText}>
             Build: {new Date(__BUILD_DATE__).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
@@ -674,7 +674,7 @@ const Settings: React.FC = () => {
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <h2>{hasPassword ? 'Cambiar contraseña' : 'Crear contraseña'}</h2>
             {!hasPassword && (
-              <p style={{ fontSize: 13, color: '#6B5B4E', marginBottom: 12 }}>
+              <p className={styles.modalDescription}>
                 Crea una contraseña para poder iniciar sesión directamente sin necesidad de usar Shopify.
               </p>
             )}
@@ -706,7 +706,7 @@ const Settings: React.FC = () => {
                 autoComplete="new-password"
               />
             </div>
-            <p style={{ fontSize: 11, color: '#9E9E9E', margin: '4px 0 8px' }}>
+            <p className={styles.passwordHint}>
               Mínimo 8 caracteres, con mayúscula, minúscula y número
             </p>
             <div className={styles.modalButtons}>

@@ -6,6 +6,7 @@ import { calcWellbeing } from '../utils/wellbeing';
 import { calculateDASS, calculatePANAS, calculatePSS, getSeverityColor } from '../utils/followUpScoring';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ArrowLeft } from '@phosphor-icons/react';
+import { EmptyChart } from './EmptyStates';
 import BottomNav from './BottomNav';
 import { useToast } from './Toast';
 import styles from './Insights.module.css';
@@ -454,7 +455,7 @@ const Insights: React.FC = () => {
           <div style={{ width: 36 }}></div>
         </div>
         <div className={styles.noData}>
-          <div className={styles.noDataIcon}>📊</div>
+          <EmptyChart size={100} />
           <h2>Sin datos suficientes</h2>
           <p>Completa algunas reflexiones para ver tus análisis</p>
           <button className={styles.startButton} onClick={() => navigate('/reflect')}>Hacer reflexión</button>

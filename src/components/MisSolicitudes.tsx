@@ -4,7 +4,8 @@ import api from '../utils/api';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
 import useSwipeBack from '../hooks/useSwipeBack';
-import { ArrowLeft, ClipboardText, Plus } from '@phosphor-icons/react';
+import { ArrowLeft, Plus } from '@phosphor-icons/react';
+import { EmptyInbox } from './EmptyStates';
 import styles from './MisSolicitudes.module.css';
 import type { Solicitud, SolicitudEstado } from '../types';
 
@@ -84,7 +85,7 @@ const MisSolicitudes: React.FC = () => {
       <div className={styles.content}>
         {solicitudes.length === 0 ? (
           <div className={styles.emptyState}>
-            <ClipboardText size={48} weight="light" />
+            <EmptyInbox size={100} />
             <p>No hay solicitudes aún</p>
             <p className={styles.emptySubtext}>Crea tu primer pedido con receta</p>
             <button className={styles.newSolicitudBtn} onClick={() => navigate('/store/solicitud')}>

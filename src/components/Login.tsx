@@ -71,8 +71,8 @@ const Login: React.FC = () => {
       }
 
       navigate('/dashboard');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Error al iniciar sesión');
     } finally {
       setLoading(false);
     }

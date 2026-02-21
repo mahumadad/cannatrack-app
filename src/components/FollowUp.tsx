@@ -180,7 +180,7 @@ const FollowUp: React.FC = () => {
     // If not last sub-step, just advance sub-step (no save to backend)
     if (goNext && !isLastSubStep) {
       setSubStep(prev => prev + 1);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -211,7 +211,7 @@ const FollowUp: React.FC = () => {
         } else {
           setCurrentSection(prev => prev + 1);
           setSubStep(0);
-          window.scrollTo(0, 0);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }
     } catch (error) {
@@ -226,13 +226,13 @@ const FollowUp: React.FC = () => {
   const goBack = () => {
     if (subStep > 0) {
       setSubStep(prev => prev - 1);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentSection > 0) {
       const prevSectionId = sections[currentSection - 1].id;
       const prevSubSteps = sectionSubSteps[prevSectionId] || 1;
       setCurrentSection(prev => prev - 1);
       setSubStep(prevSubSteps - 1);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       navigate('/dashboard');
     }
@@ -245,7 +245,7 @@ const FollowUp: React.FC = () => {
       }
       setCurrentSection(index);
       setSubStep(0);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -891,7 +891,7 @@ const FollowUp: React.FC = () => {
             ← Volver al Inicio
           </button>
         ) : currentSection === 0 ? (
-          <button className={styles.nextButton} onClick={() => { setCurrentSection(1); setSubStep(0); window.scrollTo(0, 0); }}>
+          <button className={styles.nextButton} onClick={() => { setCurrentSection(1); setSubStep(0); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
             Comenzar →
           </button>
         ) : (

@@ -34,7 +34,15 @@
 /* Section */
 .section {
   margin-bottom: 24px;
+  animation: fadeIn 0.3s ease both;
 }
+
+.content > .section:nth-child(1) { animation-delay: 0ms; }
+.content > .section:nth-child(2) { animation-delay: 50ms; }
+.content > .section:nth-child(3) { animation-delay: 100ms; }
+.content > .section:nth-child(4) { animation-delay: 150ms; }
+.content > .section:nth-child(5) { animation-delay: 200ms; }
+.content > .section:nth-child(n+6) { animation-delay: 250ms; }
 
 .sectionLabel {
   font-size: var(--text-base);
@@ -220,6 +228,16 @@
   width: 100%;
   text-align: center;
   animation: slideUpSheet 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modalContent::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  margin: 0 auto 16px;
 }
 
 @keyframes slideUpSheet {
@@ -526,4 +544,40 @@
 .nameInput:focus {
   outline: none;
   border-color: var(--color-primary);
+}
+
+/* Header spacer for centering title */
+.headerSpacer {
+  width: 40px;
+}
+
+/* Version info */
+.versionSection {
+  text-align: center;
+  padding-bottom: 8px;
+}
+
+.versionText {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.buildText {
+  font-size: 10px;
+  color: #bbb;
+  margin: 2px 0 0;
+}
+
+/* Password modal extras */
+.modalDescription {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+}
+
+.passwordHint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: 4px 0 8px;
 }

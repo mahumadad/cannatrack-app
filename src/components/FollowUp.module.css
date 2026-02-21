@@ -104,6 +104,12 @@
 
 .content {
   padding: 0 20px 20px;
+  animation: fadeUp 0.3s var(--ease-out, ease-out) both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Intro Section */
@@ -307,7 +313,15 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   border: 1px solid rgba(0, 0, 0, 0.04);
+  animation: fadeUp 0.3s var(--ease-out, ease-out) both;
 }
+
+.fields > .questionCard:nth-child(2) { animation-delay: 50ms; }
+.fields > .questionCard:nth-child(3) { animation-delay: 100ms; }
+.fields > .questionCard:nth-child(4) { animation-delay: 150ms; }
+.fields > .questionCard:nth-child(5) { animation-delay: 200ms; }
+.fields > .questionCard:nth-child(6) { animation-delay: 250ms; }
+.fields > .questionCard:nth-child(n+7) { animation-delay: 300ms; }
 
 .questionLabel {
   display: block;

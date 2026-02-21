@@ -256,8 +256,8 @@ const SolicitudForm: React.FC = () => {
       });
       trackEvent('solicitud_created', { items: cart.length });
       setSuccess(result.submission_id);
-    } catch (error: any) {
-      toast.error(error.message || 'Error al enviar solicitud');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Error al enviar solicitud');
     } finally {
       setSubmitting(false);
     }

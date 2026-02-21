@@ -62,8 +62,8 @@ const Register: React.FC = () => {
       }
 
       navigate('/baseline');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Error al registrarse');
     } finally {
       setLoading(false);
     }
