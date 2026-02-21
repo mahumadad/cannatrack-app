@@ -937,19 +937,11 @@
   background: #43A047;
 }
 
-/* Mini Gauges Grid (in modal) */
-.miniGaugesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-/* Fix Mini Gauges Grid */
+/* Mini Gauges Grid */
 .miniGaugesGrid {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
 }
 
@@ -961,51 +953,14 @@
   width: 55px;
 }
 
-.miniGaugeCircle {
-  position: relative;
-  width: 44px;
-  height: 44px;
-}
-
-.miniGaugeCircle svg {
-  transform: rotate(-90deg);
-}
-
-.miniGaugeEmoji {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 16px;
-}
-
-.miniGaugeValue {
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
-}
-
-.miniGaugeTooltip {
-  position: absolute;
-  bottom: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #4A3F35;
-  color: white;
-  padding: 6px 10px;
-  border-radius: var(--radius-sm);
-  font-size: var(--text-xs);
-  white-space: nowrap;
-  z-index: 100;
-}
-
-/* Mini Gauge Item - Fix */
 .miniGaugeItem {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   position: relative;
   cursor: pointer;
+  width: 48px;
 }
 
 .miniGaugeCircle {
@@ -1027,21 +982,28 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 16px;
+  line-height: 1;
+}
+
+.miniGaugeValue {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
 }
 
 .miniGaugeTooltip {
   position: absolute;
-  bottom: -35px;
+  bottom: -38px;
   left: 50%;
   transform: translateX(-50%);
   background: #4A3F35;
   color: white;
-  padding: 6px 10px;
+  padding: 6px 12px;
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   white-space: nowrap;
-  z-index: 100;
+  z-index: var(--z-nav);
   pointer-events: none;
+  text-align: center;
 }
 
 .miniGaugeTooltip::before {
@@ -1053,59 +1015,6 @@
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
   border-bottom: 5px solid #4A3F35;
-}
-
-/* Fix Mini Gauge - Override */
-.miniGaugesGrid {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 10px !important;
-  justify-content: center !important;
-  grid-template-columns: unset !important;
-}
-
-.miniGaugeItem {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  gap: 2px !important;
-  position: relative !important;
-  cursor: pointer !important;
-  width: 48px !important;
-}
-
-.miniGaugeCircle {
-  position: relative !important;
-  width: 44px !important;
-  height: 44px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.miniGaugeEmoji {
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  font-size: 16px !important;
-  line-height: 1 !important;
-}
-
-.miniGaugeTooltip {
-  position: absolute !important;
-  bottom: -38px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  background: #4A3F35 !important;
-  color: white !important;
-  padding: 6px 12px !important;
-  border-radius: var(--radius-sm) !important;
-  font-size: var(--text-xs) !important;
-  white-space: nowrap !important;
-  z-index: var(--z-nav) !important;
-  pointer-events: none !important;
-  text-align: center !important;
 }
 
 /* Countdown Styles */
@@ -1247,26 +1156,9 @@
   gap: 8px;
 }
 
-/* Efecto titilante para dosis atrasada */
-.countdownContainer.overdue {
-  animation: overduePulse 2s ease-in-out infinite;
-}
-
-@keyframes overduePulse {
-  0%, 100% {
-    background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
-    box-shadow: 0 0 0 0 rgba(198, 40, 40, 0.2);
-  }
-  50% {
-    background: linear-gradient(135deg, #FFCDD2 0%, #EF9A9A 100%);
-    box-shadow: 0 0 20px 4px rgba(198, 40, 40, 0.3);
-  }
-}
-
 /* Efecto onda expansiva para dosis atrasada */
 .countdownContainer.overdue {
   position: relative;
-  animation: none;
 }
 
 .countdownContainer.overdue::before {
