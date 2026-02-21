@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .backButton:hover {
@@ -39,9 +39,9 @@
 }
 
 .title {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 .form {
@@ -50,16 +50,16 @@
 
 .section {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 24px;
   margin-bottom: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .sectionTitle {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
   margin-bottom: 20px;
 }
 
@@ -76,7 +76,7 @@
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal);
   background: white;
 }
 
@@ -102,24 +102,24 @@
 }
 
 .cardContent h3 {
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
   margin-bottom: 4px;
 }
 
 .cardContent p {
-  font-size: 14px;
+  font-size: var(--text-base);
   color: var(--color-text-secondary);
 }
 
 .badge {
   display: inline-block;
   padding: 4px 12px;
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
   color: white;
   border-radius: var(--radius-md);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
   margin-top: 8px;
 }
@@ -133,9 +133,9 @@
 
 .frequencyDetail label {
   display: block;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
-  color: #4A3F35;
+  color: var(--color-text);
   margin-bottom: 12px;
 }
 
@@ -144,7 +144,7 @@
   padding: 12px;
   border: 2px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-size: 16px;
+  font-size: var(--text-md);
   font-family: inherit;
 }
 
@@ -165,11 +165,11 @@
   border: 2px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: white;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: #4A3F35;
+  color: var(--color-text);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal);
 }
 
 .dayButton:hover {
@@ -177,7 +177,7 @@
 }
 
 .dayButton.active {
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
   color: white;
   border-color: var(--color-primary);
 }
@@ -196,7 +196,7 @@
 }
 
 .patternInput span {
-  font-size: 14px;
+  font-size: var(--text-base);
   color: var(--color-text-secondary);
 }
 
@@ -205,7 +205,7 @@
   padding: 14px;
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: 16px;
+  font-size: var(--text-md);
   font-family: inherit;
 }
 
@@ -220,9 +220,9 @@
 
 .inputGroup label {
   display: block;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
-  color: #4A3F35;
+  color: var(--color-text);
   margin-bottom: 8px;
 }
 
@@ -231,7 +231,7 @@
   padding: 14px;
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: 15px;
+  font-size: var(--text-md);
   font-family: inherit;
   background: white;
   cursor: pointer;
@@ -249,7 +249,7 @@
 }
 
 .hint {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
   margin-top: 8px;
   font-style: italic;
@@ -257,17 +257,17 @@
 
 .submitButton {
   width: 100%;
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   padding: 16px;
   border-radius: var(--radius-md);
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 700;
   cursor: pointer;
   margin-top: 20px;
   box-shadow: 0 4px 16px rgba(193, 125, 74, 0.3);
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal);
 }
 
 .submitButton:hover:not(:disabled) {
@@ -287,7 +287,7 @@
 
   .dayButton {
     padding: 10px 4px;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .doseInputs {
@@ -300,9 +300,9 @@
   padding: 14px;
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: 16px;
+  font-size: var(--text-md);
   font-family: inherit;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 .dateInput:focus {
@@ -312,7 +312,7 @@
 
 .datePreview {
   text-align: center;
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
   color: var(--color-primary);
   margin-top: 12px;
@@ -325,14 +325,14 @@
   background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
   color: white;
   border-radius: var(--radius-md);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
   margin-top: 8px;
 }
 
 .intuitiveInfo {
   background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%);
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 24px;
   text-align: center;
   margin-bottom: 20px;
@@ -345,14 +345,14 @@
 }
 
 .intuitiveInfo h3 {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: #6A1B9A;
   margin-bottom: 8px;
 }
 
 .intuitiveInfo p {
-  font-size: 14px;
+  font-size: var(--text-base);
   color: #7B1FA2;
   line-height: 1.5;
 }
@@ -373,15 +373,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 700;
   background: var(--color-border);
   color: white;
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal);
 }
 
 .stepActive {
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
 }
 
 .stepLine {
@@ -405,16 +405,16 @@
   align-items: center;
   gap: 8px;
   padding: 14px 28px;
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   margin-left: auto;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
 }
 
 .nextStepButton:hover {
@@ -431,11 +431,11 @@
   color: var(--color-primary);
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .prevStepButton:hover {
@@ -450,10 +450,10 @@
   padding: 12px 14px;
   background: linear-gradient(135deg, #FFF8F0, #FFF3E0);
   border: 1.5px solid #FFCC80;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   margin: 0 20px 16px;
-  font-size: 13px;
-  color: #6B5B4E;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
   line-height: 1.5;
 }
 
@@ -469,14 +469,14 @@
 
 .recetaBannerTitle {
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
   margin-bottom: 4px;
-  font-size: 14px;
+  font-size: var(--text-base);
 }
 
 .recetaBannerDetail {
-  font-size: 12px;
-  color: #6B5B4E;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
 }
 
 .recetaBannerDetail strong {
@@ -499,7 +499,7 @@
   right: 12px;
   font-size: 10px;
   font-weight: 700;
-  color: #D4A574;
+  color: var(--color-primary-light);
   background: #FFF3E0;
   padding: 1px 8px;
   border-radius: 8px;
@@ -517,7 +517,7 @@
 
 /* ============ DURATION HINT ============ */
 .durationHint {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-primary);
   font-weight: 600;
   margin-top: 6px;

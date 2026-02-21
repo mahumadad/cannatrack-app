@@ -62,14 +62,15 @@ const SolicitudDetalle: React.FC = () => {
       toast.success('Solicitud cancelada');
       // Reload to show updated state
       await loadSolicitud(user.id, id);
-    } catch (error: any) {
-      toast.error(error.message || 'Error al cancelar solicitud');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Error al cancelar solicitud';
+      toast.error(message);
     } finally {
       setCancelling(false);
     }
   };
 
-  const isCancellable = solicitud && ['pendiente', 'pre_aprobado', 'aprobado'].includes(solicitud.estado);
+  const isCancellable = solicitud && solicitud.estado === 'pendiente';
 
   if (loading || !solicitud) {
     return (

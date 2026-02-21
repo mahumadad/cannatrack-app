@@ -118,6 +118,27 @@ describe('parseProtocolo', () => {
     expect(parseProtocolo('cada 5 dias')).toBe('every_x_days');
   });
 
+  it('detecta "dia por medio"', () => {
+    expect(parseProtocolo('dia por medio')).toBe('every_x_days');
+    expect(parseProtocolo('día por medio')).toBe('every_x_days');
+    expect(parseProtocolo('Tomar día por medio')).toBe('every_x_days');
+  });
+
+  it('detecta "interdiario"', () => {
+    expect(parseProtocolo('interdiario')).toBe('every_x_days');
+    expect(parseProtocolo('Dosificación interdiario')).toBe('every_x_days');
+  });
+
+  it('detecta "cada tercer dia" y "cada 3er día"', () => {
+    expect(parseProtocolo('cada tercer dia')).toBe('every_x_days');
+    expect(parseProtocolo('cada 3er día')).toBe('every_x_days');
+  });
+
+  it('detecta "1 cada X dias" (prefijo de dosis)', () => {
+    expect(parseProtocolo('1 cada 3 dias')).toBe('every_x_days');
+    expect(parseProtocolo('1 cada 4 días')).toBe('every_x_days');
+  });
+
   it('retorna null para null/undefined/no reconocido', () => {
     expect(parseProtocolo(null)).toBeNull();
     expect(parseProtocolo(undefined)).toBeNull();
@@ -141,6 +162,25 @@ describe('extractEveryXDays', () => {
   it('extrae intervalo "cada X días"', () => {
     expect(extractEveryXDays('cada 3 días')).toBe(3);
     expect(extractEveryXDays('cada 5 dias')).toBe(5);
+  });
+
+  it('extrae 2 de "dia por medio"', () => {
+    expect(extractEveryXDays('dia por medio')).toBe(2);
+    expect(extractEveryXDays('día por medio')).toBe(2);
+  });
+
+  it('extrae 2 de "interdiario"', () => {
+    expect(extractEveryXDays('interdiario')).toBe(2);
+  });
+
+  it('extrae 3 de "cada tercer dia"', () => {
+    expect(extractEveryXDays('cada tercer dia')).toBe(3);
+    expect(extractEveryXDays('cada 3er día')).toBe(3);
+  });
+
+  it('extrae de "1 cada X dias"', () => {
+    expect(extractEveryXDays('1 cada 3 dias')).toBe(3);
+    expect(extractEveryXDays('1 cada 4 días')).toBe(4);
   });
 
   it('retorna null si no matchea', () => {

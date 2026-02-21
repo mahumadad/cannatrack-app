@@ -30,7 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .backButton:hover {
@@ -44,9 +44,9 @@
 }
 
 .title {
-  font-size: 20px;
+  font-size: var(--text-xl);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 /* ============ RECETA BANNER ============ */
@@ -58,10 +58,10 @@
   margin: 16px 20px 0;
   padding: 14px 16px;
   background: linear-gradient(135deg, #FFF8F0 0%, #FDEBD0 100%);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   border: 1.5px solid rgba(193, 125, 74, 0.2);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .recetaBanner:active { transform: scale(0.98); }
@@ -80,14 +80,14 @@
 }
 
 .recetaBannerTitle {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
   margin: 0;
 }
 
 .recetaBannerSubtitle {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
   margin: 2px 0 0;
 }
@@ -105,8 +105,8 @@
   background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
@@ -125,7 +125,7 @@
 }
 
 .miniSaldoLabel {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--color-text-secondary);
   width: 36px;
   flex-shrink: 0;
@@ -146,9 +146,9 @@
 }
 
 .miniSaldoCount {
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: #4A3F35;
+  color: var(--color-text);
   width: 40px;
   text-align: right;
   flex-shrink: 0;
@@ -174,12 +174,12 @@
   padding: 10px 6px;
   border: none;
   background: transparent;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-text-secondary);
   cursor: pointer;
-  border-radius: 10px;
-  transition: all 0.3s ease;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-normal);
   font-family: inherit;
   text-align: center;
   line-height: 1.2;
@@ -190,7 +190,7 @@
 }
 
 .tabActive {
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
   color: white;
 }
 
@@ -214,11 +214,11 @@
 
 .orderCard {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .orderCard:hover {
@@ -239,13 +239,13 @@
 }
 
 .orderName {
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 .orderDate {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
 
@@ -257,7 +257,7 @@
 }
 
 .orderTotal {
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--color-primary);
 }
@@ -265,7 +265,7 @@
 /* ============ DRAFT ORDER CARD ============ */
 .draftOrderCard {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border-left: 4px solid var(--color-primary);
@@ -284,23 +284,23 @@
   margin-top: 10px;
   padding: 8px 12px;
   background: #FFF8F0;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
 }
 
 .draftItemLabel {
-  font-size: 13px;
-  color: #4A3F35;
+  font-size: var(--text-sm);
+  color: var(--color-text);
   font-weight: 500;
 }
 
 .draftItemMore {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
 
 .statusPendingPayment {
-  background: #FFF3E0;
-  color: #E65100;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
 }
 
 .paymentButton {
@@ -311,16 +311,16 @@
   width: 100%;
   margin-top: 12px;
   padding: 12px;
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .paymentButton:hover {
@@ -334,26 +334,26 @@
 
 /* ============ STATUS BADGES ============ */
 .statusBadge {
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   padding: 3px 10px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   white-space: nowrap;
 }
 
-.statusFulfilled { background: #E8F5E9; color: #2E7D32; }
-.statusUnfulfilled { background: #FFF3E0; color: #E65100; }
-.statusPartial { background: #E3F2FD; color: #1976D2; }
-.statusPaid { background: #E8F5E9; color: #2E7D32; }
-.statusPending { background: #FFF3E0; color: #E65100; }
-.statusActive { background: #E8F5E9; color: #2E7D32; }
-.statusPaused { background: #FFF3E0; color: #E65100; }
-.statusCancelled { background: #FFEBEE; color: #C62828; }
-.statusInTransit { background: #E3F2FD; color: #1976D2; }
-.statusDefault { background: #F5F5F5; color: #757575; }
+.statusFulfilled { background: var(--color-success-bg); color: var(--color-success-text); }
+.statusUnfulfilled { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.statusPartial { background: var(--color-info-bg); color: var(--color-info-text); }
+.statusPaid { background: var(--color-success-bg); color: var(--color-success-text); }
+.statusPending { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.statusActive { background: var(--color-success-bg); color: var(--color-success-text); }
+.statusPaused { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.statusCancelled { background: var(--color-danger-bg); color: var(--color-danger-dark); }
+.statusInTransit { background: var(--color-info-bg); color: var(--color-info-text); }
+.statusDefault { background: #F5F5F5; color: var(--color-text-muted); }
 
-.tipoBadgeReceta { background: #FFF3E0; color: #E65100; }
-.tipoBadgeDispensacion { background: #E3F2FD; color: #1976D2; }
+.tipoBadgeReceta { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.tipoBadgeDispensacion { background: var(--color-info-bg); color: var(--color-info-text); }
 
 /* ============ TRACKING BAR ============ */
 .trackingBar {
@@ -363,21 +363,21 @@
   padding: 10px 12px;
   margin-top: 12px;
   background: #FFF8F0;
-  border-radius: 10px;
-  font-size: 13px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
   color: var(--color-primary);
   font-weight: 500;
 }
 
 .deliveryDate {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
   font-weight: 400;
   margin-left: auto;
 }
 
 .trackingLink {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-primary);
   text-decoration: underline;
@@ -404,7 +404,7 @@
 .lineItemImage {
   width: 48px;
   height: 48px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
   background: #F5F5F5;
   flex-shrink: 0;
@@ -413,7 +413,7 @@
 .lineItemImagePlaceholder {
   width: 48px;
   height: 48px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: var(--color-surface-warm);
   display: flex;
   align-items: center;
@@ -431,26 +431,26 @@
 }
 
 .lineItemName {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
-  color: #4A3F35;
+  color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .lineItemVariant {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
 
 .lineItemQty {
-  font-size: 12px;
-  color: #8B7D72;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
 }
 
 .lineItemPrice {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--color-primary);
   flex-shrink: 0;
@@ -461,7 +461,7 @@
   margin-top: 4px;
   padding: 12px;
   background: #FAFAFA;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -471,7 +471,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
   gap: 6px;
 }
@@ -481,7 +481,7 @@
 }
 
 .summaryRow .discountAmount {
-  color: #2E7D32;
+  color: var(--color-success-text);
   font-weight: 600;
 }
 
@@ -489,8 +489,8 @@
   padding-top: 8px;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
   font-weight: 700;
-  color: #4A3F35;
-  font-size: 14px;
+  color: var(--color-text);
+  font-size: var(--text-base);
 }
 
 /* ============ DETAIL ROW ============ */
@@ -498,7 +498,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
   padding: 4px 0;
 }
@@ -508,14 +508,14 @@
   margin-top: 4px;
   padding: 12px;
   background: #FFF8F0;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
 }
 
 .shippingSectionTitle {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-primary);
   margin-bottom: 8px;
@@ -525,8 +525,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 13px;
-  color: #4A3F35;
+  font-size: var(--text-sm);
+  color: var(--color-text);
   padding-left: 22px;
 }
 
@@ -539,7 +539,7 @@
 
 .subscriptionCard {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
@@ -562,8 +562,8 @@
   padding: 10px 12px;
   margin-top: 12px;
   background: #FFF8F0;
-  border-radius: 10px;
-  font-size: 13px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
   color: var(--color-primary);
   font-weight: 500;
 }
@@ -583,12 +583,12 @@
 
 .emptyState p {
   color: var(--color-text-secondary);
-  font-size: 16px;
+  font-size: var(--text-md);
   margin: 0;
 }
 
 .emptySubtext {
-  font-size: 14px !important;
+  font-size: var(--text-base) !important;
   margin-top: 8px !important;
   opacity: 0.7;
 }
@@ -620,7 +620,7 @@
 /* ============ RECETA DETAIL TAB ============ */
 .recetaDetailCard {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
@@ -636,9 +636,9 @@
 
 .recetaCardHeader h3 {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--text-lg);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 .recetaSaldoRow {
@@ -653,13 +653,13 @@
   flex-direction: column;
   gap: 2px;
   min-width: 90px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 .recetaGramaje {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--color-text-secondary);
   font-weight: 400;
 }
@@ -675,11 +675,11 @@
 .recetaSaldoFill {
   height: 100%;
   border-radius: 4px;
-  transition: width 0.3s ease;
+  transition: width var(--transition-normal);
 }
 
 .recetaSaldoCount {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-text-secondary);
   min-width: 70px;
@@ -702,7 +702,7 @@
 }
 
 .recetaMetaLabel {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--color-text-secondary);
   font-weight: 500;
   text-transform: uppercase;
@@ -710,8 +710,8 @@
 }
 
 .recetaMetaValue {
-  font-size: 14px;
-  color: #4A3F35;
+  font-size: var(--text-base);
+  color: var(--color-text);
   font-weight: 500;
 }
 
@@ -720,14 +720,14 @@
   padding: 12px;
   margin-top: 20px;
   background: var(--color-surface-warm, #f5f0eb);
-  color: #4A3F35;
+  color: var(--color-text);
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .recetaDetailBtn:active { transform: scale(0.98); }
@@ -736,11 +736,11 @@
   width: 100%;
   padding: 14px;
   margin-top: 10px;
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 15px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-md);
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
@@ -748,7 +748,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .recetaOrderBtn:active { transform: scale(0.98); }
@@ -761,13 +761,13 @@
   padding: 14px 18px;
   background: var(--color-surface);
   border: 1.5px dashed var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   margin-bottom: 16px;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--color-accent);
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .recetaUploadBanner:hover {
@@ -781,7 +781,7 @@
 }
 
 .recetasPasadasTitle {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
@@ -792,11 +792,11 @@
 .recetaPasadaCard {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: 12px 16px;
   margin-bottom: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .recetaPasadaCard:hover {
@@ -811,26 +811,26 @@
 }
 
 .recetaPasadaDoctor {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--color-text);
 }
 
 .recetaPasadaEstado {
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .recetaPasadaCompletada {
-  background: #E8F5E9;
-  color: #2E7D32;
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
 }
 
 .recetaPasadaVencida {
-  background: #FFF3E0;
-  color: #E65100;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
 }
 
 .recetaPasadaCancelada,
@@ -843,7 +843,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
 

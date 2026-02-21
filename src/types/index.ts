@@ -1,9 +1,14 @@
 // ===== User & Auth =====
+export type MembershipStatus = 'none' | 'pending_payment' | 'active' | 'expired';
+
 export interface User {
   id: string;
   email: string;
   name?: string;
   onboarding_completed?: boolean;
+  membership_status?: MembershipStatus;
+  membership_started_at?: string | null;
+  membership_expires_at?: string | null;
 }
 
 export interface Session {

@@ -16,7 +16,7 @@ type Tab = 'orders' | 'subscriptions' | 'solicitudes' | 'recetas';
 
 const ShopifyStore: React.FC = () => {
   const navigate = useNavigate();
-  const toast = useToast();
+  const toast = useToast()!;
   const { user } = useUser();
   const { recetas: allRecetas } = useRecetas(user?.id);
   const recetasActivas = allRecetas.filter((r: Receta) => r.estado === 'activa');
@@ -415,8 +415,8 @@ const ShopifyStore: React.FC = () => {
   const handleSubscribe = async () => {
     setSubscribing(true);
     try {
-      const { data } = await api.post('/api/membership/subscribe');
-      if (data.checkoutUrl) {
+      const data = await api.post('/api/membership/subscribe', {});
+      if (data?.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
         toast.error('No se pudo obtener el enlace de pago');

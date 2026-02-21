@@ -78,6 +78,22 @@
   --safe-area-left: env(safe-area-inset-left, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
 
+  /* ═══ Gradientes ═══ */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+  --gradient-progress: linear-gradient(90deg, var(--color-primary-light) 0%, #C17D4A 100%);
+
+  /* ═══ Status backgrounds ═══ */
+  --color-success-bg: #E8F5E9;
+  --color-warning-bg: #FFF3E0;
+  --color-danger-bg: #FFEBEE;
+  --color-info-bg: #E3F2FD;
+
+  /* ═══ Status text ═══ */
+  --color-success-text: #2E7D32;
+  --color-warning-text: #E65100;
+  --color-danger-text: #C62828;
+  --color-info-text: #1565C0;
+
   /* ═══ Layout ═══ */
   --nav-height: 64px;
   --header-height: 56px;

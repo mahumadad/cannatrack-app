@@ -35,7 +35,7 @@
 
 .doseButton.active {
   border-color: var(--color-primary);
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
   color: white;
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(166, 128, 80, 0.3);
@@ -46,13 +46,13 @@
 }
 
 .doseLabel {
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 700;
   line-height: 1.2;
 }
 
 .doseSublabel {
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 500;
   opacity: 0.7;
 }
@@ -69,15 +69,15 @@
 /* Compact mode adjustments */
 .compactGrid .doseButton {
   padding: 10px 6px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
 }
 
 .compactGrid .doseLabel {
-  font-size: 14px;
+  font-size: var(--text-base);
 }
 
 .compactGrid .doseSublabel {
-  font-size: 10px;
+  font-size: var(--text-xs);
 }
 
 /* ============ RECOMMENDED (receta suggestion) ============ */

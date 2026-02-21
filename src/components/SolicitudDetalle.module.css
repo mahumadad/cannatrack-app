@@ -35,9 +35,9 @@
 .backButton:active { transform: scale(0.95); }
 
 .title {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 .content {
@@ -49,31 +49,31 @@
   text-align: center;
   padding: 24px;
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   margin-bottom: 16px;
 }
 
 .statusBadgeLarge {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 700;
   padding: 6px 16px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   display: inline-block;
   margin-bottom: 8px;
 }
 
-.statusPendiente { background: #FFF3E0; color: #E65100; }
-.statusPreAprobado { background: #E3F2FD; color: #1976D2; }
-.statusAprobado { background: #E8F5E9; color: #2E7D32; }
-.statusRechazado { background: #FFEBEE; color: #C62828; }
-.statusCancelado { background: #F5F5F5; color: #666; }
-.statusPagado { background: #E8F5E9; color: #2E7D32; }
-.statusDespachado { background: #E3F2FD; color: #1976D2; }
-.statusEntregado { background: #E8F5E9; color: #2E7D32; }
+.statusPendiente { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.statusPreAprobado { background: var(--color-info-bg); color: var(--color-info-text); }
+.statusAprobado { background: var(--color-success-bg); color: var(--color-success-text); }
+.statusRechazado { background: var(--color-danger-bg); color: var(--color-danger-dark); }
+.statusCancelado { background: #F5F5F5; color: var(--color-text-secondary); }
+.statusPagado { background: var(--color-success-bg); color: var(--color-success-text); }
+.statusDespachado { background: var(--color-info-bg); color: var(--color-info-text); }
+.statusEntregado { background: var(--color-success-bg); color: var(--color-success-text); }
 
 .submissionId {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
 
@@ -86,25 +86,25 @@
 }
 
 .tipoBadgeReceta {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 700;
   padding: 4px 12px;
-  border-radius: 20px;
-  background: #FFF3E0;
-  color: #E65100;
+  border-radius: var(--radius-lg);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
 }
 
 .tipoBadgeDispensacion {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 700;
   padding: 4px 12px;
-  border-radius: 20px;
-  background: #E3F2FD;
-  color: #1976D2;
+  border-radius: var(--radius-lg);
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
 }
 
 .recetaNoData {
-  font-size: 14px;
+  font-size: var(--text-base);
   color: var(--color-text-secondary);
   text-align: center;
   padding: 12px 0;
@@ -114,16 +114,16 @@
 /* ============ CARD ============ */
 .card {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   margin-bottom: 12px;
 }
 
 .cardTitle {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
   margin: 0 0 12px;
   display: flex;
   align-items: center;
@@ -142,12 +142,12 @@
 .cartItem:last-child { border-bottom: none; }
 
 .cartItemLabel {
-  font-size: 14px;
-  color: #4A3F35;
+  font-size: var(--text-base);
+  color: var(--color-text);
 }
 
 .cartItemPrice {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--color-primary);
 }
@@ -158,11 +158,11 @@
   padding-top: 10px;
   margin-top: 8px;
   border-top: 2px solid var(--color-border);
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 700;
 }
 
-.cartTotalLabel { color: #4A3F35; }
+.cartTotalLabel { color: var(--color-text); }
 .cartTotalPrice { color: var(--color-primary); }
 
 /* ============ DETAIL ROW ============ */
@@ -170,7 +170,7 @@
   display: flex;
   justify-content: space-between;
   padding: 6px 0;
-  font-size: 14px;
+  font-size: var(--text-base);
 }
 
 .detailLabel {
@@ -179,7 +179,7 @@
 
 .detailValue {
   font-weight: 600;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 /* ============ OBSERVACIONES ============ */
@@ -187,14 +187,14 @@
   background: #fef2f2;
   border-left: 4px solid #dc2626;
   padding: 12px 16px;
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   margin-top: 12px;
 }
 
 .observaciones p {
   margin: 0;
-  font-size: 14px;
-  color: #4A3F35;
+  font-size: var(--text-base);
+  color: var(--color-text);
 }
 
 /* ============ PAYMENT BUTTON ============ */
@@ -202,18 +202,18 @@
   display: block;
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  border-radius: 14px;
-  font-size: 15px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-md);
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
   text-align: center;
   text-decoration: none;
   margin-top: 16px;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .paymentBtn:active { transform: scale(0.98); }
@@ -229,12 +229,12 @@
   background: white;
   color: var(--color-danger, #C62828);
   border: 1.5px solid var(--color-danger, #C62828);
-  border-radius: 14px;
-  font-size: 15px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-md);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .cancelBtn:active:not(:disabled) { transform: scale(0.98); background: #fff5f5; }

@@ -55,8 +55,20 @@ export function parseProtocolo(raw: string | null | undefined): string | null {
   // "4 on, 3 off" or "4 días on / 3 off"
   if (/\d+\s*(?:d[ií]as?\s+)?on\s*[,/]\s*\d+\s*(?:d[ií]as?\s+)?off/.test(n)) return 'custom';
 
-  // "cada 3 días"
+  // "cada 3 días", "cada 5 dias"
   if (/cada\s+\d+\s*d[ií]as?/.test(n)) return 'every_x_days';
+
+  // "dia por medio", "día por medio" → every 2 days
+  if (/d[ií]a\s+por\s+medio/.test(n)) return 'every_x_days';
+
+  // "interdiario" → every 2 days
+  if (n.includes('interdiario')) return 'every_x_days';
+
+  // "cada tercer dia", "cada 3er día"
+  if (/cada\s+(?:tercer|3er)\s+d[ií]a/.test(n)) return 'every_x_days';
+
+  // "1 cada 3 dias", "1 cada 4 días" (dose prefix)
+  if (/\d+\s+cada\s+\d+\s*d[ií]as?/.test(n)) return 'every_x_days';
 
   return null;
 }
@@ -73,11 +85,28 @@ export function extractCustomPattern(raw: string | null | undefined): { on: numb
 
 /**
  * Extract "cada X días" interval from receta protocolo string.
+ * Also handles: "dia por medio" (2), "interdiario" (2), "cada tercer dia" (3),
+ * "1 cada 3 dias" (3).
  */
 export function extractEveryXDays(raw: string | null | undefined): number | null {
   if (!raw) return null;
-  const m = raw.trim().toLowerCase().match(/cada\s+(\d+)\s*d[ií]as?/);
-  return m ? parseInt(m[1]) : null;
+  const n = raw.trim().toLowerCase();
+
+  // "cada X días"
+  const cadaMatch = n.match(/cada\s+(\d+)\s*d[ií]as?/);
+  if (cadaMatch) return parseInt(cadaMatch[1]);
+
+  // "dia por medio" / "interdiario" → 2
+  if (/d[ií]a\s+por\s+medio/.test(n) || n.includes('interdiario')) return 2;
+
+  // "cada tercer dia" / "cada 3er día" → 3
+  if (/cada\s+(?:tercer|3er)\s+d[ií]a/.test(n)) return 3;
+
+  // "1 cada 3 dias" (dose prefix pattern)
+  const dosePrefix = n.match(/\d+\s+cada\s+(\d+)\s*d[ií]as?/);
+  if (dosePrefix) return parseInt(dosePrefix[1]);
+
+  return null;
 }
 
 /**

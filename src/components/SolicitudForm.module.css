@@ -31,15 +31,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .backButton:active { transform: scale(0.95); }
 
 .title {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 /* ============ STEPPER ============ */
@@ -56,14 +56,14 @@
   height: 4px;
   border-radius: 2px;
   background: var(--color-border);
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal);
 }
 
 .stepActive { background: var(--color-primary); }
 .stepCompleted { background: var(--color-success); }
 
 .stepLabel {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
   text-align: center;
   padding: 0 20px 8px;
@@ -75,14 +75,14 @@
 }
 
 .sectionTitle {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
   margin: 0 0 4px;
 }
 
 .sectionSubtitle {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
   margin: 0 0 16px;
 }
@@ -101,11 +101,11 @@
   gap: 12px;
   padding: 14px;
   background: white;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   border: 2px solid transparent;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .productCard:active { transform: scale(0.98); }
@@ -119,13 +119,13 @@
 }
 
 .productCardName {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 .productCardPrice {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: var(--color-primary);
 }
@@ -138,7 +138,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   flex-shrink: 0;
 }
 
@@ -160,12 +160,12 @@
   padding: 8px 14px;
   background: white;
   border: 2px solid var(--color-border-light);
-  border-radius: 20px;
-  font-size: 13px;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .capsulaChipSelected {
@@ -177,11 +177,11 @@
 /* ============ UPLOAD AREA ============ */
 .uploadArea {
   border: 2px dashed var(--color-border);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   padding: 24px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   margin-bottom: 16px;
 }
 
@@ -198,13 +198,13 @@
 }
 
 .uploadText {
-  font-size: 14px;
+  font-size: var(--text-base);
   color: var(--color-text-secondary);
   margin: 0;
 }
 
 .uploadFileName {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-success);
   margin: 4px 0 0;
@@ -216,7 +216,7 @@
 }
 
 .formLabel {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-text-secondary);
   margin-bottom: 6px;
@@ -228,11 +228,11 @@
   padding: 12px 14px;
   background: white;
   border: 1.5px solid var(--color-border-light);
-  border-radius: 12px;
-  font-size: 15px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-md);
   font-family: inherit;
-  color: #4A3F35;
-  transition: border-color 0.2s ease;
+  color: var(--color-text);
+  transition: border-color var(--transition-fast);
   box-sizing: border-box;
 }
 
@@ -250,7 +250,7 @@
 /* ============ CART SUMMARY ============ */
 .cartSummary {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   margin-bottom: 16px;
@@ -267,13 +267,13 @@
 .cartItem:last-child { border-bottom: none; }
 
 .cartItemLabel {
-  font-size: 14px;
-  color: #4A3F35;
+  font-size: var(--text-base);
+  color: var(--color-text);
   flex: 1;
 }
 
 .cartItemPrice {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--color-primary);
 }
@@ -297,13 +297,13 @@
 }
 
 .cartTotalLabel {
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 .cartTotalPrice {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--color-primary);
 }
@@ -322,15 +322,15 @@
 .btnPrimary {
   flex: 1;
   padding: 14px;
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  border-radius: 14px;
-  font-size: 15px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-md);
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .btnPrimary:disabled {
@@ -345,12 +345,12 @@
   background: white;
   color: var(--color-primary);
   border: 1.5px solid var(--color-border);
-  border-radius: 14px;
-  font-size: 15px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-md);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .btnSecondary:active { transform: scale(0.98); }
@@ -362,13 +362,13 @@
   background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   margin-top: 8px;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .addToCartBtn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -398,20 +398,20 @@
 }
 
 .successTitle {
-  font-size: 22px;
+  font-size: var(--text-xl);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
   margin: 0 0 8px;
 }
 
 .successSubtitle {
-  font-size: 14px;
+  font-size: var(--text-base);
   color: var(--color-text-secondary);
   margin: 0 0 24px;
 }
 
 .successId {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-primary);
   background: #FFF8F0;
@@ -443,7 +443,7 @@
 }
 
 .loadingText {
-  font-size: 14px;
+  font-size: var(--text-base);
   color: var(--color-text-secondary);
 }
 
@@ -459,7 +459,7 @@
   padding: 10px 14px;
   background: linear-gradient(135deg, #FFF8F0, #FFF3E0);
   border: 1.5px solid #FFCC80;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   margin-bottom: 16px;
 }
 
@@ -477,15 +477,15 @@
 
 .recetaBannerText {
   flex: 1;
-  font-size: 12px;
-  color: #6B5B4E;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
   line-height: 1.4;
 }
 
 .recetaBannerLabel {
   font-weight: 700;
-  color: #4A3F35;
-  font-size: 13px;
+  color: var(--color-text);
+  font-size: var(--text-sm);
 }
 
 .recetaBannerSaldo {
@@ -505,7 +505,7 @@
 .recetaCard {
   background: linear-gradient(135deg, #FEFCF9, #FFF8F0);
   border: 1.5px solid #E8DDD4;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
@@ -521,14 +521,14 @@
 }
 
 .recetaCardBadge {
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #2E7D32;
-  background: #E8F5E9;
+  color: var(--color-success-text);
+  background: var(--color-success-bg);
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .recetaCardTypeBadge {
@@ -539,15 +539,15 @@
   color: #5D4037;
   background: #EFEBE9;
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .recetaCardRow {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: #6B5B4E;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
   flex-wrap: wrap;
 }
 
@@ -564,18 +564,18 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: #6B5B4E;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
   padding: 4px 0 0;
   flex-wrap: wrap;
 }
 
 .recetaCardDosisLabel {
   font-weight: 700;
-  font-size: 11px;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: #4A3F35;
+  color: var(--color-text);
   background: #F0EBE5;
   padding: 1px 6px;
   border-radius: 4px;
@@ -587,13 +587,13 @@
 }
 
 .recetaCardDosisValue {
-  color: #4A3F35;
+  color: var(--color-text);
   font-weight: 500;
 }
 
 .recetaCardUsed {
   color: #A0907E;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 /* ============ WARNING BANNER ============ */
@@ -605,9 +605,9 @@
   padding: 10px 14px;
   background: #FFF8E1;
   border: 1.5px solid #FFD54F;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   margin-bottom: 12px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: #7B6B00;
   line-height: 1.4;
 }

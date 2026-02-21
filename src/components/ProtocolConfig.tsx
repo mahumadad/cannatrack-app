@@ -120,16 +120,16 @@ const ProtocolConfig: React.FC = () => {
     if (!recetaSuggestions?.totalMicro) return null;
     if (recetaSuggestions.duration) return null; // explicit duration takes precedence
 
-    let freqValue: Record<string, unknown> | null = null;
+    let freqValue: { [k: string]: unknown } | null = null;
     switch (protocol.frequency) {
       case 'custom':
-        freqValue = customPattern;
+        freqValue = { ...customPattern };
         break;
       case 'every_x_days':
         freqValue = { days: everyXDays };
         break;
       case 'specific_days':
-        freqValue = customDays;
+        freqValue = { ...customDays };
         break;
     }
 

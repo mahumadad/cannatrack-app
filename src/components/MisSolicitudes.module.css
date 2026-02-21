@@ -35,9 +35,9 @@
 .backButton:active { transform: scale(0.95); }
 
 .title {
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 .content {
@@ -50,11 +50,11 @@
 /* ============ SOLICITUD CARD ============ */
 .solicitudCard {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .solicitudCard:active { transform: scale(0.98); }
@@ -67,19 +67,19 @@
 }
 
 .solicitudId {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
 }
 
 .solicitudDate {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
   margin-top: 2px;
 }
 
 .solicitudItems {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
   margin-bottom: 8px;
 }
@@ -91,28 +91,28 @@
 }
 
 .solicitudTotal {
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--color-primary);
 }
 
 /* ============ STATUS BADGES ============ */
 .statusBadge {
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   padding: 3px 10px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   white-space: nowrap;
 }
 
-.statusPendiente { background: #FFF3E0; color: #E65100; }
-.statusPreAprobado { background: #E3F2FD; color: #1976D2; }
-.statusAprobado { background: #E8F5E9; color: #2E7D32; }
-.statusRechazado { background: #FFEBEE; color: #C62828; }
-.statusCancelado { background: #F5F5F5; color: #666; }
-.statusPagado { background: #E8F5E9; color: #2E7D32; }
-.statusDespachado { background: #E3F2FD; color: #1976D2; }
-.statusEntregado { background: #E8F5E9; color: #2E7D32; }
+.statusPendiente { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.statusPreAprobado { background: var(--color-info-bg); color: var(--color-info-text); }
+.statusAprobado { background: var(--color-success-bg); color: var(--color-success-text); }
+.statusRechazado { background: var(--color-danger-bg); color: var(--color-danger-dark); }
+.statusCancelado { background: #F5F5F5; color: var(--color-text-secondary); }
+.statusPagado { background: var(--color-success-bg); color: var(--color-success-text); }
+.statusDespachado { background: var(--color-info-bg); color: var(--color-info-text); }
+.statusEntregado { background: var(--color-success-bg); color: var(--color-success-text); }
 
 /* ============ EMPTY STATE ============ */
 .emptyState {
@@ -129,12 +129,12 @@
 
 .emptyState p {
   color: var(--color-text-secondary);
-  font-size: 16px;
+  font-size: var(--text-md);
   margin: 0;
 }
 
 .emptySubtext {
-  font-size: 14px !important;
+  font-size: var(--text-base) !important;
   margin-top: 8px !important;
   opacity: 0.7;
 }
@@ -145,11 +145,11 @@
   gap: 6px;
   margin-top: 16px;
   padding: 10px 20px;
-  background: linear-gradient(135deg, #D4A574 0%, #C17D4A 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;

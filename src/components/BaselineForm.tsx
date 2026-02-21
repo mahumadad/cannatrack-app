@@ -4,6 +4,7 @@ import { ArrowLeft } from '@phosphor-icons/react';
 import { useToast } from './Toast';
 import api from '../utils/api';
 import { trackEvent } from '../utils/analytics';
+import useSwipeBack from '../hooks/useSwipeBack';
 import styles from './BaselineForm.module.css';
 import type { Baseline } from '../types';
 import { calculateDASS, calculatePANAS, calculatePSS, getSeverityColor } from '../utils/followUpScoring';
@@ -18,6 +19,7 @@ const BaselineForm: React.FC = () => {
   const toast = useToast()!;
   const navigate = useNavigate();
   const { user } = useUser();
+  useSwipeBack();
   const [currentSection, setCurrentSection] = useState<number>(0);
   const [subStep, setSubStep] = useState<number>(0);
   const [saving, setSaving] = useState<boolean>(false);
@@ -154,14 +156,14 @@ const BaselineForm: React.FC = () => {
     // If not last sub-step, just advance sub-step (no save to backend)
     if (goNext && !isLastSubStep) {
       setSubStep(prev => prev + 1);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     setSaving(true);
     try {
       const isLastSection = currentSection === sections.length - 1 && goNext;
-      const dataToSave: Record<string, any> = {
+      const dataToSave: Record<string, unknown> = {
         user_id: user!.id,
         ...formData,
       };
@@ -187,7 +189,7 @@ const BaselineForm: React.FC = () => {
         } else {
           setCurrentSection(prev => prev + 1);
           setSubStep(0);
-          window.scrollTo(0, 0);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
       }
     } catch (error) {
@@ -200,13 +202,13 @@ const BaselineForm: React.FC = () => {
   const goBack = () => {
     if (subStep > 0) {
       setSubStep(prev => prev - 1);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (currentSection > 0) {
       const prevSectionId = sections[currentSection - 1].id;
       const prevSubSteps = sectionSubSteps[prevSectionId] || 1;
       setCurrentSection(prev => prev - 1);
       setSubStep(prevSubSteps - 1);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       navigate('/dashboard');
     }
@@ -219,7 +221,7 @@ const BaselineForm: React.FC = () => {
       }
       setCurrentSection(index);
       setSubStep(0);
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 

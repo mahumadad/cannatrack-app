@@ -22,11 +22,11 @@
   border: none;
   background: transparent;
   border-radius: 16px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 500;
-  color: #9E9E9E;
+  color: var(--color-text-muted);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal);
 }
 
 .toggleButton.active {
@@ -37,7 +37,7 @@
 /* Título de navegación (semana/mes) */
 .navTitle {
   text-align: center;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--color-text-secondary);
   margin-bottom: 12px;
@@ -111,9 +111,9 @@
 
 .weekHeader {
   text-align: center;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: #9E9E9E;
+  color: var(--color-text-muted);
   padding: 6px 0;
 }
 
@@ -126,7 +126,7 @@
 /* Tarjeta de día base - RESPONSIVE */
 .dayCard {
   background: #F5F5F5;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: 8px 4px;
   text-align: center;
   border: 2px solid transparent;
@@ -206,14 +206,14 @@
 }
 
 .dayNumber {
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 700;
-  color: #4A3F35;
+  color: var(--color-text);
   margin-bottom: 4px;
 }
 
 .monthDayCard .dayNumber {
-  font-size: 13px;
+  font-size: var(--text-sm);
   margin-bottom: 2px;
 }
 
@@ -240,7 +240,7 @@
 
 /* Iconos de indicadores con colores semánticos */
 .doseIcon {
-  color: #4CAF50;
+  color: var(--color-success);
   font-size: 12px;
 }
 
@@ -265,7 +265,7 @@
 }
 
 .followUpCompletedIcon {
-  color: #4CAF50;
+  color: var(--color-success);
   font-size: 12px;
 }
 
