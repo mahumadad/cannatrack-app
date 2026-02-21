@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { trackEvent } from '../utils/analytics';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
-import { useRecetasQuery, useCatalog, useShopifyProfile, useCreateSolicitud } from '../hooks/queries';
+import { useRecetasQuery, useCatalog, useCreateSolicitud } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
 import { ArrowLeft, Check, UploadSimple, ShoppingCart, Trash, CheckCircle, Pill, Warning, CalendarBlank, User } from '@phosphor-icons/react';
 import styles from './SolicitudForm.module.css';
@@ -16,7 +16,7 @@ const STEPS: Step[] = ['micro', 'macro', 'recetas', 'resumen'];
 const STEP_LABELS: Record<Step, string> = {
   micro: 'Microdosis',
   macro: 'Macrodosis',
-  recetas: 'Recetas y contacto',
+  recetas: 'Receta',
   resumen: 'Resumen'
 };
 
@@ -29,7 +29,6 @@ const SolicitudForm: React.FC = () => {
   const recetasActivas = allRecetas.filter((r: Receta) => r.estado === 'activa');
 
   const { data: catalog } = useCatalog();
-  const { data: shopifyProfile } = useShopifyProfile(user?.id);
   const createSolicitud = useCreateSolicitud();
   const [step, setStep] = useState<Step>('micro');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -44,11 +43,9 @@ const SolicitudForm: React.FC = () => {
   // Macro selection state
   const [selectedMacro, setSelectedMacro] = useState<string | null>(null);
 
-  // Receta & contact
+  // Receta & notas
   const [recipeFile, setRecipeFile] = useState<string | null>(null);
   const [recipeFileName, setRecipeFileName] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefono, setTelefono] = useState('');
   const [notas, setNotas] = useState('');
 
   const recipeFileRef = useRef<HTMLInputElement>(null);
@@ -61,12 +58,6 @@ const SolicitudForm: React.FC = () => {
   const hasAnyReceta = recetasActivas.length > 0;
   const recetaMicro = hasAnyReceta ? recetasActivas[0] : null;
   const recetaMacro = hasAnyReceta ? recetasActivas[0] : null;
-
-  useEffect(() => {
-    if (user?.email) setEmail(user.email);
-    if (shopifyProfile?.emailAddress?.emailAddress) setEmail(shopifyProfile.emailAddress.emailAddress);
-    if (shopifyProfile?.phoneNumber?.phoneNumber) setTelefono(shopifyProfile.phoneNumber.phoneNumber);
-  }, [user, shopifyProfile]);
 
   // Auto-select gramaje and max capsulas from active micro receta once catalog loads
   useEffect(() => {
@@ -213,10 +204,6 @@ const SolicitudForm: React.FC = () => {
       toast.error('El carrito está vacío');
       return;
     }
-    if (!email) {
-      toast.error('Email es requerido');
-      return;
-    }
     // Solo exigir receta si no hay receta activa
     const needsReceta = (hasMicro && !recetaMicro) || (hasMacro && !recetaMacro);
     if (needsReceta && !recipeFile) {
@@ -228,8 +215,6 @@ const SolicitudForm: React.FC = () => {
     try {
       const result = await createSolicitud.mutateAsync({
         cart,
-        email,
-        telefono: telefono || null,
         notas: notas || null,
         recipeMicro: recipeFile,
         recipeMacro: null
@@ -251,7 +236,7 @@ const SolicitudForm: React.FC = () => {
       if (loadingRecetas) return false; // Esperar a que carguen las recetas
       const needsReceta = (hasMicro && !recetaMicro) || (hasMacro && !recetaMacro);
       if (needsReceta && !recipeFile) return false;
-      return !!email;
+      return true;
     }
     return true;
   };
@@ -627,15 +612,6 @@ const SolicitudForm: React.FC = () => {
               {recipeFileName && <p className={styles.uploadFileName}>{recipeFileName}</p>}
             </div>
 
-            <h2 className={styles.sectionTitle}>Contacto</h2>
-            <div className={styles.formField}>
-              <label className={styles.formLabel}>Email</label>
-              <input className={styles.formInput} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" />
-            </div>
-            <div className={styles.formField}>
-              <label className={styles.formLabel}>Teléfono (opcional)</label>
-              <input className={styles.formInput} type="tel" value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="+56 9 1234 5678" />
-            </div>
             <div className={styles.formField}>
               <label className={styles.formLabel}>Notas (opcional)</label>
               <textarea className={styles.formTextarea} value={notas} onChange={e => setNotas(e.target.value)} placeholder="Indicaciones especiales..." />
@@ -663,11 +639,11 @@ const SolicitudForm: React.FC = () => {
               </div>
             </div>
 
-            <p className={styles.sectionSubtitle}>
-              Email: {email}
-              {telefono && <><br />Teléfono: {telefono}</>}
-              {notas && <><br />Notas: {notas}</>}
-            </p>
+            {notas && (
+              <p className={styles.sectionSubtitle}>
+                Notas: {notas}
+              </p>
+            )}
           </>
         )}
 
