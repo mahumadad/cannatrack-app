@@ -100,7 +100,7 @@ export function useSolicitudDetail(userId: string | undefined, id: string | unde
 export function useShopifyProfile(userId: string | undefined) {
   return useQuery({
     queryKey: queryKeys.shopifyProfile(userId!),
-    queryFn: () => api.get(`/api/shopify/profile/${userId}`) as Promise<ShopifyCustomerProfile | null>,
+    queryFn: () => api.get(`/api/shopify/profile/${userId}`, { skipAuthRedirect: true }) as Promise<ShopifyCustomerProfile | null>,
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
   });
@@ -109,7 +109,7 @@ export function useShopifyProfile(userId: string | undefined) {
 export function useStoreData(userId: string | undefined) {
   return useQuery({
     queryKey: queryKeys.storeData(userId!),
-    queryFn: () => api.get(`/api/shopify/store/${userId}`) as Promise<ShopifyStoreData>,
+    queryFn: () => api.get(`/api/shopify/store/${userId}`, { skipAuthRedirect: true }) as Promise<ShopifyStoreData>,
     enabled: !!userId,
   });
 }

@@ -17,18 +17,19 @@ const ShopifyStore: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast()!;
   const { user } = useUser();
-  const { data: allRecetas = [] } = useRecetasQuery(user?.id);
+  const { data: allRecetas = [], isLoading: loadingRecetas } = useRecetasQuery(user?.id);
   const recetasActivas = allRecetas.filter((r: Receta) => r.estado === 'activa');
   const recetasPasadas = allRecetas.filter((r: Receta) => r.estado !== 'activa');
-  const { data: storeData, isLoading: loadingStore } = useStoreData(user?.id);
-  const { data: solicitudes = [] } = useSolicitudes(user?.id);
-  const loading = loadingStore;
+  const { data: storeData, isLoading: loadingStore, isError: storeError } = useStoreData(user?.id);
+  const { data: solicitudes = [], isLoading: loadingSolicitudes } = useSolicitudes(user?.id);
+  const loading = loadingStore || loadingRecetas || loadingSolicitudes;
   const [activeTab, setActiveTab] = useState<Tab>('orders');
   useSwipeBack();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [expandedRecetaId, setExpandedRecetaId] = useState<string | null>(null);
 
-  // Membership gate
+  // Membership
+  const subscribeMutation = useMembershipSubscribe();
   const [membershipStatus, setMembershipStatus] = useState<string>('none');
   const [membershipExpires, setMembershipExpires] = useState<string | null>(null);
   const [subscribing, setSubscribing] = useState(false);
@@ -383,7 +384,6 @@ const ShopifyStore: React.FC = () => {
   const blockStore = membershipStatus !== 'active' && !(isExpired && daysExpired < 5);
   const showWarning = isExpired && daysExpired < 5 && daysExpired >= 0;
 
-  const subscribeMutation = useMembershipSubscribe();
   const handleSubscribe = async () => {
     setSubscribing(true);
     try {
