@@ -308,6 +308,6 @@ export function useMarkOnboarding(userId: string | undefined) {
 
 export function useMembershipSubscribe() {
   return useMutation({
-    mutationFn: () => api.post('/api/membership/subscribe', {}),
+    mutationFn: (gateway: string = 'mercadopago') => api.post('/api/membership/subscribe', { gateway }),
   });
 }

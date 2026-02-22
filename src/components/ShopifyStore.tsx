@@ -384,10 +384,10 @@ const ShopifyStore: React.FC = () => {
   const blockStore = membershipStatus !== 'active' && !(isExpired && daysExpired < 5);
   const showWarning = isExpired && daysExpired < 5 && daysExpired >= 0;
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (gateway: string = 'mercadopago') => {
     setSubscribing(true);
     try {
-      const data = await subscribeMutation.mutateAsync();
+      const data = await subscribeMutation.mutateAsync(gateway);
       if (data?.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
@@ -419,24 +419,55 @@ const ShopifyStore: React.FC = () => {
               : 'Necesitas una membresía activa para acceder al dispensario. Si aún no te has inscrito, hazlo desde la página de inicio.'}
           </p>
           {(membershipStatus === 'pending_payment' || membershipStatus === 'expired') && (
-            <button
-              onClick={handleSubscribe}
-              disabled={subscribing}
-              style={{
-                marginTop: '16px',
-                padding: '14px 32px',
-                backgroundColor: '#A68050',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '15px',
-                fontWeight: 600,
-                cursor: subscribing ? 'not-allowed' : 'pointer',
-                opacity: subscribing ? 0.7 : 1
-              }}
-            >
-              {subscribing ? 'Redirigiendo...' : membershipStatus === 'expired' ? 'Renovar membresía' : 'Activar membresía'}
-            </button>
+            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '300px' }}>
+              <p style={{ fontSize: '13px', color: '#888', textAlign: 'center', margin: 0 }}>
+                Elige tu método de pago:
+              </p>
+              <button
+                onClick={() => handleSubscribe('flow')}
+                disabled={subscribing}
+                style={{
+                  padding: '14px 24px',
+                  backgroundColor: '#A68050',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  cursor: subscribing ? 'not-allowed' : 'pointer',
+                  opacity: subscribing ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                <CreditCard size={20} weight="bold" />
+                {subscribing ? 'Redirigiendo...' : 'Pagar con tarjeta (Flow)'}
+              </button>
+              <button
+                onClick={() => handleSubscribe('mercadopago')}
+                disabled={subscribing}
+                style={{
+                  padding: '14px 24px',
+                  backgroundColor: '#fff',
+                  color: '#A68050',
+                  border: '2px solid #A68050',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  cursor: subscribing ? 'not-allowed' : 'pointer',
+                  opacity: subscribing ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                <CurrencyDollar size={20} weight="bold" />
+                {subscribing ? 'Redirigiendo...' : 'Pagar con MercadoPago'}
+              </button>
+            </div>
           )}
         </div>
         <BottomNav activePage="store" />
