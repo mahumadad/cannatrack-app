@@ -75,7 +75,7 @@ const AuthCallback: React.FC = () => {
             storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
           }
 
-          navigate('/dashboard');
+          navigate(redirectPath);
         } catch (err) {
           console.error('[AuthCallback] Magic link error:', err);
           setError('Magic link invalido o expirado');
