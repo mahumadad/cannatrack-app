@@ -30,12 +30,17 @@ const Login: React.FC = () => {
     password: ''
   });
   const [error, setError] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const oauthError = searchParams.get('error');
     if (oauthError) {
       setError(OAUTH_ERROR_MESSAGES[oauthError] || 'Error de autenticacion');
+    }
+    const subscription = searchParams.get('subscription');
+    if (subscription === 'processing') {
+      setSuccessMessage('Tu suscripción fue procesada exitosamente. Recibirás un correo con la confirmación de pago y un enlace para acceder a DromeApp.');
     }
   }, [searchParams]);
 
@@ -97,6 +102,22 @@ const Login: React.FC = () => {
 
         <h1 className={styles.title}>Iniciar Sesion</h1>
         <p className={styles.subtitle}>Bienvenido de vuelta</p>
+
+        {successMessage && (
+          <div style={{
+            background: '#E8F5E9',
+            border: '1px solid #A5D6A7',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: '16px',
+            color: '#2E7D32',
+            fontSize: '14px',
+            lineHeight: 1.5,
+            textAlign: 'center'
+          }}>
+            {successMessage}
+          </div>
+        )}
 
         {error && (
           <div className={styles.error}>
