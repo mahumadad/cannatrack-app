@@ -420,9 +420,6 @@ const ShopifyStore: React.FC = () => {
           </p>
           {(membershipStatus === 'pending_payment' || membershipStatus === 'expired') && (
             <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '300px' }}>
-              <p style={{ fontSize: '13px', color: '#888', textAlign: 'center', margin: 0 }}>
-                Elige tu método de pago:
-              </p>
               <button
                 onClick={() => handleSubscribe('flow')}
                 disabled={subscribing}
@@ -443,30 +440,9 @@ const ShopifyStore: React.FC = () => {
                 }}
               >
                 <CreditCard size={20} weight="bold" />
-                {subscribing ? 'Redirigiendo...' : 'Pagar con tarjeta (Flow)'}
+                {subscribing ? 'Redirigiendo...' : 'Activar membresía'}
               </button>
-              <button
-                onClick={() => handleSubscribe('mercadopago')}
-                disabled={subscribing}
-                style={{
-                  padding: '14px 24px',
-                  backgroundColor: '#fff',
-                  color: '#A68050',
-                  border: '2px solid #A68050',
-                  borderRadius: '8px',
-                  fontSize: '15px',
-                  fontWeight: 600,
-                  cursor: subscribing ? 'not-allowed' : 'pointer',
-                  opacity: subscribing ? 0.7 : 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
-              >
-                <CurrencyDollar size={20} weight="bold" />
-                {subscribing ? 'Redirigiendo...' : 'Pagar con MercadoPago'}
-              </button>
+              {/* MercadoPago desactivado — solo Flow por ahora */}
             </div>
           )}
         </div>
