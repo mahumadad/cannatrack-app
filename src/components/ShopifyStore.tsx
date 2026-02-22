@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from './Toast';
-import { Package, Truck, ArrowsClockwise, Receipt, ShoppingBag, ArrowLeft, MapPin, Tag, CurrencyDollar, Prescription, ClipboardText, Plus, CreditCard, CaretDown, CaretUp } from '@phosphor-icons/react';
+import { Package, Truck, ArrowsClockwise, Receipt, ShoppingBag, ArrowLeft, MapPin, Tag, CurrencyDollar, Prescription, ClipboardText, Plus, CreditCard, CaretDown, CaretUp, CheckCircle } from '@phosphor-icons/react';
 import styles from './ShopifyStore.module.css';
 import BottomNav from './BottomNav';
 import { useUser } from '../hooks/useUser';
@@ -33,6 +33,8 @@ const ShopifyStore: React.FC = () => {
   const [membershipStatus, setMembershipStatus] = useState<string>('none');
   const [membershipExpires, setMembershipExpires] = useState<string | null>(null);
   const [subscribing, setSubscribing] = useState(false);
+  const [subscriptionProcessing, setSubscriptionProcessing] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const stored = storage.getItem(STORAGE_KEYS.USER);
@@ -46,6 +48,29 @@ const ShopifyStore: React.FC = () => {
       }
     }
   }, [user]);
+
+  // Detect query params from Flow callback redirect
+  useEffect(() => {
+    const subParam = searchParams.get('subscription');
+    if (subParam === 'processing' || subParam === 'active') {
+      setSubscriptionProcessing(true);
+      searchParams.delete('subscription');
+      setSearchParams(searchParams, { replace: true });
+    }
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      const errors: Record<string, string> = {
+        card_not_registered: 'No se completó el registro de tarjeta',
+        registration_failed: 'Error en el registro de tarjeta',
+        missing_params: 'Error en la redirección',
+        unexpected: 'Error inesperado'
+      };
+      toast.error(errors[errorParam] || 'Error en el proceso de pago');
+      searchParams.delete('error');
+      setSearchParams(searchParams, { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const formatPrice = (amount: string, currency: string): string => {
     return new Intl.NumberFormat('es-CL', {
@@ -390,6 +415,11 @@ const ShopifyStore: React.FC = () => {
       const data = await subscribeMutation.mutateAsync(gateway);
       if (data?.checkoutUrl) {
         window.location.href = data.checkoutUrl;
+      } else if (data?.subscriptionCreated) {
+        // Reactivación directa (tarjeta ya registrada en Flow)
+        setSubscriptionProcessing(true);
+      } else if (data?.status === 'subscription_active') {
+        toast.success(data.message || 'Tu suscripción sigue activa. Los cobros se procesan automáticamente.');
       } else {
         toast.error('No se pudo obtener el enlace de pago');
       }
@@ -400,6 +430,27 @@ const ShopifyStore: React.FC = () => {
       setSubscribing(false);
     }
   };
+
+  // Show processing page when subscription was just created (waiting for webhook)
+  if (subscriptionProcessing && membershipStatus !== 'active') {
+    return (
+      <div className={styles.store}>
+        <div className={styles.membershipGate}>
+          <CheckCircle size={48} weight="light" style={{ color: '#4CAF50', opacity: 0.8 }} />
+          <h2 style={{ fontSize: '18px', color: '#333', margin: '16px 0 8px' }}>
+            Suscripción procesada
+          </h2>
+          <p style={{ fontSize: '14px', color: '#666', textAlign: 'center', maxWidth: '300px', lineHeight: 1.6 }}>
+            Tu suscripción fue creada exitosamente. Estamos verificando tu pago.
+          </p>
+          <p style={{ fontSize: '14px', color: '#666', textAlign: 'center', maxWidth: '300px', lineHeight: 1.6 }}>
+            Recibirás un correo con la confirmación y un enlace para acceder a DromeApp.
+          </p>
+        </div>
+        <BottomNav activePage="store" />
+      </div>
+    );
+  }
 
   if (blockStore && membershipStatus !== 'active') {
     return (
