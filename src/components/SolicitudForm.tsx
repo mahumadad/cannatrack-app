@@ -284,6 +284,9 @@ const SolicitudForm: React.FC = () => {
           <button className={styles.btnPrimary} style={{ width: 'auto', padding: '12px 32px' }} onClick={() => navigate('/store/solicitudes')}>
             Ver mis solicitudes
           </button>
+          <button className={styles.btnSecondary} style={{ width: 'auto', padding: '10px 24px', marginTop: 8 }} onClick={() => navigate('/store')}>
+            Volver al store
+          </button>
         </div>
       </div>
     );
@@ -346,7 +349,7 @@ const SolicitudForm: React.FC = () => {
                   <div
                     key={m.gramaje}
                     className={`${styles.productCard} ${isSelected ? styles.productCardSelected : ''} ${isRecetaGramaje && !isSelected && preselected ? styles.productCardRecommended : ''}`}
-                    onClick={() => { setSelectedGramaje(m.gramaje); setSelectedCapsulas(null); }}
+                    onClick={() => { setSelectedGramaje(isSelected ? null : m.gramaje); setSelectedCapsulas(null); }}
                   >
                     <div className={styles.productCardInfo}>
                       <span className={styles.productCardName}>{m.label}</span>
@@ -447,7 +450,7 @@ const SolicitudForm: React.FC = () => {
                   <div
                     key={m.key}
                     className={`${styles.productCard} ${isSelected ? styles.productCardSelected : ''} ${isRecommended && !isSelected && preselected ? styles.productCardRecommended : ''}`}
-                    onClick={() => setSelectedMacro(m.key)}
+                    onClick={() => setSelectedMacro(isSelected ? null : m.key)}
                   >
                     <div className={styles.productCardInfo}>
                       <span className={styles.productCardName}>{m.label}</span>

@@ -635,17 +635,36 @@ const ShopifyStore: React.FC = () => {
         )}
 
         {activeTab === 'subscriptions' && (
-          subscriptions.length === 0 ? (
-            <div className={styles.emptyState}>
-              <ArrowsClockwise size={48} weight="light" />
-              <p>No hay suscripciones activas</p>
-              <p className={styles.emptySubtext}>Tus suscripciones apareceran aqui</p>
-            </div>
-          ) : (
-            <div className={styles.subscriptionList}>
-              {subscriptions.map(sub => renderSubscriptionCard(sub))}
-            </div>
-          )
+          <>
+            {/* Membresía C&D */}
+            {membershipStatus === 'active' && (
+              <div className={styles.membershipCard}>
+                <div className={styles.membershipHeader}>
+                  <CheckCircle size={20} weight="fill" color="#2E7D32" />
+                  <span className={styles.membershipTitle}>Membresía C&D</span>
+                  <span className={styles.membershipBadge}>Activa</span>
+                </div>
+                {membershipExpires && (
+                  <p className={styles.membershipDetail}>
+                    Vence: <strong>{new Date(membershipExpires).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
+                  </p>
+                )}
+                <p className={styles.membershipDetail}>Facturación mensual automática vía Flow.cl</p>
+              </div>
+            )}
+
+            {subscriptions.length === 0 && membershipStatus !== 'active' ? (
+              <div className={styles.emptyState}>
+                <ArrowsClockwise size={48} weight="light" />
+                <p>No hay suscripciones activas</p>
+                <p className={styles.emptySubtext}>Tus suscripciones apareceran aqui</p>
+              </div>
+            ) : subscriptions.length > 0 ? (
+              <div className={styles.subscriptionList}>
+                {subscriptions.map(sub => renderSubscriptionCard(sub))}
+              </div>
+            ) : null}
+          </>
         )}
 
         {activeTab === 'recetas' && (

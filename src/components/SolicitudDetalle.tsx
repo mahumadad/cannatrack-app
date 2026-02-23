@@ -172,28 +172,17 @@ const SolicitudDetalle: React.FC = () => {
           </>
         )}
 
-        {/* Contact info */}
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>
-            <User size={18} weight="bold" /> Contacto
-          </h3>
-          <div className={styles.detailRow}>
-            <span className={styles.detailLabel}>Email</span>
-            <span className={styles.detailValue}>{solicitud.email}</span>
-          </div>
-          {solicitud.telefono && (
+        {/* Notas del cliente */}
+        {solicitud.notas_cliente && (
+          <div className={styles.card}>
+            <h3 className={styles.cardTitle}>
+              <User size={18} weight="bold" /> Notas
+            </h3>
             <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Teléfono</span>
-              <span className={styles.detailValue}>{solicitud.telefono}</span>
-            </div>
-          )}
-          {solicitud.notas_cliente && (
-            <div className={styles.detailRow}>
-              <span className={styles.detailLabel}>Notas</span>
               <span className={styles.detailValue}>{solicitud.notas_cliente}</span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Observaciones (if rejected or cancelled) */}
         {solicitud.observaciones && (solicitud.estado === 'rechazado' || solicitud.estado === 'cancelado') && (
