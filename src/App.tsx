@@ -123,7 +123,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
         if (res.ok) {
           const csrf = res.headers.get('x-csrf-token');
           if (csrf) updateCsrfToken(csrf);
-          // Sync membership data from verify response to localStorage
+          // Sync membership data from verify response to localStorage BEFORE mounting children
           res.json().then((data: { user?: { membership_status?: string; membership_started_at?: string | null; membership_expires_at?: string | null } }) => {
             if (data.user) {
               const stored = storage.getItem(STORAGE_KEYS.USER);
@@ -137,8 +137,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
                 } catch { /* ignore parse errors */ }
               }
             }
-          }).catch(() => { /* ignore json parse errors */ });
-          setStatus('valid');
+            setStatus('valid');
+          }).catch(() => {
+            setStatus('valid'); // fallback — don't block if json parsing fails
+          });
         } else if (res.status === 503) {
           // Supabase caído / circuit breaker — no borrar sesión,
           // mostrar error retryable (no es problema de auth)

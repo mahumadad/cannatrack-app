@@ -23,23 +23,29 @@ const ShopifyStore: React.FC = () => {
   const recetasPasadas = allRecetas.filter((r: Receta) => r.estado !== 'activa');
   const { data: storeData, isLoading: loadingStore, isError: storeError } = useStoreData(user?.id);
   const { data: solicitudes = [], isLoading: loadingSolicitudes } = useSolicitudes(user?.id);
-  const loading = loadingStore || loadingRecetas || loadingSolicitudes;
+  const loading = loadingStore || loadingRecetas || loadingSolicitudes || membershipLoading;
   const [activeTab, setActiveTab] = useState<Tab>('orders');
   useSwipeBack();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [expandedRecetaId, setExpandedRecetaId] = useState<string | null>(null);
 
-  // Membership
+  // Membership — init from localStorage (synced by ProtectedRoute) to avoid flash
   const subscribeMutation = useMembershipSubscribe();
-  const [membershipStatus, setMembershipStatus] = useState<string>('none');
-  const [membershipExpires, setMembershipExpires] = useState<string | null>(null);
+  const storedUser = user as Record<string, unknown> | null;
+  const [membershipStatus, setMembershipStatus] = useState<string>(
+    (storedUser?.membership_status as string) || 'none'
+  );
+  const [membershipExpires, setMembershipExpires] = useState<string | null>(
+    (storedUser?.membership_expires_at as string) || null
+  );
+  const [membershipLoading, setMembershipLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
   const [subscriptionProcessing, setSubscriptionProcessing] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Fetch membership data directly from API to avoid race condition with App.tsx verify
+  // Refresh membership data from API (confirm latest state)
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) { setMembershipLoading(false); return; }
     api.get('/api/auth/verify')
       .then((data: { user?: { membership_status?: string; membership_expires_at?: string } }) => {
         if (data?.user) {
@@ -47,7 +53,8 @@ const ShopifyStore: React.FC = () => {
           setMembershipExpires(data.user.membership_expires_at || null);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setMembershipLoading(false));
   }, [user?.id]);
 
   // Detect query params from Flow callback redirect
