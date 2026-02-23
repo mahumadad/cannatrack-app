@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Trash, ClipboardText, Bell, BellRinging, User, SignOut, Warning, CaretRight, PencilSimple, Phone, MapPin, CalendarBlank, SpinnerGap, Envelope, Lock, Key, Shield } from '@phosphor-icons/react';
+import { ArrowLeft, Clock, Trash, ClipboardText, Bell, BellRinging, User, SignOut, Warning, CaretRight, Phone, MapPin, CalendarBlank, SpinnerGap, Envelope, Lock, Key, Shield } from '@phosphor-icons/react';
 import styles from './Settings.module.css';
 import { useToast } from './Toast';
 import api from '../utils/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { requestNotificationPermission, getNotificationPermission, startNotificationScheduler, stopNotificationScheduler } from '../utils/notifications';
 import storage, { STORAGE_KEYS } from '../utils/storage';
-import { useProtocol, useBaseline, useShopifyProfile, useHasPassword, useDeleteProtocol, useUpdateShopifyName, useChangePassword, useCreatePassword } from '../hooks/queries';
+import { useProtocol, useBaseline, useShopifyProfile, useHasPassword, useDeleteProtocol, useChangePassword, useCreatePassword } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
 import type { User as UserType } from '../types';
 
@@ -26,7 +26,6 @@ const Settings: React.FC = () => {
 
   // Mutation hooks
   const deleteProtocol = useDeleteProtocol(user?.id);
-  const updateName = useUpdateShopifyName(user?.id);
   const changePassword = useChangePassword();
   const createPassword = useCreatePassword();
 
@@ -47,11 +46,7 @@ const Settings: React.FC = () => {
   const [showTimeModal, setShowTimeModal] = useState<string | null>(null);
   const [tempTime, setTempTime] = useState<string>('');
 
-  // Shopify profile editing
-  const [editingName, setEditingName] = useState<boolean>(false);
-  const [editFirstName, setEditFirstName] = useState<string>('');
-  const [editLastName, setEditLastName] = useState<string>('');
-  const [savingName, setSavingName] = useState<boolean>(false);
+  // (Name editing removed — name comes from enrollment and cannot be changed)
 
   // Password management
   const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
@@ -85,36 +80,6 @@ const Settings: React.FC = () => {
     const currentPrefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
     const updated = { ...currentPrefs, ...newPrefs };
     storage.setItem(STORAGE_KEYS.PREFERENCES, JSON.stringify(updated));
-  };
-
-  const handleEditName = () => {
-    setEditFirstName(shopifyProfile?.firstName || '');
-    setEditLastName(shopifyProfile?.lastName || '');
-    setEditingName(true);
-  };
-
-  const handleSaveName = async () => {
-    if (!editFirstName.trim() && !editLastName.trim()) {
-      toast!.warning('Ingresa al menos un nombre');
-      return;
-    }
-    setSavingName(true);
-    try {
-      await updateName.mutateAsync({
-        firstName: editFirstName.trim(),
-        lastName: editLastName.trim()
-      });
-      const newName = [editFirstName.trim(), editLastName.trim()].filter(Boolean).join(' ');
-      const updatedUser = { ...user!, name: newName };
-      setUser(updatedUser);
-      storage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
-      setEditingName(false);
-      toast!.success('Nombre actualizado');
-    } catch {
-      toast!.error('Error al actualizar nombre');
-    } finally {
-      setSavingName(false);
-    }
   };
 
   const handlePasswordSubmit = async () => {
@@ -276,11 +241,7 @@ const Settings: React.FC = () => {
                   </span>
                 )}
               </div>
-              {shopifyProfile && (
-                <button className={styles.editButton} onClick={handleEditName}>
-                  <PencilSimple size={18} weight="bold" />
-                </button>
-              )}
+              {/* Name editing removed — name comes from enrollment */}
             </div>
 
             {/* Email */}
@@ -596,41 +557,6 @@ const Settings: React.FC = () => {
             <div className={styles.modalButtons}>
               <button className={styles.cancelButton} onClick={() => setShowTimeModal(null)}>Cancelar</button>
               <button className={styles.confirmButton} onClick={() => handleTimeChange(showTimeModal)}>Guardar</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Name Modal */}
-      {editingName && (
-        <div className={styles.modal} onClick={() => setEditingName(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <h2>Editar nombre</h2>
-            <div className={styles.nameFields}>
-              <input
-                type="text"
-                value={editFirstName}
-                onChange={(e) => setEditFirstName(e.target.value)}
-                placeholder="Nombre"
-                className={styles.nameInput}
-                autoComplete="given-name"
-                enterKeyHint="next"
-              />
-              <input
-                type="text"
-                value={editLastName}
-                onChange={(e) => setEditLastName(e.target.value)}
-                placeholder="Apellido"
-                className={styles.nameInput}
-                autoComplete="family-name"
-                enterKeyHint="done"
-              />
-            </div>
-            <div className={styles.modalButtons}>
-              <button className={styles.cancelButton} onClick={() => setEditingName(false)}>Cancelar</button>
-              <button className={styles.confirmButton} onClick={handleSaveName} disabled={savingName}>
-                {savingName ? 'Guardando...' : 'Guardar'}
-              </button>
             </div>
           </div>
         </div>
