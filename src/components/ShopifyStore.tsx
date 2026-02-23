@@ -38,20 +38,30 @@ const ShopifyStore: React.FC = () => {
   const [membershipExpires, setMembershipExpires] = useState<string | null>(
     (storedUser?.membership_expires_at as string) || null
   );
+  const [membershipData, setMembershipData] = useState<{
+    startedAt?: string | null;
+    paymentGateway?: string | null;
+    subscriptionStatus?: string;
+    nextPaymentDate?: string | null;
+  } | null>(null);
   const [membershipLoading, setMembershipLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
   const [subscriptionProcessing, setSubscriptionProcessing] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Refresh membership data from API (confirm latest state)
+  // Fetch full membership data from API (includes Flow subscription details)
   useEffect(() => {
     if (!user?.id) { setMembershipLoading(false); return; }
-    api.get('/api/auth/verify')
-      .then((data: { user?: { membership_status?: string; membership_expires_at?: string } }) => {
-        if (data?.user) {
-          setMembershipStatus(data.user.membership_status || 'none');
-          setMembershipExpires(data.user.membership_expires_at || null);
-        }
+    api.get('/api/membership/status')
+      .then((data: { membershipStatus?: string; expiresAt?: string | null; startedAt?: string | null; paymentGateway?: string | null; subscriptionStatus?: string; nextPaymentDate?: string | null }) => {
+        setMembershipStatus(data.membershipStatus || 'none');
+        setMembershipExpires(data.expiresAt || null);
+        setMembershipData({
+          startedAt: data.startedAt,
+          paymentGateway: data.paymentGateway,
+          subscriptionStatus: data.subscriptionStatus,
+          nextPaymentDate: data.nextPaymentDate
+        });
       })
       .catch(() => {})
       .finally(() => setMembershipLoading(false));
@@ -644,20 +654,29 @@ const ShopifyStore: React.FC = () => {
 
         {activeTab === 'subscriptions' && (
           <>
-            {/* Membresía C&D */}
-            {membershipStatus === 'active' && (
-              <div className={styles.membershipCard}>
+            {/* Membresía C&D — suscripción Flow */}
+            {(membershipStatus === 'active' || membershipStatus === 'pending_payment') && (
+              <div className={membershipStatus === 'active' ? styles.membershipCard : styles.membershipCardPending}>
                 <div className={styles.membershipHeader}>
-                  <CheckCircle size={20} weight="fill" color="#2E7D32" />
+                  <CheckCircle size={20} weight="fill" color={membershipStatus === 'active' ? '#2E7D32' : '#F57C00'} />
                   <span className={styles.membershipTitle}>Membresía C&D</span>
-                  <span className={styles.membershipBadge}>Activa</span>
+                  <span className={membershipStatus === 'active' ? styles.membershipBadge : styles.membershipBadgePending}>
+                    {membershipStatus === 'active' ? 'Activa' : 'Pendiente de pago'}
+                  </span>
                 </div>
-                {membershipExpires && (
+                {membershipData?.startedAt && (
                   <p className={styles.membershipDetail}>
-                    Vence: <strong>{new Date(membershipExpires).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
+                    Miembro desde: <strong>{new Date(membershipData.startedAt).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
                   </p>
                 )}
-                <p className={styles.membershipDetail}>Facturación mensual automática vía Flow.cl</p>
+                {membershipExpires && (
+                  <p className={styles.membershipDetail}>
+                    Próxima renovación: <strong>{new Date(membershipExpires).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
+                  </p>
+                )}
+                <p className={styles.membershipDetail}>
+                  Plan mensual: <strong>{formatCLP(5400)}</strong> vía {membershipData?.paymentGateway === 'mercadopago' ? 'MercadoPago' : 'Flow.cl'}
+                </p>
               </div>
             )}
 

@@ -539,6 +539,12 @@
   border: 1px solid #C8E6C9;
 }
 
+.membershipCardPending {
+  composes: membershipCard;
+  background: linear-gradient(135deg, #FFF3E0 0%, #FFF8E1 100%);
+  border-color: #FFE0B2;
+}
+
 .membershipHeader {
   display: flex;
   align-items: center;
@@ -563,6 +569,11 @@
   border-radius: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.membershipBadgePending {
+  composes: membershipBadge;
+  background: #F57C00;
 }
 
 .membershipDetail {
