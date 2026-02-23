@@ -5,6 +5,7 @@ import { Package, Truck, ArrowsClockwise, Receipt, ShoppingBag, ArrowLeft, MapPi
 import styles from './ShopifyStore.module.css';
 import BottomNav from './BottomNav';
 import { useUser } from '../hooks/useUser';
+import api from '../utils/api';
 import storage, { STORAGE_KEYS } from '../utils/storage';
 import { useRecetasQuery, useStoreData, useSolicitudes, useMembershipSubscribe } from '../hooks/queries';
 import { formatCLP } from '../utils/formatters';
@@ -36,18 +37,18 @@ const ShopifyStore: React.FC = () => {
   const [subscriptionProcessing, setSubscriptionProcessing] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // Fetch membership data directly from API to avoid race condition with App.tsx verify
   useEffect(() => {
-    const stored = storage.getItem(STORAGE_KEYS.USER);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setMembershipStatus(parsed.membership_status || 'none');
-        setMembershipExpires(parsed.membership_expires_at || null);
-      } catch {
-        // silencioso
-      }
-    }
-  }, [user]);
+    if (!user?.id) return;
+    api.get('/api/auth/verify')
+      .then((data: { user?: { membership_status?: string; membership_expires_at?: string } }) => {
+        if (data?.user) {
+          setMembershipStatus(data.user.membership_status || 'none');
+          setMembershipExpires(data.user.membership_expires_at || null);
+        }
+      })
+      .catch(() => {});
+  }, [user?.id]);
 
   // Detect query params from Flow callback redirect
   useEffect(() => {
