@@ -311,3 +311,9 @@ export function useMembershipSubscribe() {
     mutationFn: (gateway: string = 'mercadopago') => api.post('/api/membership/subscribe', { gateway }),
   });
 }
+
+export function useCancelMembership() {
+  return useMutation({
+    mutationFn: () => api.post('/api/membership/cancel', {}),
+  });
+}

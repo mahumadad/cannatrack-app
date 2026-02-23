@@ -7,7 +7,7 @@ import BottomNav from './BottomNav';
 import { useUser } from '../hooks/useUser';
 import api from '../utils/api';
 import storage, { STORAGE_KEYS } from '../utils/storage';
-import { useRecetasQuery, useStoreData, useSolicitudes, useMembershipSubscribe } from '../hooks/queries';
+import { useRecetasQuery, useStoreData, useSolicitudes, useMembershipSubscribe, useCancelMembership } from '../hooks/queries';
 import { formatCLP } from '../utils/formatters';
 import useSwipeBack from '../hooks/useSwipeBack';
 import type { ShopifyOrder, ShopifySubscription, ShopifyStoreData, Receta, Solicitud } from '../types';
@@ -42,10 +42,15 @@ const ShopifyStore: React.FC = () => {
     paymentGateway?: string | null;
     subscriptionStatus?: string;
     nextPaymentDate?: string | null;
+    creditCardType?: string | null;
+    lastPaymentAmount?: number | null;
+    lastPaymentAt?: string | null;
   } | null>(null);
   const [membershipLoading, setMembershipLoading] = useState(true);
   const loading = loadingStore || loadingRecetas || loadingSolicitudes || membershipLoading;
   const [subscribing, setSubscribing] = useState(false);
+  const cancelMembership = useCancelMembership();
+  const [cancelling, setCancelling] = useState(false);
   const [subscriptionProcessing, setSubscriptionProcessing] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -53,14 +58,17 @@ const ShopifyStore: React.FC = () => {
   useEffect(() => {
     if (!user?.id) { setMembershipLoading(false); return; }
     api.get('/api/membership/status')
-      .then((data: { membershipStatus?: string; expiresAt?: string | null; startedAt?: string | null; paymentGateway?: string | null; subscriptionStatus?: string; nextPaymentDate?: string | null }) => {
-        setMembershipStatus(data.membershipStatus || 'none');
-        setMembershipExpires(data.expiresAt || null);
+      .then((data: Record<string, unknown>) => {
+        setMembershipStatus((data.membershipStatus as string) || 'none');
+        setMembershipExpires((data.expiresAt as string) || null);
         setMembershipData({
-          startedAt: data.startedAt,
-          paymentGateway: data.paymentGateway,
-          subscriptionStatus: data.subscriptionStatus,
-          nextPaymentDate: data.nextPaymentDate
+          startedAt: data.startedAt as string | null,
+          paymentGateway: data.paymentGateway as string | null,
+          subscriptionStatus: data.subscriptionStatus as string | undefined,
+          nextPaymentDate: data.nextPaymentDate as string | null,
+          creditCardType: data.creditCardType as string | null,
+          lastPaymentAmount: data.lastPaymentAmount as number | null,
+          lastPaymentAt: data.lastPaymentAt as string | null
         });
       })
       .catch(() => {})
@@ -419,12 +427,13 @@ const ShopifyStore: React.FC = () => {
   const orders = storeData?.orders || [];
   const subscriptions = storeData?.subscriptions || [];
 
-  // Membership gate: block store if membership is not active
+  // Membership gate: block store if membership is not active (cancelled still has access)
+  const isCancelled = membershipStatus === 'cancelled';
   const isExpired = membershipStatus === 'expired';
   const daysExpired = membershipExpires
     ? Math.floor((Date.now() - new Date(membershipExpires).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
-  const blockStore = membershipStatus !== 'active' && !(isExpired && daysExpired < 5);
+  const blockStore = membershipStatus !== 'active' && !isCancelled && !(isExpired && daysExpired < 5);
   const showWarning = isExpired && daysExpired < 5 && daysExpired >= 0;
 
   const handleSubscribe = async (gateway: string = 'mercadopago') => {
@@ -446,6 +455,24 @@ const ShopifyStore: React.FC = () => {
       toast.error(message);
     } finally {
       setSubscribing(false);
+    }
+  };
+
+  const handleCancelMembership = async () => {
+    const confirmed = window.confirm('¿Cancelar tu membresía?\n\nMantendrás acceso hasta el fin del periodo actual.');
+    if (!confirmed) return;
+    setCancelling(true);
+    try {
+      const data = await cancelMembership.mutateAsync();
+      setMembershipStatus('cancelled');
+      const until = (data as Record<string, unknown>)?.activeUntil;
+      toast.success(until
+        ? `Membresía cancelada. Acceso activo hasta ${new Date(until as string).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}`
+        : 'Membresía cancelada');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al cancelar');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -655,13 +682,25 @@ const ShopifyStore: React.FC = () => {
         {activeTab === 'subscriptions' && (
           <>
             {/* Membresía C&D — suscripción Flow */}
-            {(membershipStatus === 'active' || membershipStatus === 'pending_payment') && (
-              <div className={membershipStatus === 'active' ? styles.membershipCard : styles.membershipCardPending}>
+            {(membershipStatus === 'active' || membershipStatus === 'cancelled' || membershipStatus === 'pending_payment') && (
+              <div className={
+                membershipStatus === 'active' ? styles.membershipCard :
+                membershipStatus === 'cancelled' ? styles.membershipCardCancelled :
+                styles.membershipCardPending
+              }>
                 <div className={styles.membershipHeader}>
-                  <CheckCircle size={20} weight="fill" color={membershipStatus === 'active' ? '#2E7D32' : '#F57C00'} />
+                  <CheckCircle size={20} weight="fill" color={
+                    membershipStatus === 'active' ? '#2E7D32' :
+                    membershipStatus === 'cancelled' ? '#C62828' : '#F57C00'
+                  } />
                   <span className={styles.membershipTitle}>Membresía C&D</span>
-                  <span className={membershipStatus === 'active' ? styles.membershipBadge : styles.membershipBadgePending}>
-                    {membershipStatus === 'active' ? 'Activa' : 'Pendiente de pago'}
+                  <span className={
+                    membershipStatus === 'active' ? styles.membershipBadge :
+                    membershipStatus === 'cancelled' ? styles.membershipBadgeCancelled :
+                    styles.membershipBadgePending
+                  }>
+                    {membershipStatus === 'active' ? 'Activa' :
+                     membershipStatus === 'cancelled' ? 'Cancelada' : 'Pendiente de pago'}
                   </span>
                 </div>
                 {membershipData?.startedAt && (
@@ -671,12 +710,29 @@ const ShopifyStore: React.FC = () => {
                 )}
                 {membershipExpires && (
                   <p className={styles.membershipDetail}>
-                    Próxima renovación: <strong>{new Date(membershipExpires).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
+                    {membershipStatus === 'cancelled' ? 'Activa hasta:' : 'Próxima renovación:'}{' '}
+                    <strong>{new Date(membershipExpires).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
                   </p>
                 )}
                 <p className={styles.membershipDetail}>
                   Plan mensual: <strong>{formatCLP(5400)}</strong> vía {membershipData?.paymentGateway === 'mercadopago' ? 'MercadoPago' : 'Flow.cl'}
+                  {membershipData?.creditCardType && <> ({membershipData.creditCardType})</>}
                 </p>
+                {membershipData?.lastPaymentAt && (
+                  <p className={styles.membershipDetail}>
+                    Último pago: <strong>{formatCLP(membershipData.lastPaymentAmount || 5400)}</strong>{' '}
+                    el {new Date(membershipData.lastPaymentAt).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                )}
+                {membershipStatus === 'active' && (
+                  <button
+                    className={styles.membershipCancelBtn}
+                    onClick={handleCancelMembership}
+                    disabled={cancelling}
+                  >
+                    {cancelling ? 'Cancelando...' : 'Cancelar membresía'}
+                  </button>
+                )}
               </div>
             )}
 

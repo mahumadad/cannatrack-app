@@ -576,11 +576,50 @@
   background: #F57C00;
 }
 
+.membershipCardCancelled {
+  composes: membershipCard;
+  background: linear-gradient(135deg, #FFEBEE 0%, #FCE4EC 100%);
+  border-color: #FFCDD2;
+}
+
+.membershipBadgeCancelled {
+  composes: membershipBadge;
+  background: #C62828;
+}
+
 .membershipDetail {
   font-size: 13px;
   color: #4A3F35;
   margin: 4px 0 0;
   padding-left: 28px;
+}
+
+.membershipCancelBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  background: transparent;
+  color: var(--color-danger, #C62828);
+  border: 1px solid var(--color-danger, #C62828);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.membershipCancelBtn:active:not(:disabled) {
+  transform: scale(0.98);
+  background: #fff5f5;
+}
+
+.membershipCancelBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ============ SUBSCRIPTION CARD ============ */
