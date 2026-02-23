@@ -75,6 +75,12 @@ const AuthCallback: React.FC = () => {
             storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
           }
 
+          // Redirigir a onboarding si el usuario no lo ha completado
+          if (data.user.onboarding_completed === false) {
+            navigate('/onboarding');
+            return;
+          }
+
           navigate(redirectPath);
         } catch (err) {
           console.error('[AuthCallback] Magic link error:', err);

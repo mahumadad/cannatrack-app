@@ -66,11 +66,16 @@ const MagicLinkOrDashboard: React.FC = () => {
 
     // Exchange tokens with backend
     api.post('/api/auth/verify-magiclink', { access_token, refresh_token }, { skipAuthRedirect: true })
-      .then((data: { user?: { id: string; email: string; name?: string }; access_token?: string }) => {
+      .then((data: { user?: { id: string; email: string; name?: string; onboarding_completed?: boolean }; access_token?: string }) => {
         if (!data.user) throw new Error('No user returned');
         storage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
         if (data.access_token) {
           storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.access_token);
+        }
+        // Redirigir a onboarding si no lo ha completado
+        if (data.user.onboarding_completed === false) {
+          navigate('/onboarding', { replace: true });
+          return;
         }
         navigate('/dashboard', { replace: true });
       })

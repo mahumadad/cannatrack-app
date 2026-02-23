@@ -30,8 +30,8 @@ const Login: React.FC = () => {
     password: ''
   });
   const [error, setError] = useState<string>('');
-  const [successMessage, setSuccessMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [showLoginForm, setShowLoginForm] = useState<boolean>(true);
 
   useEffect(() => {
     const oauthError = searchParams.get('error');
@@ -40,7 +40,7 @@ const Login: React.FC = () => {
     }
     const subscription = searchParams.get('subscription');
     if (subscription === 'processing') {
-      setSuccessMessage('Tu suscripción fue procesada exitosamente. Recibirás un correo con la confirmación de pago y un enlace para acceder a DromeApp.');
+      setShowLoginForm(false);
     }
   }, [searchParams]);
 
@@ -77,7 +77,7 @@ const Login: React.FC = () => {
 
       navigate('/dashboard');
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'Error al iniciar sesión');
+      setError(error instanceof Error ? error.message : 'Error al iniciar sesion');
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ const Login: React.FC = () => {
     // Limpiar sesion anterior antes de iniciar OAuth (evita datos residuales)
     storage.removeItem(STORAGE_KEYS.USER);
     storage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    // Usar URL pública (ngrok) para el redirect de Shopify OAuth, no localhost
+    // Usar URL publica (ngrok) para el redirect de Shopify OAuth, no localhost
     window.location.href = `${config.SHOPIFY_REDIRECT_URL}/api/auth/shopify`;
   };
 
@@ -100,86 +100,91 @@ const Login: React.FC = () => {
           className={styles.logo}
         />
 
-        <h1 className={styles.title}>Iniciar Sesion</h1>
-        <p className={styles.subtitle}>Bienvenido de vuelta</p>
-
-        {successMessage && (
-          <div style={{
-            background: '#E8F5E9',
-            border: '1px solid #A5D6A7',
-            borderRadius: '8px',
-            padding: '12px 16px',
-            marginBottom: '16px',
-            color: '#2E7D32',
-            fontSize: '14px',
-            lineHeight: 1.5,
-            textAlign: 'center'
-          }}>
-            {successMessage}
+        {!showLoginForm ? (
+          <div className={styles.successView}>
+            <div className={styles.successIcon}>
+              ✓
+            </div>
+            <h1 className={styles.successTitle}>Pago exitoso</h1>
+            <p className={styles.successText}>
+              Tu suscripcion fue procesada exitosamente. Recibiras un correo con acceso a la app cuando tu proceso de inscripcion este completo.
+            </p>
+            <button
+              type="button"
+              className={styles.successLink}
+              onClick={() => setShowLoginForm(true)}
+            >
+              ¿Ya tienes acceso? Inicia sesion
+            </button>
           </div>
+        ) : (
+          <>
+            <h1 className={styles.title}>Iniciar Sesion</h1>
+            <p className={styles.subtitle}>Bienvenido de vuelta</p>
+
+            {error && (
+              <div className={styles.error}>
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <div className={styles.inputGroup}>
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  enterKeyHint="next"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="tu@email.com"
+                  required
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label>Contrasena</label>
+                <input
+                  type="password"
+                  name="password"
+                  autoComplete="current-password"
+                  enterKeyHint="go"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={loading}
+              >
+                {loading ? 'Iniciando sesion...' : 'Iniciar Sesion'}
+              </button>
+            </form>
+
+            <div className={styles.divider}>
+              <span>o</span>
+            </div>
+
+            <button
+              type="button"
+              className={styles.shopifyButton}
+              onClick={handleShopifyLogin}
+            >
+              Iniciar con tu cuenta de cliente
+            </button>
+
+            <div className={styles.switchAuth}>
+              <span>¿No eres miembro? </span>
+              <a href={import.meta.env.VITE_ENROLLMENT_URL || '/inscripcion'} target="_blank" rel="noopener noreferrer">Inscribete aqui</a>
+            </div>
+          </>
         )}
-
-        {error && (
-          <div className={styles.error}>
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.inputGroup}>
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              inputMode="email"
-              autoComplete="email"
-              enterKeyHint="next"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="tu@email.com"
-              required
-            />
-          </div>
-
-          <div className={styles.inputGroup}>
-            <label>Contrasena</label>
-            <input
-              type="password"
-              name="password"
-              autoComplete="current-password"
-              enterKeyHint="go"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className={styles.submitButton}
-            disabled={loading}
-          >
-            {loading ? 'Iniciando sesion...' : 'Iniciar Sesion'}
-          </button>
-        </form>
-
-        <div className={styles.divider}>
-          <span>o</span>
-        </div>
-
-        <button
-          type="button"
-          className={styles.shopifyButton}
-          onClick={handleShopifyLogin}
-        >
-          Iniciar con tu cuenta de cliente
-        </button>
-
-        <div className={styles.switchAuth}>
-          <span>¿No eres miembro? </span>
-          <a href={import.meta.env.VITE_ENROLLMENT_URL || '/inscripcion'} target="_blank" rel="noopener noreferrer">Inscríbete aquí</a>
-        </div>
 
       </div>
     </div>
