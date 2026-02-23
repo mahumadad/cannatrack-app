@@ -23,7 +23,6 @@ const ShopifyStore: React.FC = () => {
   const recetasPasadas = allRecetas.filter((r: Receta) => r.estado !== 'activa');
   const { data: storeData, isLoading: loadingStore, isError: storeError } = useStoreData(user?.id);
   const { data: solicitudes = [], isLoading: loadingSolicitudes } = useSolicitudes(user?.id);
-  const loading = loadingStore || loadingRecetas || loadingSolicitudes || membershipLoading;
   const [activeTab, setActiveTab] = useState<Tab>('orders');
   useSwipeBack();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -45,6 +44,7 @@ const ShopifyStore: React.FC = () => {
     nextPaymentDate?: string | null;
   } | null>(null);
   const [membershipLoading, setMembershipLoading] = useState(true);
+  const loading = loadingStore || loadingRecetas || loadingSolicitudes || membershipLoading;
   const [subscribing, setSubscribing] = useState(false);
   const [subscriptionProcessing, setSubscriptionProcessing] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
