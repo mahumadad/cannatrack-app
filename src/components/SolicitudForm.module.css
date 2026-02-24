@@ -160,12 +160,6 @@
   box-shadow: 0 0 0 1px #D4A060;
 }
 
-.microCardDisabled {
-  opacity: 0.65;
-  cursor: default;
-}
-
-.microCardDisabled:active { transform: none; }
 
 .microCardHeader {
   display: flex;
@@ -217,22 +211,10 @@
   letter-spacing: 0.3px;
 }
 
-.badgePautaGreen {
-  composes: badgePauta;
-  color: #14b858;
-  background: #e8f8ef;
-}
-
 .badgePautaGray {
   composes: badgePauta;
   color: #6B7280;
   background: #F3F4F6;
-}
-
-.badgePautaRed {
-  composes: badgePauta;
-  color: #DC2626;
-  background: #FEE2E2;
 }
 
 .badgePopular {
@@ -265,19 +247,6 @@
   padding: 4px 10px;
   border-radius: 8px;
   margin-left: 8px;
-}
-
-.linkDetails {
-  font-size: var(--text-sm);
-  color: var(--step-color, var(--color-primary));
-  font-weight: 600;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
 }
 
 /* ============ QUANTITY STEPPER ============ */
@@ -547,120 +516,6 @@
   font-weight: 600;
   color: var(--color-success);
   margin: 8px 0 0;
-}
-
-/* ============ RECENT RECIPES (Paso 3) ============ */
-.recetasHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.recetasTitle {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--color-text-secondary);
-}
-
-.recetasVerTodas {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--step-color, #5048e5);
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.recetaRadio {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  background: white;
-  border: 1.5px solid var(--color-border-light);
-  border-radius: var(--radius-md);
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.recetaRadio:hover { border-color: var(--step-color, #5048e5); }
-
-.recetaRadioChecked {
-  composes: recetaRadio;
-  border-color: var(--step-color, #5048e5);
-  background: var(--step-color-light, #f0efff);
-}
-
-.recetaRadioDisabled {
-  composes: recetaRadio;
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.recetaRadioDisabled:hover { border-color: var(--color-border-light); }
-
-.radioDot {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid var(--color-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all var(--transition-fast);
-}
-
-.radioDotChecked {
-  composes: radioDot;
-  border-color: var(--step-color, #5048e5);
-  background: var(--step-color, #5048e5);
-}
-
-.radioDotChecked::after {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: white;
-}
-
-.recetaRadioInfo { flex: 1; }
-
-.recetaRadioName {
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.recetaRadioDate {
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
-  margin-top: 2px;
-}
-
-.badgeVigente {
-  font-size: 10px;
-  font-weight: 700;
-  color: #2E7D32;
-  background: #E8F5E9;
-  padding: 2px 8px;
-  border-radius: 6px;
-  text-transform: uppercase;
-}
-
-.badgeVencida {
-  font-size: 10px;
-  font-weight: 700;
-  color: #C62828;
-  background: #FFEBEE;
-  padding: 2px 8px;
-  border-radius: 6px;
-  text-transform: uppercase;
 }
 
 /* ============ FORM FIELDS ============ */

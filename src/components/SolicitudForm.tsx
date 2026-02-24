@@ -21,12 +21,6 @@ const STEP_COLORS: Record<Step, { color: string; light: string; label: string; p
   resumen: { color: '#a57f50', light: '#fbfaf9', label: 'Finalizar', progress: '100%' },
 };
 
-// Micro pauta labels by index
-const MICRO_PAUTAS = [
-  { label: 'PAUTA INICIAL', style: 'badgePautaGreen' as const },
-  { label: 'REQUIERE ACTUALIZACIÓN', style: 'badgePautaGray' as const },
-  { label: 'PAUTA AVANZADA', style: 'badgePautaGray' as const },
-];
 
 const SolicitudForm: React.FC = () => {
   const navigate = useNavigate();
@@ -57,7 +51,6 @@ const SolicitudForm: React.FC = () => {
   const [recipeFile, setRecipeFile] = useState<string | null>(null);
   const [recipeFileName, setRecipeFileName] = useState('');
   const [notas, setNotas] = useState('');
-  const [selectedRecetaId, setSelectedRecetaId] = useState<string | null>(null);
 
   const recipeFileRef = useRef<HTMLInputElement>(null);
 
@@ -264,11 +257,6 @@ const SolicitudForm: React.FC = () => {
     ? catalog.macrodosis.filter(m => !macroCategory || m.category === macroCategory)
     : [];
 
-  // Micro: check if gramaje is authorized by receta
-  const isGramajeAuthorized = (gramaje: string) => {
-    if (!recetaMicroConSaldo?.gramaje_micro) return true; // no receta = all open
-    return gramaje.replace(/\s/g, '').toLowerCase() === recetaMicroConSaldo.gramaje_micro.replace(/\s/g, '').toLowerCase();
-  };
 
   // Macro: check if product exceeds receta limit
   const macroExceedsLimit = (m: MacrodosisOption) => {
@@ -366,19 +354,17 @@ const SolicitudForm: React.FC = () => {
               </div>
             )}
 
-            {catalog.microdosis.map((m: MicrodosisOption, idx: number) => {
-              const isAuthorized = isGramajeAuthorized(m.gramaje);
+            {catalog.microdosis.map((m: MicrodosisOption) => {
               const isRecetaMatch = recetaMicroConSaldo?.gramaje_micro
                 && m.gramaje.replace(/\s/g, '').toLowerCase() === recetaMicroConSaldo.gramaje_micro.replace(/\s/g, '').toLowerCase();
+              const needsUpdate = recetaMicroConSaldo?.gramaje_micro && !isRecetaMatch;
               const isSelected = selectedGramaje === m.gramaje;
-              const pauta = MICRO_PAUTAS[idx] || MICRO_PAUTAS[MICRO_PAUTAS.length - 1];
 
               return (
                 <div
                   key={m.gramaje}
-                  className={`${styles.microCard} ${isSelected ? styles.microCardActive : ''} ${!isAuthorized && !isSelected ? styles.microCardDisabled : ''}`}
+                  className={`${styles.microCard} ${isSelected ? styles.microCardActive : ''}`}
                   onClick={() => {
-                    if (!isAuthorized && !isSelected) return;
                     setSelectedGramaje(isSelected ? null : m.gramaje);
                     setSelectedCapsulas(null);
                     setMicroQty(1);
@@ -392,17 +378,13 @@ const SolicitudForm: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    <span className={styles[pauta.style]}>{pauta.label}</span>
+                    {needsUpdate && (
+                      <span className={styles.badgePautaGray}>Requiere actualización</span>
+                    )}
                   </div>
 
                   <div className={styles.microCardDose}>{m.gramaje} / cápsula</div>
                   <div className={styles.microCardSpecies}>{m.description || 'Psilocybe Cubensis'}</div>
-
-                  {!isAuthorized && !isSelected && (
-                    <button className={styles.linkDetails} onClick={e => e.stopPropagation()}>
-                      Ver detalles <ArrowRight size={12} />
-                    </button>
-                  )}
 
                   {/* Capsulas selector when selected */}
                   {isSelected && selectedGramajeData && (
@@ -537,9 +519,7 @@ const SolicitudForm: React.FC = () => {
           <>
             <h2 className={styles.sectionTitle}>Adjuntar Receta Médica</h2>
             <p className={styles.sectionSubtitle}>
-              {hasAnyReceta
-                ? 'Puedes usar una receta existente o subir una nueva.'
-                : 'Sube una foto clara de tu receta médica vigente para continuar.'}
+              Sube una foto clara de tu receta médica vigente para continuar.
             </p>
 
             {/* Upload zone */}
@@ -560,43 +540,6 @@ const SolicitudForm: React.FC = () => {
                 </button>
               )}
             </div>
-
-            {/* Recent prescriptions */}
-            {recetasActivas.length > 0 && (
-              <>
-                <div className={styles.recetasHeader}>
-                  <span className={styles.recetasTitle}>RECETAS RECIENTES</span>
-                  <button className={styles.recetasVerTodas} onClick={() => navigate('/store/recetas')}>Ver todas</button>
-                </div>
-
-                {allRecetas.slice(0, 4).map((r: Receta) => {
-                  const isActive = r.estado === 'activa';
-                  const isChecked = selectedRecetaId === r.id;
-                  const cardClass = !isActive ? styles.recetaRadioDisabled : isChecked ? styles.recetaRadioChecked : styles.recetaRadio;
-
-                  return (
-                    <div
-                      key={r.id}
-                      className={cardClass}
-                      onClick={() => { if (isActive) setSelectedRecetaId(isChecked ? null : r.id); }}
-                    >
-                      <div className={isChecked ? styles.radioDotChecked : styles.radioDot} />
-                      <div className={styles.recetaRadioInfo}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span className={styles.recetaRadioName}>{r.medico_nombre || 'Médico'}</span>
-                          <span className={isActive ? styles.badgeVigente : styles.badgeVencida}>
-                            {isActive ? 'Vigente' : 'Vencida'}
-                          </span>
-                        </div>
-                        <div className={styles.recetaRadioDate}>
-                          Subida el {fmtDate(r.fecha_emision)}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </>
-            )}
 
             {/* Warnings */}
             {((hasMicro && !recetaMicro) || (hasMacro && !recetaMacro)) && !recipeFile && (
