@@ -465,6 +465,9 @@ export interface MicrodosisOption {
   gramaje: string;
   label: string;
   options: { capsulas: string; price: number }[];
+  description?: string;
+  category?: string;
+  imageUrl?: string | null;
 }
 
 export interface MacrodosisOption {
@@ -472,6 +475,9 @@ export interface MacrodosisOption {
   label: string;
   price: number;
   grams?: number;
+  description?: string;
+  category?: string;
+  imageUrl?: string | null;
 }
 
 export interface ProductCatalog {
