@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { House, BookOpen, ChartLine, Storefront, Pill } from '@phosphor-icons/react';
+import { House, BookOpen, ChartLine, UserCircle, Plus } from '@phosphor-icons/react';
 import styles from './BottomNav.module.css';
 
 interface BottomNavProps {
-  activePage: 'dashboard' | 'reflect' | 'insights' | 'store';
+  activePage: 'dashboard' | 'reflect' | 'insights' | 'settings' | 'none';
   onFabPress?: () => void;
 }
 
@@ -21,9 +21,9 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, onFabPress }) => {
 
   const navItems: { key: string; icon: typeof House; label: string; route: string }[] = [
     { key: 'dashboard', icon: House, label: 'Inicio', route: '/dashboard' },
-    { key: 'reflect', icon: BookOpen, label: 'Seguimiento', route: '/reflect' },
-    { key: 'insights', icon: ChartLine, label: 'Análisis', route: '/insights' },
-    { key: 'store', icon: Storefront, label: 'Tienda', route: '/store' },
+    { key: 'reflect', icon: BookOpen, label: 'Diario', route: '/reflect' },
+    { key: 'insights', icon: ChartLine, label: 'Reportes', route: '/insights' },
+    { key: 'settings', icon: UserCircle, label: 'Perfil', route: '/settings' },
   ];
 
   const leftItems = navItems.slice(0, 2);
@@ -41,13 +41,14 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, onFabPress }) => {
             onClick={() => !isActive && navigate(item.route)}
           >
             <Icon size={24} weight={isActive ? 'fill' : 'regular'} className={styles.navIcon} />
+            <span className={isActive ? styles.navLabelActive : styles.navLabel}>{item.label}</span>
           </button>
         );
       })}
 
       <div className={styles.fabContainer}>
         <button className={styles.fab} onClick={handleFabPress}>
-          <Pill size={24} weight="bold" />
+          <Plus size={28} weight="bold" />
         </button>
       </div>
 
@@ -61,6 +62,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, onFabPress }) => {
             onClick={() => !isActive && navigate(item.route)}
           >
             <Icon size={24} weight={isActive ? 'fill' : 'regular'} className={styles.navIcon} />
+            <span className={isActive ? styles.navLabelActive : styles.navLabel}>{item.label}</span>
           </button>
         );
       })}

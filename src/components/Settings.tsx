@@ -9,6 +9,7 @@ import { requestNotificationPermission, getNotificationPermission, startNotifica
 import storage, { STORAGE_KEYS } from '../utils/storage';
 import { useProtocol, useBaseline, useShopifyProfile, useHasPassword, useDeleteProtocol, useChangePassword, useCreatePassword } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
+import BottomNav from './BottomNav';
 import type { User as UserType } from '../types';
 
 const Settings: React.FC = () => {
@@ -612,6 +613,7 @@ const Settings: React.FC = () => {
           </div>
         </div>
       )}
+      <BottomNav activePage="settings" />
     </div>
   );
 };

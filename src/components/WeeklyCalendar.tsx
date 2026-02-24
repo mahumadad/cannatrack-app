@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Pill, BookOpen, Calendar, CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { toLocalDateString } from '../utils/dateHelpers';
 import { useDoses, useCheckins } from '../hooks/queries';
 import styles from './WeeklyCalendar.module.css';
@@ -296,15 +296,15 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, ref
   };
 
   const getNavTitle = () => {
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     if (viewMode === 'week') {
-      if (weekOffset === 0) return 'Esta semana';
-      if (weekOffset === -1) return 'Semana pasada';
-      if (weekOffset === 1) return 'Próxima semana';
-      if (weekOffset < 0) return `Hace ${Math.abs(weekOffset)} semanas`;
-      return `En ${weekOffset} semanas`;
+      // Show month/year of the center day in the week strip
+      const today = new Date();
+      const baseDate = new Date(today);
+      baseDate.setDate(today.getDate() + (weekOffset * 7));
+      return `${monthNames[baseDate.getMonth()]} ${baseDate.getFullYear()}`;
     } else {
-      const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
       return `${monthNames[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
     }
   };
@@ -320,16 +320,17 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, ref
   const renderDayCard = (day: CalendarDay, index: number) => {
     const doseStatus = getDoseStatus(day);
     const hasCheckin = getDayCheckin(day.dateString);
-    
+    const isMonth = viewMode === 'month';
+
     return (
-      <div 
-        key={index} 
+      <div
+        key={index}
         className={`
-          ${styles.dayCard} 
-          ${viewMode === 'month' ? styles.monthDayCard : ''}
-          ${day.isToday ? styles.today : ''} 
-          ${day.isFuture && !day.isFollowUpDay ? styles.future : ''} 
-          ${day.isClickable ? styles.clickable : ''} 
+          ${styles.dayCard}
+          ${isMonth ? styles.monthDayCard : ''}
+          ${day.isToday ? styles.today : ''}
+          ${day.isFuture && !day.isFollowUpDay ? styles.future : ''}
+          ${day.isClickable ? styles.clickable : ''}
           ${day.isFollowUpDay && !day.isFollowUpCompleted ? styles.followUpDay : ''}
           ${day.isFollowUpCompleted ? styles.followUpCompletedDay : ''}
           ${day.isOtherMonth ? styles.otherMonth : ''}
@@ -339,20 +340,16 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, ref
         {viewMode === 'week' && (
           <div className={styles.weekday}>{day.weekday}</div>
         )}
-        <div className={styles.dayNumber}>{day.day}</div>
+        <div className={`${styles.dayNumber} ${day.isToday ? styles.dayNumberToday : ''} ${doseStatus === 'taken' && !day.isToday ? styles.dayNumberDosed : ''}`}>
+          {day.day}
+        </div>
         <div className={styles.indicators}>
-          {doseStatus === 'taken' && (
-            <Pill size={14} weight="fill" className={styles.doseIcon} />
-          )}
-          {doseStatus === 'missed' && (
-            <Pill size={14} weight="fill" className={styles.doseIconMissed} />
-          )}
-          {doseStatus === 'scheduled' && (
-            <Pill size={14} weight="fill" className={styles.doseIconScheduled} />
-          )}
-          {hasCheckin && <BookOpen size={12} weight="regular" className={styles.checkinIcon} />}
-          {day.isFollowUpDay && !day.isFollowUpCompleted && <Calendar size={14} weight="fill" className={styles.followUpIcon} />}
-          {day.isFollowUpCompleted && <Calendar size={14} weight="fill" className={styles.followUpCompletedIcon} />}
+          {doseStatus === 'taken' && <span className={styles.dotTaken} />}
+          {doseStatus === 'missed' && <span className={styles.dotMissed} />}
+          {doseStatus === 'scheduled' && <span className={styles.dotScheduled} />}
+          {hasCheckin && <span className={styles.dotCheckin} />}
+          {day.isFollowUpDay && !day.isFollowUpCompleted && <span className={styles.dotFollowUp} />}
+          {day.isFollowUpCompleted && <span className={styles.dotFollowUpDone} />}
         </div>
       </div>
     );
@@ -360,65 +357,58 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ userId, onDayClick, ref
 
   return (
     <div className={styles.calendar}>
-      <div className={styles.viewToggle}>
-        <button 
-          className={`${styles.toggleButton} ${viewMode === 'week' ? styles.active : ''}`}
-          onClick={() => setViewMode('week')}
-        >
-          Semana
-        </button>
-        <button 
-          className={`${styles.toggleButton} ${viewMode === 'month' ? styles.active : ''}`}
-          onClick={() => setViewMode('month')}
-        >
-          Mes
-        </button>
-      </div>
-
-      <div className={styles.navTitle} onClick={goToToday}>
-        {getNavTitle()}
+      <div className={styles.calendarHeader}>
+        <h2 className={styles.navTitle} onClick={goToToday}>{getNavTitle()}</h2>
+        <div className={styles.headerActions}>
+          <div className={styles.viewToggle}>
+            <button
+              className={`${styles.toggleButton} ${viewMode === 'week' ? styles.active : ''}`}
+              onClick={() => setViewMode('week')}
+            >
+              Sem
+            </button>
+            <button
+              className={`${styles.toggleButton} ${viewMode === 'month' ? styles.active : ''}`}
+              onClick={() => setViewMode('month')}
+            >
+              Mes
+            </button>
+          </div>
+          <div className={styles.navArrows}>
+            <button className={styles.navArrow} onClick={() => handleNavigate(-1)} aria-label="Anterior">
+              <CaretLeft size={18} weight="bold" />
+            </button>
+            <button className={styles.navArrow} onClick={() => handleNavigate(1)} aria-label="Siguiente">
+              <CaretRight size={18} weight="bold" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {viewMode === 'week' ? (
-        <div className={styles.calendarWrapper}>
-          <button className={styles.sideArrow} onClick={() => handleNavigate(-1)}>
-            <CaretLeft size={18} weight="bold" />
-          </button>
-          <div 
-            className={`${styles.weekDays} ${isSliding ? styles.sliding : ''}`}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            {days.map((day, index) => renderDayCard(day, index))}
-          </div>
-          <button className={styles.sideArrow} onClick={() => handleNavigate(1)}>
-            <CaretRight size={18} weight="bold" />
-          </button>
+        <div
+          className={`${styles.weekDays} ${isSliding ? styles.sliding : ''}`}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {days.map((day, index) => renderDayCard(day, index))}
         </div>
       ) : (
-        <div className={styles.calendarWrapper}>
-          <button className={styles.sideArrow} onClick={() => handleNavigate(-1)}>
-            <CaretLeft size={18} weight="bold" />
-          </button>
-          <div 
-            className={`${styles.monthContainer} ${isSliding ? styles.sliding : ''}`}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div className={styles.weekHeaders}>
-              {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(d => (
-                <div key={d} className={styles.weekHeader}>{d}</div>
-              ))}
-            </div>
-            <div className={styles.monthGrid}>
-              {days.map((day, index) => renderDayCard(day, index))}
-            </div>
+        <div
+          className={`${styles.monthContainer} ${isSliding ? styles.sliding : ''}`}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className={styles.weekHeaders}>
+            {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(d => (
+              <div key={d} className={styles.weekHeader}>{d}</div>
+            ))}
           </div>
-          <button className={styles.sideArrow} onClick={() => handleNavigate(1)}>
-            <CaretRight size={18} weight="bold" />
-          </button>
+          <div className={styles.monthGrid}>
+            {days.map((day, index) => renderDayCard(day, index))}
+          </div>
         </div>
       )}
     </div>

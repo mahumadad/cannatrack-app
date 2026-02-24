@@ -7,7 +7,7 @@ import { SkeletonCard, SkeletonCalendar } from './Skeleton';
 import DoseSection from './DoseSection';
 import DayDetailModal from './DayDetailModal';
 import BottomNav from './BottomNav';
-import { ClipboardText, Notepad, Prescription, X } from '@phosphor-icons/react';
+import { ClipboardText, Notepad, Prescription, X, Bell, Quotes } from '@phosphor-icons/react';
 import { INTERNAL_SUBSTANCE } from '../utils/doseOptions';
 import { startNotificationScheduler, stopNotificationScheduler, cleanupFiredNotifications } from '../utils/notifications';
 import { toLocalDateString } from '../utils/dateHelpers';
@@ -367,8 +367,13 @@ const Dashboard: React.FC = () => {
     return (
       <div className={styles.dashboard}>
         <div className={styles.header}>
-          <div className={styles.avatarButton}><span>{userInitial}</span></div>
-          <img src="/imagotipo.png" alt="Camellos" className={styles.logo} />
+          <div className={styles.headerLeft}>
+            <div className={styles.avatarButton}><span>{userInitial}</span></div>
+            <div className={styles.headerGreeting}>
+              <span className={styles.headerName}>Hola, {user?.name?.split(' ')[0] || 'Usuario'}</span>
+              <span className={styles.headerBrand}>DromedApp</span>
+            </div>
+          </div>
           <div style={{ width: '36px' }} />
         </div>
         <SkeletonCalendar />
@@ -381,11 +386,18 @@ const Dashboard: React.FC = () => {
     <div className={styles.dashboard}>
       <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
       <div className={styles.header}>
-        <button className={styles.avatarButton} onClick={() => navigate('/settings')}>
-          <span>{userInitial}</span>
+        <div className={styles.headerLeft}>
+          <button className={styles.avatarButton} onClick={() => navigate('/settings')}>
+            <span>{userInitial}</span>
+          </button>
+          <div className={styles.headerGreeting}>
+            <span className={styles.headerName}>Hola, {user?.name?.split(' ')[0] || 'Usuario'}</span>
+            <span className={styles.headerBrand}>DromedApp</span>
+          </div>
+        </div>
+        <button className={styles.notificationButton} aria-label="Notificaciones">
+          <Bell size={22} weight="regular" />
         </button>
-        <img src="/imagotipo.png" alt="Camellos" className={styles.logo} />
-        <div style={{ width: '36px' }} />
       </div>
 
       {(!baseline || !baseline.is_locked) && (
@@ -420,36 +432,6 @@ const Dashboard: React.FC = () => {
         );
       })()}
 
-      {recetaActiva && !recetaCardDismissed && (
-        <div className={styles.taskCard} onClick={() => navigate('/store/recetas')} style={{ position: 'relative' }}>
-          <div className={styles.taskCardBorderBaseline} />
-          <div className={styles.taskCardContent}>
-            <div className={styles.taskCardIcon}><Prescription size={28} weight="duotone" /></div>
-            <div className={styles.taskCardText}>
-              <h3>Mi Receta</h3>
-              <p>
-                {recetaActiva.saldo_micro > 0 && `Micro: ${recetaActiva.saldo_micro}/${recetaActiva.total_micro_autorizado}`}
-                {recetaActiva.saldo_micro > 0 && recetaActiva.saldo_macro > 0 && ' · '}
-                {recetaActiva.saldo_macro > 0 && `Macro: ${recetaActiva.saldo_macro}/${recetaActiva.total_macro_autorizado}`}
-              </p>
-            </div>
-            <button className={styles.taskCardButton} onClick={(e) => { e.stopPropagation(); navigate('/store/solicitud'); }}>Pedir</button>
-          </div>
-          <button
-            className={styles.taskCardDismiss}
-            onClick={handleDismissRecetaCard}
-            aria-label="Ocultar tarjeta de receta"
-          >
-            <X size={14} weight="bold" />
-          </button>
-        </div>
-      )}
-
-      <div className={styles.greetingSection}>
-        <h1 className={styles.greeting}>{getGreeting()}, {user?.name || 'Usuario'}</h1>
-        <p className={styles.quote}>{quote?.text || 'Hoy es un buen día para estar bien'} {quote?.emoji || '🌞'}</p>
-      </div>
-
       <WeeklyCalendar key={refreshKey} userId={user?.id} onDayClick={handleDayClick} refreshKey={refreshKey} followUpDates={getFollowUpDates()} followUpCompletedDates={getFollowUpCompletedDates()} protocol={protocol ?? null} doses={recentDoses} />
 
       <DoseSection
@@ -470,6 +452,67 @@ const Dashboard: React.FC = () => {
         formatLastDoseDate={formatLastDoseDate}
         navigate={navigate}
       />
+
+      {/* Prescription Card */}
+      {recetaActiva && !recetaCardDismissed && (
+        <section className={styles.prescriptionCard} onClick={() => navigate('/store/recetas')}>
+          <button
+            className={styles.prescriptionDismiss}
+            onClick={handleDismissRecetaCard}
+            aria-label="Ocultar"
+          >
+            <X size={14} weight="bold" />
+          </button>
+          <div className={styles.prescriptionHeader}>
+            <div className={styles.prescriptionIconBox}>
+              <Prescription size={24} weight="fill" />
+            </div>
+            <div>
+              <h3 className={styles.prescriptionTitle}>Prescripción Activa</h3>
+              <p className={styles.prescriptionSub}>Balance restante del ciclo actual</p>
+            </div>
+          </div>
+          <div className={styles.prescriptionBars}>
+            {recetaActiva.total_micro_autorizado > 0 && (
+              <div className={styles.prescriptionBarGroup}>
+                <div className={styles.prescriptionBarLabel}>
+                  <span>Microdosis (Caps)</span>
+                  <span className={styles.prescriptionBarValue}>{recetaActiva.saldo_micro} restantes / {recetaActiva.total_micro_autorizado} total</span>
+                </div>
+                <div className={styles.prescriptionBarTrack}>
+                  <div
+                    className={styles.prescriptionBarFill}
+                    style={{ width: `${Math.round(((recetaActiva.total_micro_autorizado - recetaActiva.saldo_micro) / recetaActiva.total_micro_autorizado) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            {recetaActiva.total_macro_autorizado > 0 && (
+              <div className={styles.prescriptionBarGroup}>
+                <div className={styles.prescriptionBarLabel}>
+                  <span>Macrodosis (g)</span>
+                  <span>{recetaActiva.saldo_macro}g restantes / {recetaActiva.total_macro_autorizado}g total</span>
+                </div>
+                <div className={styles.prescriptionBarTrack}>
+                  <div
+                    className={styles.prescriptionBarFillGray}
+                    style={{ width: `${Math.round(((recetaActiva.total_macro_autorizado - recetaActiva.saldo_macro) / recetaActiva.total_macro_autorizado) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Daily Quote */}
+      {quote && (
+        <section className={styles.dailyQuote}>
+          <Quotes size={32} weight="fill" className={styles.quoteIcon} />
+          <p className={styles.quoteText}>{quote.text}</p>
+          {quote.emoji && <span className={styles.quoteAuthor}>{quote.emoji}</span>}
+        </section>
+      )}
 
       {showDayDetailModal && selectedDay && (
         <DayDetailModal

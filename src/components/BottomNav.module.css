@@ -9,11 +9,10 @@
   display: flex;
   justify-content: space-around;
   align-items: flex-end;
-  padding: 10px 8px calc(10px + var(--safe-area-bottom));
-  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.04), 0 -4px 20px rgba(0, 0, 0, 0.06);
+  padding: 8px 16px calc(8px + var(--safe-area-bottom));
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.04), 0 -4px 20px rgba(0, 0, 0, 0.05);
   z-index: var(--z-nav);
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
+  border-top: 1px solid rgba(165, 127, 80, 0.1);
 }
 
 /* Nav buttons */
@@ -21,23 +20,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   border: none;
   background: none;
   cursor: pointer;
-  padding: 8px 14px;
+  padding: 6px 12px;
   border-radius: var(--radius-md);
   transition: all 0.2s var(--ease-out);
-  min-width: 48px;
+  min-width: 56px;
 }
 
 .navButton:active {
   transform: scale(0.9);
-}
-
-.navButton.active {
-  background: var(--color-surface-warm);
-  padding: 6px 16px;
 }
 
 .navIcon {
@@ -50,17 +44,19 @@
   color: var(--color-primary);
 }
 
+/* Labels — always visible */
 .navLabel {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.01em;
+}
+
+.navLabelActive {
   font-size: 10px;
   font-weight: 700;
   color: var(--color-primary);
-  letter-spacing: 0.02em;
-  animation: labelFadeIn 0.2s ease;
-}
-
-@keyframes labelFadeIn {
-  from { opacity: 0; transform: translateY(2px); }
-  to { opacity: 1; transform: translateY(0); }
+  letter-spacing: 0.01em;
 }
 
 /* FAB Container */
@@ -69,33 +65,32 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  width: 56px;
-  margin-top: -28px;
+  width: 64px;
+  margin-top: -24px;
 }
 
 .fab {
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  border: none;
+  border: 4px solid var(--color-bg, #fbfaf9);
   background: var(--gradient-primary);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(193, 125, 74, 0.35), 0 2px 6px rgba(193, 125, 74, 0.2);
+  box-shadow: 0 4px 16px rgba(165, 127, 80, 0.4);
   transition: all 0.25s var(--ease-spring);
   z-index: calc(var(--z-nav) + 1);
 }
 
 .fab:hover {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 24px rgba(193, 125, 74, 0.45), 0 3px 8px rgba(193, 125, 74, 0.25);
+  box-shadow: 0 6px 24px rgba(165, 127, 80, 0.45);
 }
 
 .fab:active {
   transform: translateY(0) scale(0.95);
-  box-shadow: 0 2px 8px rgba(193, 125, 74, 0.3);
+  box-shadow: 0 2px 8px rgba(165, 127, 80, 0.3);
 }
-

@@ -492,7 +492,7 @@ const ShopifyStore: React.FC = () => {
             Recibirás un correo con la confirmación y un enlace para acceder a DromeApp.
           </p>
         </div>
-        <BottomNav activePage="store" />
+        <BottomNav activePage="none" />
       </div>
     );
   }
@@ -542,7 +542,7 @@ const ShopifyStore: React.FC = () => {
             </div>
           )}
         </div>
-        <BottomNav activePage="store" />
+        <BottomNav activePage="none" />
       </div>
     );
   }
@@ -890,7 +890,7 @@ const ShopifyStore: React.FC = () => {
           </div>
         )}
       </div>
-      <BottomNav activePage="store" />
+      <BottomNav activePage="none" />
     </div>
   );
 };
