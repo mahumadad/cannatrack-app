@@ -371,13 +371,12 @@ const SolicitudForm: React.FC = () => {
                   }}
                 >
                   <div className={styles.microCardHeader}>
-                    <div>
-                      {isRecetaMatch && (
-                        <span className={styles.badgeReceta}>
-                          <Star size={10} weight="fill" /> Receta Activa
-                        </span>
-                      )}
-                    </div>
+                    <div />
+                    {isRecetaMatch && (
+                      <span className={styles.badgeReceta}>
+                        <Star size={10} weight="fill" /> Receta Activa
+                      </span>
+                    )}
                     {needsUpdate && (
                       <span className={styles.badgePautaGray}>Requiere actualización</span>
                     )}
