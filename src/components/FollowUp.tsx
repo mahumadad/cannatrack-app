@@ -415,7 +415,7 @@ const FollowUp: React.FC = () => {
               value={value}
               onChange={(e) => handleChange('life_satisfaction', parseInt(e.target.value))}
               className={styles.slider}
-              style={{ background: `linear-gradient(to right, #C17D4A 0%, #C17D4A ${value * 10}%, #E8C9A1 ${value * 10}%, #E8C9A1 100%)` }}
+              style={{ background: `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${value * 10}%, rgba(165,127,80,0.15) ${value * 10}%, rgba(165,127,80,0.15) 100%)` }}
             />
             <div className={styles.sliderLabels}>
               <span>Nada satisfecho</span>
@@ -644,7 +644,7 @@ const FollowUp: React.FC = () => {
       <div className={styles.followup}>
         <div className={styles.header}>
           <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
-          <h1 className={styles.title}>C&D</h1>
+          <h1 className={styles.title}>Seguimiento Mensual</h1>
           <div style={{ width: 36 }}></div>
         </div>
 
@@ -842,7 +842,7 @@ const FollowUp: React.FC = () => {
     <div className={styles.followup}>
       <div className={styles.header}>
         <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button>
-        <h1 className={styles.title}>C&D</h1>
+        <h1 className={styles.title}>Seguimiento Mensual</h1>
         <span className={styles.progress}>{completedSteps}/{totalSteps}</span>
       </div>
 
@@ -877,16 +877,22 @@ const FollowUp: React.FC = () => {
         </div>
         {currentSection === 0 && !canComplete ? (
           <button className={styles.backToDashboardButton} onClick={() => navigate('/dashboard')}>
-            ← Volver al Inicio
+            Volver al Inicio
           </button>
         ) : currentSection === 0 ? (
-          <button className={styles.nextButton} onClick={() => { setCurrentSection(1); setSubStep(0); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-            Comenzar →
-          </button>
+          <div className={styles.footerButtons}>
+            <button className={styles.prevButton} onClick={() => navigate('/dashboard')}>Anterior</button>
+            <button className={styles.nextButton} onClick={() => { setCurrentSection(1); setSubStep(0); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+              Comenzar
+            </button>
+          </div>
         ) : (
-          <button className={styles.nextButton} onClick={() => handleSave(true)} disabled={saving}>
-            {saving ? 'Guardando...' : currentSection === sections.length - 1 ? '✅ Finalizar' : 'Continuar →'}
-          </button>
+          <div className={styles.footerButtons}>
+            <button className={styles.prevButton} onClick={goBack}>Anterior</button>
+            <button className={styles.nextButton} onClick={() => handleSave(true)} disabled={saving}>
+              {saving ? 'Guardando...' : currentSection === sections.length - 1 ? 'Finalizar' : 'Continuar'}
+            </button>
+          </div>
         )}
       </div>
     </div>

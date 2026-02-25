@@ -1,139 +1,307 @@
+/* ============================================================ */
+/*  ProtocolConfig — Stitch Design                              */
+/* ============================================================ */
+
 .protocol {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--color-bg);
-  padding-bottom: 60px;
+  display: flex;
+  flex-direction: column;
 }
 
+/* ─── Header ─────────────────────────────────────────── */
+
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  padding-top: var(--safe-area-top);
+  background: rgba(251, 250, 249, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(165, 127, 80, 0.05);
+}
+
+.headerTop {
+  display: flex;
   align-items: center;
-  padding: 20px;
-  padding-top: calc(20px + var(--safe-area-top));
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  justify-content: space-between;
+  padding: 12px 24px;
 }
 
 .backButton {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: var(--color-surface-warm);
-  color: var(--color-primary);
+  background: transparent;
+  color: var(--color-text-secondary);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+  transition: background 0.15s;
 }
 
 .backButton:hover {
-  transform: scale(1.08);
-  background: var(--color-primary);
-  color: white;
+  background: rgba(165, 127, 80, 0.08);
 }
 
 .backButton:active {
   transform: scale(0.95);
 }
 
-.title {
-  font-size: var(--text-xl);
+.headerTitle {
+  font-size: 12px;
   font-weight: 700;
   color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.form {
-  padding: 24px 20px;
+.headerSpacer {
+  width: 40px;
 }
 
-.section {
-  background: white;
-  border-radius: var(--radius-md);
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
+/* ─── Progress Bar ───────────────────────────────────── */
 
-.sectionTitle {
-  font-size: var(--text-lg);
-  font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: 20px;
-}
-
-.frequencyOptions {
-  display: grid;
-  gap: 12px;
-}
-
-.frequencyCard {
-  position: relative;
+.progressSection {
   display: flex;
-  align-items: center;
-  padding: 16px;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-normal);
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 24px 14px;
+}
+
+.progressInfo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.progressTrack {
+  height: 6px;
+  width: 100%;
   background: white;
+  border: 1px solid rgba(165, 127, 80, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
 }
 
-.frequencyCard:hover {
-  border-color: var(--color-primary);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(193, 125, 74, 0.15);
+.progressFill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+  transition: width 0.5s ease-out;
 }
 
-.frequencyCard.active {
-  border-color: var(--color-primary);
-  background: linear-gradient(135deg, #FFF8F0 0%, #FFE5D9 100%);
-}
+/* ─── Content Area ───────────────────────────────────── */
 
-.frequencyCard input[type="radio"] {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.cardContent {
+.content {
   flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px 200px;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.cardContent h3 {
-  font-size: var(--text-md);
+/* ─── Step Header ────────────────────────────────────── */
+
+.stepHeader {
+  margin-bottom: 28px;
+}
+
+.stepTitle {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.stepSubtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.stepHeaderCentered {
+  text-align: center;
+}
+
+.stepTitlePrimary {
+  color: var(--color-primary);
+}
+
+.stepTitleLarge {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* ─── Receta Banner ──────────────────────────────────── */
+
+.recetaBanner {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #FFF8F0, #FFF3E0);
+  border: 1.5px solid #FFCC80;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.recetaIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.recetaTitle {
+  font-size: 14px;
   font-weight: 700;
   color: var(--color-text);
   margin-bottom: 4px;
 }
 
-.cardContent p {
-  font-size: var(--text-base);
+.recetaDetail {
+  font-size: 12px;
   color: var(--color-text-secondary);
+  line-height: 1.5;
 }
 
-.badge {
-  display: inline-block;
-  padding: 4px 12px;
-  background: var(--gradient-primary);
-  color: white;
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  margin-top: 8px;
+.recetaDetail strong {
+  color: var(--color-primary);
 }
 
-.frequencyDetail {
-  margin-top: 20px;
+/* ─── Radio Cards (Frequency Selection) ──────────────── */
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.radioCard {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
   padding: 16px;
-  background: var(--color-surface-warm);
-  border-radius: var(--radius-md);
+  border: 1.5px solid rgba(165, 127, 80, 0.2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
 }
 
-.frequencyDetail label {
+.radioCard:hover {
+  border-color: rgba(165, 127, 80, 0.5);
+  box-shadow: 0 4px 12px rgba(165, 127, 80, 0.08);
+}
+
+.radioCard:active {
+  transform: scale(0.99);
+}
+
+.radioCardActive {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+  background: rgba(165, 127, 80, 0.03);
+}
+
+.radioCardSuggested {
+  border-color: #DBC4A8;
+  border-style: dashed;
+  background: #FFFCF8;
+  animation: freqPulse 2s ease-in-out 3;
+}
+
+.radioCardSuggested::after {
+  content: 'Sugerido';
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: #FFF3E0;
+  padding: 2px 8px;
+  border-radius: 8px;
+  letter-spacing: 0.3px;
+}
+
+@keyframes freqPulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+  50% { box-shadow: 0 2px 16px rgba(165, 127, 80, 0.25); }
+}
+
+.radioCheck {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.radioCheck input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.radioBody {
+  flex: 1;
+}
+
+.radioTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.radioFreqIcon {
+  color: var(--color-primary);
+}
+
+.radioLabel {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.radioPattern {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.radioDesc {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* ─── Sub-Inputs (conditional frequency details) ─────── */
+
+.subInput {
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(165, 127, 80, 0.04);
+  border: 1px solid rgba(165, 127, 80, 0.15);
+  border-radius: 12px;
+}
+
+.subInputLabel {
   display: block;
-  font-size: var(--text-base);
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: 12px;
@@ -141,16 +309,27 @@
 
 .numberInput {
   width: 100%;
-  padding: 12px;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-md);
+  padding: 12px 16px;
+  border: 2px solid rgba(165, 127, 80, 0.3);
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
   font-family: inherit;
+  background: white;
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.2s;
 }
 
 .numberInput:focus {
-  outline: none;
   border-color: var(--color-primary);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 8px;
+  font-style: italic;
 }
 
 .daysGrid {
@@ -161,364 +340,715 @@
 }
 
 .dayButton {
-  padding: 12px 8px;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  padding: 10px 4px;
+  border: 2px solid rgba(165, 127, 80, 0.2);
+  border-radius: 10px;
   background: white;
-  font-size: var(--text-sm);
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text);
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: all 0.15s;
+  text-align: center;
 }
 
 .dayButton:hover {
   border-color: var(--color-primary);
 }
 
-.dayButton.active {
-  background: var(--gradient-primary);
+.dayButtonActive {
+  background: var(--color-primary);
   color: white;
   border-color: var(--color-primary);
 }
 
-.customPattern {
+.patternRow {
   display: flex;
   gap: 16px;
   margin-top: 8px;
 }
 
-.patternInput {
+.patternField {
   display: flex;
   align-items: center;
   gap: 8px;
   flex: 1;
 }
 
-.patternInput span {
-  font-size: var(--text-base);
+.patternField span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* ─── Intuitive Note ─────────────────────────────────── */
+
+.intuitiveNote {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(165, 127, 80, 0.06);
+  border: 1px solid rgba(165, 127, 80, 0.15);
+  border-radius: 12px;
+  margin-top: 16px;
+  color: var(--color-primary);
+}
+
+.intuitiveNote p {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* ─── Config Sections (Step 2) ───────────────────────── */
+
+.configSection {
+  margin-bottom: 24px;
+}
+
+.sectionLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 12px;
+}
+
+.optional {
+  font-weight: 400;
   color: var(--color-text-secondary);
 }
 
-.timeInput {
-  width: 100%;
-  padding: 14px;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-md);
-  font-family: inherit;
-}
-
-.timeInput:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.inputGroup {
-  margin-bottom: 16px;
-}
-
-.inputGroup label {
-  display: block;
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 8px;
-}
-
-.select {
-  width: 100%;
-  padding: 14px;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-md);
-  font-family: inherit;
+.configCard {
   background: white;
-  cursor: pointer;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(165, 127, 80, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.select:focus {
-  outline: none;
-  border-color: var(--color-primary);
+/* ─── Dose Recommendation ────────────────────────────── */
+
+.doseRecommend {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(165, 127, 80, 0.1);
 }
 
-.doseInputs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.doseRecommendIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(165, 127, 80, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.doseRecommendText {
+  flex: 1;
+}
+
+.recommendedTag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.recommendedDesc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.stockInfo {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-top: 12px;
+  text-align: right;
+}
+
+/* ─── Time Card ──────────────────────────────────────── */
+
+.timeCard {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid rgba(165, 127, 80, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 16px;
 }
 
-.hint {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  margin-top: 8px;
-  font-style: italic;
+.timeLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(165, 127, 80, 0.8);
+  margin-bottom: 4px;
 }
 
-.submitButton {
+.timeLabel span {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timeDisplayWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
-  background: var(--gradient-primary);
+  max-width: 200px;
+}
+
+.timeBlock {
+  position: relative;
+  flex: 1;
+}
+
+.timeValue {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--color-bg);
+  border: 2px solid rgba(165, 127, 80, 0.3);
+  border-radius: 12px;
+  padding: 16px 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s;
+}
+
+.timeBlockLabel {
+  position: absolute;
+  bottom: -22px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.timeSeparator {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-primary);
+  padding-bottom: 8px;
+}
+
+.timeHiddenInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.timeHiddenInput::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+.ampmToggle {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ampmBtn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.ampmBtn:hover {
+  background: var(--color-bg);
+}
+
+.ampmActive {
+  background: rgba(165, 127, 80, 0.1);
+  color: var(--color-primary);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(165, 127, 80, 0.15);
+}
+
+/* ─── Duration ───────────────────────────────────────── */
+
+.durationInput {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid rgba(165, 127, 80, 0.3);
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  background: var(--color-bg);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.durationInput:focus {
+  border-color: var(--color-primary);
+}
+
+.durationInput::placeholder {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.durationHint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+/* ─── Calendar Card ──────────────────────────────────── */
+
+.calendarCard {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(165, 127, 80, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+}
+
+.calendarNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.calendarMonth {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.calendarArrows {
+  display: flex;
+  gap: 4px;
+}
+
+.calArrowBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  transition: background 0.15s;
+}
+
+.calArrowBtn:hover {
+  background: var(--color-bg);
+}
+
+.calendarWeekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.calendarWeekdays span {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(131, 116, 99, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.calendarEmpty {
+  height: 40px;
+}
+
+.calendarDay {
+  position: relative;
+  height: 40px;
+  width: 40px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  transition: all 0.15s;
+}
+
+.calendarDay:hover {
+  background: var(--color-bg);
+}
+
+.calDaySelected {
+  background: var(--color-primary) !important;
+  color: white !important;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(165, 127, 80, 0.3);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.calDayToday {
+  font-weight: 700;
+  color: var(--color-primary);
+  background: rgba(165, 127, 80, 0.08);
+  outline: 2px solid rgba(165, 127, 80, 0.4);
+  outline-offset: -2px;
+}
+
+.calDayPast {
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+.calDayDot {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.calendarTodayRow {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.todayBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(165, 127, 80, 0.05);
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary);
+  transition: background 0.15s;
+}
+
+.todayBtn:hover {
+  background: rgba(165, 127, 80, 0.12);
+}
+
+/* ─── Summary Card ───────────────────────────────────── */
+
+.summaryCard {
+  position: relative;
+  overflow: hidden;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid rgba(165, 127, 80, 0.1);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+}
+
+.summaryAccent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  background: var(--color-primary);
+}
+
+.summaryBody {
+  padding: 24px;
+}
+
+.summaryTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 20px;
+}
+
+.summaryTitle svg {
+  color: var(--color-primary);
+}
+
+.summaryRows {
+  display: flex;
+  flex-direction: column;
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(165, 127, 80, 0.05);
+}
+
+.summaryRowLast {
+  border-bottom: none;
+}
+
+.summaryLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.summaryIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-bg);
+  border: 1px solid rgba(165, 127, 80, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.summaryLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.summarySub {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.summaryBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(165, 127, 80, 0.1);
+  color: var(--color-primary);
+}
+
+.summaryValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ─── Info Note ──────────────────────────────────────── */
+
+.infoNote {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(165, 127, 80, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(165, 127, 80, 0.1);
+}
+
+.infoIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.infoNote p {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* ─── Footer ─────────────────────────────────────────── */
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid rgba(165, 127, 80, 0.1);
+  padding: 20px;
+  padding-bottom: calc(20px + var(--safe-area-bottom, 0px));
+  z-index: 50;
+}
+
+.footerGradient {
+  background: linear-gradient(to top, #fbfaf9 60%, rgba(251, 250, 249, 0.9) 80%, transparent);
+  border-top: none;
+}
+
+.footerInner {
+  display: flex;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.continueFullBtn,
+.saveBtn {
+  flex: 1;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--color-primary);
   color: white;
   border: none;
-  padding: 16px;
-  border-radius: var(--radius-md);
-  font-size: var(--text-md);
+  border-radius: 12px;
+  font-size: 16px;
   font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  margin-top: 20px;
-  box-shadow: 0 4px 16px rgba(193, 125, 74, 0.3);
-  transition: all var(--transition-normal);
+  box-shadow: 0 8px 20px rgba(165, 127, 80, 0.25);
+  transition: all 0.2s;
 }
 
-.submitButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(193, 125, 74, 0.4);
+.continueFullBtn:hover:not(:disabled),
+.saveBtn:hover:not(:disabled) {
+  background: #8a6a42;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(165, 127, 80, 0.35);
 }
 
-.submitButton:disabled {
-  opacity: 0.6;
+.continueFullBtn:active,
+.saveBtn:active {
+  transform: scale(0.98);
+}
+
+.continueFullBtn:disabled,
+.saveBtn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
-@media (max-width: 768px) {
+.prevBtn {
+  flex: 1;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.prevBtn:hover {
+  background: rgba(165, 127, 80, 0.05);
+}
+
+.prevBtn:active {
+  transform: scale(0.98);
+}
+
+.continueBtn {
+  flex: 1;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(165, 127, 80, 0.25);
+  transition: all 0.2s;
+}
+
+.continueBtn:hover {
+  background: #8a6a42;
+}
+
+.continueBtn:active {
+  transform: scale(0.98);
+}
+
+/* ─── Responsive ─────────────────────────────────────── */
+
+@media (max-width: 480px) {
   .daysGrid {
     gap: 6px;
   }
 
   .dayButton {
-    padding: 10px 4px;
-    font-size: var(--text-sm);
+    padding: 8px 2px;
+    font-size: 11px;
   }
 
-  .doseInputs {
-    grid-template-columns: 1fr;
+  .calendarDay {
+    height: 36px;
+    width: 36px;
+    font-size: 13px;
   }
-}
 
-.dateInput {
-  width: 100%;
-  padding: 14px;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-md);
-  font-family: inherit;
-  color: var(--color-text);
-}
-
-.dateInput:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.datePreview {
-  text-align: center;
-  font-size: var(--text-md);
-  font-weight: 600;
-  color: var(--color-primary);
-  margin-top: 12px;
-  text-transform: capitalize;
-}
-
-.badgeFree {
-  display: inline-block;
-  padding: 4px 12px;
-  background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
-  color: white;
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  margin-top: 8px;
-}
-
-.intuitiveInfo {
-  background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%);
-  border-radius: var(--radius-md);
-  padding: 24px;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.intuitiveIcon {
-  font-size: 48px;
-  display: block;
-  margin-bottom: 12px;
-}
-
-.intuitiveInfo h3 {
-  font-size: var(--text-lg);
-  font-weight: 700;
-  color: #6A1B9A;
-  margin-bottom: 8px;
-}
-
-.intuitiveInfo p {
-  font-size: var(--text-base);
-  color: #7B1FA2;
-  line-height: 1.5;
-}
-
-/* ============ STEP INDICATOR ============ */
-.stepIndicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 16px 0 8px;
-}
-
-.stepDot {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-base);
-  font-weight: 700;
-  background: var(--color-border);
-  color: white;
-  transition: all var(--transition-normal);
-}
-
-.stepActive {
-  background: var(--gradient-primary);
-}
-
-.stepLine {
-  width: 60px;
-  height: 3px;
-  background: var(--color-border);
-  margin: 0 8px;
-}
-
-/* ============ STEP NAVIGATION ============ */
-.stepNav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 0 0;
-  gap: 12px;
-}
-
-.nextStepButton {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 28px;
-  background: var(--gradient-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--text-md);
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  margin-left: auto;
-  transition: transform var(--transition-fast), opacity var(--transition-fast);
-}
-
-.nextStepButton:hover {
-  transform: scale(1.02);
-  opacity: 0.95;
-}
-
-.prevStepButton {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 24px;
-  background: white;
-  color: var(--color-primary);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-md);
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all var(--transition-fast);
-}
-
-.prevStepButton:hover {
-  border-color: var(--color-primary);
-  background: #FFF8F0;
-}
-
-/* ============ RECETA SUGGESTION BANNER ============ */
-.recetaBanner {
-  display: flex;
-  gap: 10px;
-  padding: 12px 14px;
-  background: linear-gradient(135deg, #FFF8F0, #FFF3E0);
-  border: 1.5px solid #FFCC80;
-  border-radius: var(--radius-md);
-  margin: 0 20px 16px;
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  line-height: 1.5;
-}
-
-.recetaBannerIcon {
-  font-size: 24px;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.recetaBannerContent {
-  flex: 1;
-}
-
-.recetaBannerTitle {
-  font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: 4px;
-  font-size: var(--text-base);
-}
-
-.recetaBannerDetail {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-}
-
-.recetaBannerDetail strong {
-  color: var(--color-primary);
-}
-
-/* ============ FREQUENCY CARD RECOMMENDED ============ */
-.frequencyCardRecommended {
-  border-color: #DBC4A8;
-  border-style: dashed;
-  background: #FFFCF8;
-  animation: freqPulse 2s ease-in-out 3;
-  position: relative;
-}
-
-.frequencyCardRecommended::after {
-  content: 'Sugerido';
-  position: absolute;
-  top: -8px;
-  right: 12px;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--color-primary-light);
-  background: #FFF3E0;
-  padding: 1px 8px;
-  border-radius: 8px;
-  letter-spacing: 0.3px;
-}
-
-@keyframes freqPulse {
-  0%, 100% {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  .timeValue {
+    font-size: 24px;
+    padding: 12px 6px;
   }
-  50% {
-    box-shadow: 0 2px 16px rgba(166, 128, 80, 0.25);
-  }
-}
-
-/* ============ DURATION HINT ============ */
-.durationHint {
-  font-size: var(--text-sm);
-  color: var(--color-primary);
-  font-weight: 600;
-  margin-top: 6px;
 }

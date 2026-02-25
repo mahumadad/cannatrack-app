@@ -413,7 +413,7 @@ const ShopifyStore: React.FC = () => {
           <button className={styles.backButton} onClick={() => navigate(-1)}>
             <ArrowLeft size={20} weight="bold" />
           </button>
-          <h1 className={styles.title}>C&D</h1>
+          <h1 className={styles.title}>Mi Tienda</h1>
           <div style={{ width: 36 }} />
         </div>
         <div className={styles.loadingContainer}>
@@ -492,7 +492,7 @@ const ShopifyStore: React.FC = () => {
             Recibirás un correo con la confirmación y un enlace para acceder a DromeApp.
           </p>
         </div>
-        <BottomNav activePage="none" />
+        <BottomNav activePage="store" />
       </div>
     );
   }
@@ -542,7 +542,7 @@ const ShopifyStore: React.FC = () => {
             </div>
           )}
         </div>
-        <BottomNav activePage="none" />
+        <BottomNav activePage="store" />
       </div>
     );
   }
@@ -567,7 +567,7 @@ const ShopifyStore: React.FC = () => {
         <button className={styles.backButton} onClick={() => navigate(-1)}>
           <ArrowLeft size={20} weight="bold" />
         </button>
-        <h1 className={styles.title}>C&D</h1>
+        <h1 className={styles.title}>Mi Tienda</h1>
         <div style={{ width: 36 }} />
       </div>
 
@@ -890,7 +890,7 @@ const ShopifyStore: React.FC = () => {
           </div>
         )}
       </div>
-      <BottomNav activePage="none" />
+      <BottomNav activePage="store" />
     </div>
   );
 };

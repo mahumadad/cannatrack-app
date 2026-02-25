@@ -341,7 +341,7 @@ const Reflect: React.FC = () => {
     return (
       <div key={field} className={styles.sliderContainer}>
         <div className={styles.sliderHeader}><span className={styles.sliderEmoji}>{info.emoji}</span><span className={styles.sliderLabel}>{info.label}</span><span className={styles.sliderValue}>{value}/10</span></div>
-        <input type="range" min="0" max="10" value={value} onChange={(e) => handleChange(field, parseInt(e.target.value))} className={styles.slider} style={{ background: `linear-gradient(to right, #C17D4A 0%, #C17D4A ${Number(value) * 10}%, #E8C9A1 ${Number(value) * 10}%, #E8C9A1 100%)` }} />
+        <input type="range" min="0" max="10" value={value} onChange={(e) => handleChange(field, parseInt(e.target.value))} className={styles.slider} style={{ background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${Number(value) * 10}%, #e5e7eb ${Number(value) * 10}%, #e5e7eb 100%)` }} />
         <div className={styles.sliderLabels}><span>{info.low}</span><span>{info.high}</span></div>
       </div>
     );
@@ -380,11 +380,11 @@ const Reflect: React.FC = () => {
 
   const isSummaryView = !!(existingCheckin && !isEditing);
 
-  if (loading) return (<div className={styles.reflect}><div className={styles.header}><button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button><h1 className={styles.title}>Seguimiento</h1><div style={{ width: 36 }}></div></div><div className={styles.loadingContainer}><div className={styles.loadingSpinner}></div><p>Cargando...</p></div></div>);
+  if (loading) return (<div className={styles.reflect}><div className={styles.header}><button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button><h1 className={styles.title}>Seguimiento Diario</h1><div style={{ width: 36 }}></div></div><div className={styles.loadingContainer}><div className={styles.loadingSpinner}></div><p>Cargando...</p></div></div>);
 
   return (
     <div className={`${styles.reflect} ${isSummaryView ? styles.reflectSummary : styles.reflectEditing}`}>
-      <div className={styles.header}><button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button><h1 className={styles.title}>Seguimiento</h1><div style={{ width: 36 }}></div></div>
+      <div className={styles.header}><button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button><h1 className={styles.title}>Seguimiento Diario</h1><div style={{ width: 36 }}></div></div>
 
       {isSummaryView ? (<><div className={styles.dateDisplaySummary}><Calendar size={18} /> {formatDate(selectedDate)}</div>{renderCheckinSummary()}</>) : renderCheckinEditor()}
 

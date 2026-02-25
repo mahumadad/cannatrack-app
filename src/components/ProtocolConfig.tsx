@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from './Toast';
-import { ArrowLeft, ArrowRight, CheckCircle } from '@phosphor-icons/react';
+import {
+  ArrowLeft, ArrowRight, CheckCircle,
+  Flask, Leaf, Sparkle, Repeat, CalendarDots, Faders,
+  Pill, SunHorizon, CaretLeft, CaretRight, Info,
+  ClipboardText, Timer, CalendarBlank
+} from '@phosphor-icons/react';
 import { trackEvent } from '../utils/analytics';
 import DosePicker from './DosePicker';
 import {
@@ -16,6 +21,10 @@ import { useUser } from '../hooks/useUser';
 import { toLocalDateString } from '../utils/dateHelpers';
 import type { Protocol, CustomDays, CustomPattern, ProtocolFrequency, FrequencyValue, Receta, DoseOption } from '../types';
 
+/* ────────────────────────────────────────────────────── */
+/*  Constants                                              */
+/* ────────────────────────────────────────────────────── */
+
 interface ProtocolFormState {
   frequency: string;
   frequencyValue: FrequencyValue;
@@ -25,6 +34,22 @@ interface ProtocolFormState {
   duration: number | string | null;
   startDate: string;
 }
+
+const FREQ_OPTIONS: { value: string; label: string; pattern: string; desc: string; Icon: React.ElementType }[] = [
+  { value: 'fadiman', label: 'Fadiman', pattern: '1 día ON / 2 días OFF', desc: 'Ideal para principiantes. Permite observar efectos y previene tolerancia.', Icon: Flask },
+  { value: 'stamets', label: 'Stamets', pattern: '4 días ON / 3 días OFF', desc: 'Apilamiento intensivo. Enfocado en neurogénesis y creatividad sostenida.', Icon: Leaf },
+  { value: 'intuitive', label: 'Intuitivo', pattern: 'Sin patrón fijo', desc: 'Tú decides cuándo tomar, escuchando a tu cuerpo. Requiere experiencia.', Icon: Sparkle },
+  { value: 'every_x_days', label: 'Cada X Días', pattern: 'Intervalo personalizado', desc: 'Define un intervalo regular entre cada toma.', Icon: Repeat },
+  { value: 'specific_days', label: 'Días Específicos', pattern: 'Selección semanal', desc: 'Elige qué días de la semana quieres tomar.', Icon: CalendarDots },
+  { value: 'custom', label: 'Personalizado', pattern: 'Configuración manual', desc: 'Define tu propio ciclo de días de toma y días de descanso.', Icon: Faders },
+];
+
+const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const WEEKDAY_HEADERS = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'];
+
+/* ────────────────────────────────────────────────────── */
+/*  Component                                              */
+/* ────────────────────────────────────────────────────── */
 
 const ProtocolConfig: React.FC = () => {
   const navigate = useNavigate();
@@ -49,18 +74,17 @@ const ProtocolConfig: React.FC = () => {
   });
 
   const [customDays, setCustomDays] = useState<CustomDays>({
-    lunes: false,
-    martes: false,
-    miercoles: false,
-    jueves: false,
-    viernes: false,
-    sabado: false,
-    domingo: false
+    lunes: false, martes: false, miercoles: false,
+    jueves: false, viernes: false, sabado: false, domingo: false
   });
 
   const [everyXDays, setEveryXDays] = useState<number>(3);
   const [customPattern, setCustomPattern] = useState<CustomPattern>({ on: 1, off: 2 });
   const [suggestionsApplied, setSuggestionsApplied] = useState<boolean>(false);
+
+  // Calendar state
+  const [calMonth, setCalMonth] = useState<number>(new Date().getMonth());
+  const [calYear, setCalYear] = useState<number>(new Date().getFullYear());
 
   // ─── Receta suggestions ──────────────────────────────────────
 
@@ -79,7 +103,6 @@ const ProtocolConfig: React.FC = () => {
     const suggestedCustomPattern = extractCustomPattern(activeReceta.protocolo);
     let suggestedEveryXDays = extractEveryXDays(activeReceta.protocolo);
 
-    // Inference fallback: if protocolo is null but we have doses + duration, try to infer
     let inferred = false;
     if (!suggestedFrequency) {
       const inference = inferFrequencyFromDosesAndDuration(
@@ -107,7 +130,6 @@ const ProtocolConfig: React.FC = () => {
     };
   }, [activeReceta]);
 
-  // Extra dose option if receta gramaje not in presets
   const extraDoseOptions = useMemo((): DoseOption[] => {
     if (!recetaSuggestions?.dose) return [];
     const exists = DOSE_OPTIONS.some(o => o.value === recetaSuggestions.dose);
@@ -117,10 +139,9 @@ const ProtocolConfig: React.FC = () => {
     return [{ value: val, label: `${val}g`, sublabel: `${mg}mg` }];
   }, [recetaSuggestions]);
 
-  // Estimated duration based on current frequency + total authorized doses
   const estimatedDuration = useMemo(() => {
     if (!recetaSuggestions?.totalMicro) return null;
-    if (recetaSuggestions.duration) return null; // explicit duration takes precedence
+    if (recetaSuggestions.duration) return null;
 
     let freqValue: { [k: string]: unknown } | null = null;
     switch (protocol.frequency) {
@@ -160,6 +181,13 @@ const ProtocolConfig: React.FC = () => {
       } else if (existingProtocolData.frequency === 'custom' && existingProtocolData.frequency_value) {
         setCustomPattern(existingProtocolData.frequency_value);
       }
+
+      // Sync calendar to existing start date
+      if (existingProtocolData.start_date) {
+        const [y, m] = existingProtocolData.start_date.split('-').map(Number);
+        setCalYear(y);
+        setCalMonth(m - 1);
+      }
     }
     setProtocolLoaded(true);
   }, [existingProtocolData]);
@@ -171,7 +199,6 @@ const ProtocolConfig: React.FC = () => {
 
     const s = recetaSuggestions;
 
-    // Apply frequency
     if (s.frequency) {
       setProtocol(prev => ({ ...prev, frequency: s.frequency! }));
       if (s.frequency === 'custom' && s.customPattern) {
@@ -180,16 +207,12 @@ const ProtocolConfig: React.FC = () => {
       if (s.frequency === 'every_x_days' && s.everyXDays) {
         setEveryXDays(s.everyXDays);
       }
-    } else {
-      // No recognized protocol and no inference — keep initial default (fadiman)
     }
 
-    // Apply dose
     if (s.dose) {
       setProtocol(prev => ({ ...prev, dose: s.dose! }));
     }
 
-    // Apply explicit duration
     if (s.duration) {
       setProtocol(prev => ({ ...prev, duration: s.duration! }));
     }
@@ -197,14 +220,90 @@ const ProtocolConfig: React.FC = () => {
     setSuggestionsApplied(true);
   }, [protocolLoaded, existingProtocol, suggestionsApplied, recetaSuggestions]);
 
-  // Update estimated duration when frequency changes (for new protocols without explicit duration)
   useEffect(() => {
     if (!suggestionsApplied || existingProtocol) return;
-    if (recetaSuggestions?.duration) return; // explicit duration — don't override
+    if (recetaSuggestions?.duration) return;
     if (estimatedDuration && !protocol.duration) {
       setProtocol(prev => ({ ...prev, duration: estimatedDuration }));
     }
   }, [estimatedDuration, suggestionsApplied, existingProtocol, recetaSuggestions]);
+
+  // ─── Derived ────────────────────────────────────────────────
+
+  const isIntuitive = protocol.frequency === 'intuitive';
+  const totalSteps = isIntuitive ? 2 : 3;
+  const progress = Math.round((step / totalSteps) * 100);
+  const suggestedFreq = recetaSuggestions?.frequency || null;
+
+  // ─── Time display ───────────────────────────────────────────
+
+  const timeDisplay = useMemo(() => {
+    const [h, m] = protocol.doseTime.split(':').map(Number);
+    const isAM = h < 12;
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return {
+      hours: String(h12).padStart(2, '0'),
+      minutes: String(m).padStart(2, '0'),
+      isAM
+    };
+  }, [protocol.doseTime]);
+
+  const toggleAMPM = () => {
+    const [h, m] = protocol.doseTime.split(':').map(Number);
+    const newH = h < 12 ? h + 12 : h - 12;
+    setProtocol(prev => ({
+      ...prev,
+      doseTime: `${String(newH).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+    }));
+  };
+
+  // ─── Summary helpers ────────────────────────────────────────
+
+  const getFreqLabel = (): string => {
+    switch (protocol.frequency) {
+      case 'fadiman': return 'Protocolo Fadiman';
+      case 'stamets': return 'Stamets Stack';
+      case 'intuitive': return 'Modo Intuitivo';
+      case 'every_x_days': return `Cada ${everyXDays} días`;
+      case 'specific_days': {
+        const sel = Object.entries(customDays).filter(([, v]) => v).map(([k]) => k.slice(0, 3));
+        return sel.length > 0 ? sel.join(', ') : 'Días específicos';
+      }
+      case 'custom': return `Personalizado`;
+      default: return 'Protocolo';
+    }
+  };
+
+  const getFreqBadge = (): string => {
+    switch (protocol.frequency) {
+      case 'fadiman': return '1 ON / 2 OFF';
+      case 'stamets': return '4 ON / 3 OFF';
+      case 'intuitive': return 'Libre';
+      case 'every_x_days': return `Cada ${everyXDays}d`;
+      case 'specific_days': {
+        const count = Object.values(customDays).filter(Boolean).length;
+        return `${count} días/sem`;
+      }
+      case 'custom': return `${customPattern.on} ON / ${customPattern.off} OFF`;
+      default: return '';
+    }
+  };
+
+  const getDurationDisplay = (): string => {
+    if (!protocol.duration) return 'Sin definir';
+    const d = parseInt(String(protocol.duration));
+    if (d >= 28) return `${Math.round(d / 7)} Semanas`;
+    return `${d} Días`;
+  };
+
+  const getEndDateEstimate = (): string => {
+    if (!protocol.duration || !protocol.startDate) return '';
+    const d = parseInt(String(protocol.duration));
+    if (isNaN(d) || d <= 0) return '';
+    const [y, m, day] = protocol.startDate.split('-').map(Number);
+    const end = new Date(y, m - 1, day + d);
+    return `~${end.getDate()} ${MONTH_NAMES[end.getMonth()].slice(0, 3)}`;
+  };
 
   // ─── Handlers ────────────────────────────────────────────────
 
@@ -213,10 +312,7 @@ const ProtocolConfig: React.FC = () => {
   };
 
   const handleDayToggle = (day: keyof CustomDays) => {
-    setCustomDays(prev => ({
-      ...prev,
-      [day]: !prev[day]
-    }));
+    setCustomDays(prev => ({ ...prev, [day]: !prev[day] }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -266,185 +362,261 @@ const ProtocolConfig: React.FC = () => {
     }
   };
 
-  const formatDateDisplay = (dateStr: string): string => {
-    if (!dateStr) return '';
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('es-ES', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
+  const canAdvance = (): boolean => {
+    if (step === 1 && protocol.frequency === 'specific_days') {
+      return Object.values(customDays).some(Boolean);
+    }
+    return true;
   };
 
-  const isIntuitive = protocol.frequency === 'intuitive';
-
-  // Which frequency should show "Sugerido" badge
-  const suggestedFreq = recetaSuggestions?.frequency || null;
-
-  // Helper to build frequency card className
-  const freqCardClass = (freq: string) => {
-    const isActive = protocol.frequency === freq;
-    const isRecommended = suggestedFreq === freq && !isActive;
-    return `${styles.frequencyCard} ${isActive ? styles.active : ''} ${isRecommended ? styles.frequencyCardRecommended : ''}`;
+  const handleNext = () => {
+    if (step < totalSteps && canAdvance()) setStep(step + 1);
   };
+
+  // ─── Calendar helpers ───────────────────────────────────────
+
+  const handleCalPrev = () => {
+    if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1); }
+    else setCalMonth(m => m - 1);
+  };
+
+  const handleCalNext = () => {
+    if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1); }
+    else setCalMonth(m => m + 1);
+  };
+
+  const handleDayClick = (day: number) => {
+    const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    setProtocol(prev => ({ ...prev, startDate: dateStr }));
+  };
+
+  const goToToday = () => {
+    const now = new Date();
+    setCalMonth(now.getMonth());
+    setCalYear(now.getFullYear());
+    setProtocol(prev => ({ ...prev, startDate: toLocalDateString() }));
+  };
+
+  // ─── Render: Calendar ───────────────────────────────────────
+
+  const renderCalendar = () => {
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const [selY, selM, selD] = protocol.startDate.split('-').map(Number);
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    return (
+      <div className={styles.calendarCard}>
+        <div className={styles.calendarNav}>
+          <h3 className={styles.calendarMonth}>{MONTH_NAMES[calMonth]} {calYear}</h3>
+          <div className={styles.calendarArrows}>
+            <button type="button" onClick={handleCalPrev} className={styles.calArrowBtn}>
+              <CaretLeft size={20} weight="bold" />
+            </button>
+            <button type="button" onClick={handleCalNext} className={styles.calArrowBtn}>
+              <CaretRight size={20} weight="bold" />
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.calendarWeekdays}>
+          {WEEKDAY_HEADERS.map(d => <span key={d}>{d}</span>)}
+        </div>
+
+        <div className={styles.calendarGrid}>
+          {Array.from({ length: firstDay }).map((_, i) => (
+            <div key={`empty-${i}`} className={styles.calendarEmpty} />
+          ))}
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day = i + 1;
+            const isSelected = selY === calYear && selM - 1 === calMonth && selD === day;
+            const isToday = today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === day;
+            const isPast = new Date(calYear, calMonth, day) < todayStart;
+
+            return (
+              <button
+                key={day}
+                type="button"
+                className={`${styles.calendarDay} ${isSelected ? styles.calDaySelected : ''} ${isToday && !isSelected ? styles.calDayToday : ''} ${isPast && !isSelected ? styles.calDayPast : ''}`}
+                onClick={() => handleDayClick(day)}
+              >
+                {day}
+                {isSelected && <span className={styles.calDayDot} />}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className={styles.calendarTodayRow}>
+          <button type="button" className={styles.todayBtn} onClick={goToToday}>
+            <CalendarBlank size={14} weight="bold" /> Hoy
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // ─── Render: Summary Card ───────────────────────────────────
+
+  const renderSummary = () => (
+    <div className={styles.summaryCard}>
+      <div className={styles.summaryAccent} />
+      <div className={styles.summaryBody}>
+        <h3 className={styles.summaryTitle}>
+          <ClipboardText size={22} weight="duotone" />
+          Resumen del Protocolo
+        </h3>
+
+        <div className={styles.summaryRows}>
+          {/* Frequency */}
+          <div className={styles.summaryRow}>
+            <div className={styles.summaryLeft}>
+              <div className={styles.summaryIcon}><CalendarDots size={20} weight="duotone" /></div>
+              <div>
+                <p className={styles.summaryLabel}>{getFreqLabel()}</p>
+                <p className={styles.summarySub}>Frecuencia</p>
+              </div>
+            </div>
+            <span className={styles.summaryBadge}>{getFreqBadge()}</span>
+          </div>
+
+          {/* Dose */}
+          <div className={styles.summaryRow}>
+            <div className={styles.summaryLeft}>
+              <div className={styles.summaryIcon}><Pill size={20} weight="duotone" /></div>
+              <div>
+                <p className={styles.summaryLabel}>Microdosis</p>
+                <p className={styles.summarySub}>Dosis Diaria</p>
+              </div>
+            </div>
+            <span className={styles.summaryValue}>{protocol.dose}g</span>
+          </div>
+
+          {/* Duration */}
+          {!isIntuitive && (
+            <div className={`${styles.summaryRow} ${styles.summaryRowLast}`}>
+              <div className={styles.summaryLeft}>
+                <div className={styles.summaryIcon}><Timer size={20} weight="duotone" /></div>
+                <div>
+                  <p className={styles.summaryLabel}>{getDurationDisplay()}</p>
+                  <p className={styles.summarySub}>Duración Estimada</p>
+                </div>
+              </div>
+              {getEndDateEstimate() && (
+                <span className={styles.summaryValue}>{getEndDateEstimate()}</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ─── Main Render ────────────────────────────────────────────
 
   return (
     <div className={styles.protocol}>
-      <div className={styles.header}>
-        <button
-          className={styles.backButton}
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft size={20} weight="bold" />
-        </button>
-        <h1 className={styles.title}>
-          {existingProtocol ? 'Editar Protocolo' : 'Configurar Protocolo'}
-        </h1>
-        <div style={{ width: 36 }}></div>
-      </div>
-
-      <div className={styles.stepIndicator}>
-        <div className={`${styles.stepDot} ${step >= 1 ? styles.stepActive : ''}`}>1</div>
-        <div className={styles.stepLine}></div>
-        <div className={`${styles.stepDot} ${step >= 2 ? styles.stepActive : ''}`}>2</div>
-      </div>
-
-      {/* Receta suggestion banner */}
-      {recetaSuggestions && (recetaSuggestions.rawGramaje || recetaSuggestions.rawProtocolo || recetaSuggestions.rawDuracion || recetaSuggestions.totalMicro > 0 || recetaSuggestions.inferred) && (
-        <div className={styles.recetaBanner}>
-          <span className={styles.recetaBannerIcon}>📋</span>
-          <div className={styles.recetaBannerContent}>
-            <div className={styles.recetaBannerTitle}>Tu receta sugiere</div>
-            <div className={styles.recetaBannerDetail}>
-              {recetaSuggestions.rawGramaje && (
-                <>Dosis: <strong>{recetaSuggestions.rawGramaje}</strong> · </>
-              )}
-              {recetaSuggestions.rawProtocolo && (
-                <>Protocolo: <strong>{recetaSuggestions.rawProtocolo}</strong> · </>
-              )}
-              {!recetaSuggestions.rawProtocolo && recetaSuggestions.inferred && recetaSuggestions.everyXDays && (
-                <>Frecuencia estimada: <strong>cada {recetaSuggestions.everyXDays} días</strong> · </>
-              )}
-              {recetaSuggestions.totalMicro > 0 && (
-                <>{recetaSuggestions.totalMicro} cápsulas autorizadas</>
-              )}
-              {recetaSuggestions.rawDuracion && (
-                <> · Duración: <strong>{recetaSuggestions.rawDuracion}</strong></>
-              )}
-            </div>
+      {/* ═══ HEADER (sticky with progress bar) ═══ */}
+      <header className={styles.header}>
+        <div className={styles.headerTop}>
+          <button
+            type="button"
+            className={styles.backButton}
+            onClick={() => step > 1 ? setStep(step - 1) : navigate(-1)}
+          >
+            <ArrowLeft size={20} weight="bold" />
+          </button>
+          <h1 className={styles.headerTitle}>Configuración de Protocolo</h1>
+          <div className={styles.headerSpacer} />
+        </div>
+        <div className={styles.progressSection}>
+          <div className={styles.progressInfo}>
+            <span>Paso {step} de {totalSteps}</span>
+            <span>{progress}%</span>
+          </div>
+          <div className={styles.progressTrack}>
+            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
           </div>
         </div>
-      )}
+      </header>
 
-      <form onSubmit={handleSubmit} className={styles.form}>
+      {/* ═══ FORM ═══ */}
+      <form onSubmit={handleSubmit}>
+        <main className={styles.content}>
 
-        {step === 1 && (
-          <>
-            {/* FRECUENCIA */}
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>🔄 Tipo de Protocolo</h2>
-
-              <div className={styles.frequencyOptions}>
-                <label className={freqCardClass('intuitive')}>
-                  <input
-                    type="radio"
-                    name="frequency"
-                    value="intuitive"
-                    checked={protocol.frequency === 'intuitive'}
-                    onChange={(e) => handleFrequencyChange(e.target.value)}
-                  />
-                  <div className={styles.cardContent}>
-                    <h3>🧘 Intuitivo</h3>
-                    <p>Sin horarios fijos. Tomas cuando lo sientes.</p>
-                    <span className={styles.badgeFree}>Libre</span>
+          {/* ─── STEP 1: FREQUENCY ────────────────────────── */}
+          {step === 1 && (
+            <>
+              {/* Receta banner */}
+              {recetaSuggestions && (recetaSuggestions.rawGramaje || recetaSuggestions.rawProtocolo || (recetaSuggestions.totalMicro ?? 0) > 0 || recetaSuggestions.inferred) && (
+                <div className={styles.recetaBanner}>
+                  <Pill size={22} weight="duotone" className={styles.recetaIcon} />
+                  <div>
+                    <p className={styles.recetaTitle}>Tu receta sugiere</p>
+                    <p className={styles.recetaDetail}>
+                      {recetaSuggestions.rawGramaje && (<>Dosis: <strong>{recetaSuggestions.rawGramaje}</strong> · </>)}
+                      {recetaSuggestions.rawProtocolo && (<>Protocolo: <strong>{recetaSuggestions.rawProtocolo}</strong> · </>)}
+                      {!recetaSuggestions.rawProtocolo && recetaSuggestions.inferred && recetaSuggestions.everyXDays && (
+                        <>Frecuencia estimada: <strong>cada {recetaSuggestions.everyXDays} días</strong> · </>
+                      )}
+                      {(recetaSuggestions.totalMicro ?? 0) > 0 && <>{recetaSuggestions.totalMicro} cápsulas autorizadas</>}
+                      {recetaSuggestions.rawDuracion && (<> · Duración: <strong>{recetaSuggestions.rawDuracion}</strong></>)}
+                    </p>
                   </div>
-                </label>
+                </div>
+              )}
 
-                <label className={freqCardClass('fadiman')}>
-                  <input
-                    type="radio"
-                    name="frequency"
-                    value="fadiman"
-                    checked={protocol.frequency === 'fadiman'}
-                    onChange={(e) => handleFrequencyChange(e.target.value)}
-                  />
-                  <div className={styles.cardContent}>
-                    <h3>Protocolo Fadiman</h3>
-                    <p>1 día ON, 2 días OFF</p>
-                    <span className={styles.badge}>Clásico</span>
-                  </div>
-                </label>
-
-                <label className={freqCardClass('stamets')}>
-                  <input
-                    type="radio"
-                    name="frequency"
-                    value="stamets"
-                    checked={protocol.frequency === 'stamets'}
-                    onChange={(e) => handleFrequencyChange(e.target.value)}
-                  />
-                  <div className={styles.cardContent}>
-                    <h3>Protocolo Stamets</h3>
-                    <p>4 días ON, 3 días OFF</p>
-                    <span className={styles.badge}>Popular</span>
-                  </div>
-                </label>
-
-                <label className={freqCardClass('every_x_days')}>
-                  <input
-                    type="radio"
-                    name="frequency"
-                    value="every_x_days"
-                    checked={protocol.frequency === 'every_x_days'}
-                    onChange={(e) => handleFrequencyChange(e.target.value)}
-                  />
-                  <div className={styles.cardContent}>
-                    <h3>Cada X días</h3>
-                    <p>Personaliza el intervalo</p>
-                  </div>
-                </label>
-
-                <label className={freqCardClass('specific_days')}>
-                  <input
-                    type="radio"
-                    name="frequency"
-                    value="specific_days"
-                    checked={protocol.frequency === 'specific_days'}
-                    onChange={(e) => handleFrequencyChange(e.target.value)}
-                  />
-                  <div className={styles.cardContent}>
-                    <h3>Días específicos</h3>
-                    <p>Elige qué días de la semana</p>
-                  </div>
-                </label>
-
-                <label className={freqCardClass('custom')}>
-                  <input
-                    type="radio"
-                    name="frequency"
-                    value="custom"
-                    checked={protocol.frequency === 'custom'}
-                    onChange={(e) => handleFrequencyChange(e.target.value)}
-                  />
-                  <div className={styles.cardContent}>
-                    <h3>Patrón personalizado</h3>
-                    <p>X días ON, Y días OFF</p>
-                  </div>
-                </label>
+              <div className={styles.stepHeader}>
+                <h2 className={styles.stepTitle}>¿Cuál es tu frecuencia?</h2>
+                <p className={styles.stepSubtitle}>
+                  Selecciona el ritmo de microdosis que mejor se adapte a tus objetivos y estilo de vida.
+                </p>
               </div>
 
+              {/* Frequency radio cards */}
+              <div className={styles.radioGroup}>
+                {FREQ_OPTIONS.map(opt => {
+                  const isActive = protocol.frequency === opt.value;
+                  const isSuggested = suggestedFreq === opt.value && !isActive;
+                  return (
+                    <label
+                      key={opt.value}
+                      className={`${styles.radioCard} ${isActive ? styles.radioCardActive : ''} ${isSuggested ? styles.radioCardSuggested : ''}`}
+                    >
+                      <div className={styles.radioCheck}>
+                        <input
+                          type="radio"
+                          name="frequency"
+                          value={opt.value}
+                          checked={isActive}
+                          onChange={(e) => handleFrequencyChange(e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.radioBody}>
+                        <div className={styles.radioTitleRow}>
+                          <opt.Icon size={20} weight={isActive ? 'fill' : 'duotone'} className={styles.radioFreqIcon} />
+                          <span className={styles.radioLabel}>{opt.label}</span>
+                        </div>
+                        <p className={styles.radioPattern}>{opt.pattern}</p>
+                        <p className={styles.radioDesc}>{opt.desc}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Conditional sub-inputs */}
               {protocol.frequency === 'every_x_days' && (
-                <div className={styles.frequencyDetail}>
-                  <label>Cada cuántos días:</label>
+                <div className={styles.subInput}>
+                  <label className={styles.subInputLabel}>Cada cuántos días:</label>
                   <input
                     type="number"
                     inputMode="numeric"
-                    min="1"
-                    max="30"
+                    min={1}
+                    max={30}
                     value={everyXDays}
-                    onChange={(e) => setEveryXDays(parseInt(e.target.value))}
+                    onChange={(e) => setEveryXDays(parseInt(e.target.value) || 3)}
                     className={styles.numberInput}
                   />
                   <p className={styles.hint}>Ejemplo: cada 3 días</p>
@@ -452,14 +624,14 @@ const ProtocolConfig: React.FC = () => {
               )}
 
               {protocol.frequency === 'specific_days' && (
-                <div className={styles.frequencyDetail}>
-                  <label>Selecciona los días:</label>
+                <div className={styles.subInput}>
+                  <label className={styles.subInputLabel}>Selecciona los días:</label>
                   <div className={styles.daysGrid}>
                     {Object.keys(customDays).map(day => (
                       <button
                         key={day}
                         type="button"
-                        className={`${styles.dayButton} ${customDays[day as keyof CustomDays] ? styles.active : ''}`}
+                        className={`${styles.dayButton} ${customDays[day as keyof CustomDays] ? styles.dayButtonActive : ''}`}
                         onClick={() => handleDayToggle(day as keyof CustomDays)}
                       >
                         {day.charAt(0).toUpperCase() + day.slice(1, 3)}
@@ -470,29 +642,29 @@ const ProtocolConfig: React.FC = () => {
               )}
 
               {protocol.frequency === 'custom' && (
-                <div className={styles.frequencyDetail}>
-                  <label>Patrón personalizado:</label>
-                  <div className={styles.customPattern}>
-                    <div className={styles.patternInput}>
+                <div className={styles.subInput}>
+                  <label className={styles.subInputLabel}>Patrón personalizado:</label>
+                  <div className={styles.patternRow}>
+                    <div className={styles.patternField}>
                       <input
                         type="number"
                         inputMode="numeric"
-                        min="1"
-                        max="10"
+                        min={1}
+                        max={10}
                         value={customPattern.on}
-                        onChange={(e) => setCustomPattern(prev => ({ ...prev, on: parseInt(e.target.value) }))}
+                        onChange={(e) => setCustomPattern(prev => ({ ...prev, on: parseInt(e.target.value) || 1 }))}
                         className={styles.numberInput}
                       />
                       <span>días ON</span>
                     </div>
-                    <div className={styles.patternInput}>
+                    <div className={styles.patternField}>
                       <input
                         type="number"
                         inputMode="numeric"
-                        min="1"
-                        max="10"
+                        min={1}
+                        max={10}
                         value={customPattern.off}
-                        onChange={(e) => setCustomPattern(prev => ({ ...prev, off: parseInt(e.target.value) }))}
+                        onChange={(e) => setCustomPattern(prev => ({ ...prev, off: parseInt(e.target.value) || 2 }))}
                         className={styles.numberInput}
                       />
                       <span>días OFF</span>
@@ -500,109 +672,202 @@ const ProtocolConfig: React.FC = () => {
                   </div>
                 </div>
               )}
-            </div>
 
-            {/* MENSAJE INTUITIVO */}
-            {isIntuitive && (
-              <div className={styles.intuitiveInfo}>
-                <span className={styles.intuitiveIcon}>🧘</span>
-                <h3>Modo Intuitivo</h3>
-                <p>No recibirás recordatorios ni tendrás días programados. Simplemente registra tus dosis y reflexiones cuando lo desees.</p>
+              {isIntuitive && (
+                <div className={styles.intuitiveNote}>
+                  <Sparkle size={20} weight="fill" />
+                  <p>No recibirás recordatorios ni tendrás días programados. Simplemente registra tus dosis cuando lo desees.</p>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ─── STEP 2: DOSE & TIME ─────────────────────── */}
+          {step === 2 && (
+            <>
+              <div className={`${styles.stepHeader} ${styles.stepHeaderCentered}`}>
+                <h2 className={`${styles.stepTitle} ${styles.stepTitlePrimary}`}>Dosis{!isIntuitive ? ' y Horario' : ''}</h2>
+                <p className={styles.stepSubtitle}>
+                  {isIntuitive
+                    ? 'Define la cantidad para tu toma.'
+                    : 'Define la cantidad y el momento ideal para tu toma diaria.'}
+                </p>
               </div>
-            )}
 
-            <div className={styles.stepNav}>
-              <div></div>
-              <button type="button" className={styles.nextStepButton} onClick={() => setStep(2)}>
-                Siguiente <ArrowRight size={18} weight="bold" />
+              {/* Dose Card */}
+              <section className={styles.configSection}>
+                <label className={styles.sectionLabel}>Definir Dosis</label>
+                <div className={styles.configCard}>
+                  {recetaSuggestions?.dose && (
+                    <div className={styles.doseRecommend}>
+                      <div className={styles.doseRecommendIcon}>
+                        <Pill size={20} weight="duotone" />
+                      </div>
+                      <div className={styles.doseRecommendText}>
+                        <p className={styles.recommendedTag}>Recomendado</p>
+                        <p className={styles.recommendedDesc}>
+                          Basado en tu prescripción activa, te sugerimos comenzar con una dosis baja.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <DosePicker
+                    selectedDose={Number(protocol.dose)}
+                    onSelect={(val) => setProtocol(prev => ({ ...prev, dose: val }))}
+                    recommendedDose={recetaSuggestions?.dose ?? null}
+                    extraOptions={extraDoseOptions}
+                  />
+
+                  {(recetaSuggestions?.totalMicro ?? 0) > 0 && (
+                    <p className={styles.stockInfo}>
+                      Stock disponible: {recetaSuggestions!.totalMicro} caps ({protocol.dose}g c/u)
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              {/* Time Card */}
+              {!isIntuitive && (
+                <section className={styles.configSection}>
+                  <label className={styles.sectionLabel}>Recordatorio Diario</label>
+                  <div className={styles.timeCard}>
+                    <div className={styles.timeLabel}>
+                      <SunHorizon size={18} weight="duotone" />
+                      <span>Hora de la toma</span>
+                    </div>
+
+                    <div className={styles.timeDisplayWrap}>
+                      <div className={styles.timeBlock}>
+                        <span className={styles.timeValue}>{timeDisplay.hours}</span>
+                        <span className={styles.timeBlockLabel}>Hora</span>
+                      </div>
+                      <span className={styles.timeSeparator}>:</span>
+                      <div className={styles.timeBlock}>
+                        <span className={styles.timeValue}>{timeDisplay.minutes}</span>
+                        <span className={styles.timeBlockLabel}>Min</span>
+                      </div>
+                      <input
+                        type="time"
+                        className={styles.timeHiddenInput}
+                        value={protocol.doseTime}
+                        onChange={(e) => setProtocol(prev => ({ ...prev, doseTime: e.target.value }))}
+                      />
+                    </div>
+
+                    <div className={styles.ampmToggle}>
+                      <button
+                        type="button"
+                        className={`${styles.ampmBtn} ${timeDisplay.isAM ? styles.ampmActive : ''}`}
+                        onClick={() => !timeDisplay.isAM && toggleAMPM()}
+                      >
+                        AM
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.ampmBtn} ${!timeDisplay.isAM ? styles.ampmActive : ''}`}
+                        onClick={() => timeDisplay.isAM && toggleAMPM()}
+                      >
+                        PM
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Duration */}
+              {!isIntuitive && (
+                <section className={styles.configSection}>
+                  <label className={styles.sectionLabel}>
+                    Duración del Protocolo <span className={styles.optional}>(Opcional)</span>
+                  </label>
+                  <div className={styles.configCard}>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={365}
+                      value={protocol.duration || ''}
+                      onChange={(e) => setProtocol(prev => ({ ...prev, duration: e.target.value }))}
+                      className={styles.durationInput}
+                      placeholder="Ej: 30 días"
+                    />
+                    <p className={styles.hint}>¿Por cuántos días planeas seguir este protocolo?</p>
+                    {estimatedDuration && (
+                      <p className={styles.durationHint}>
+                        <Pill size={14} weight="fill" /> Con {recetaSuggestions?.totalMicro} cápsulas: ~{estimatedDuration} días
+                      </p>
+                    )}
+                    {recetaSuggestions?.rawDuracion && (
+                      <p className={styles.durationHint}>
+                        <Pill size={14} weight="fill" /> Receta sugiere: {recetaSuggestions.rawDuracion}
+                      </p>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* Summary for intuitive (last step) */}
+              {isIntuitive && renderSummary()}
+            </>
+          )}
+
+          {/* ─── STEP 3: DATE + SUMMARY (non-intuitive) ──── */}
+          {step === 3 && !isIntuitive && (
+            <>
+              <div className={styles.stepHeader}>
+                <h2 className={`${styles.stepTitle} ${styles.stepTitleLarge}`}>Fecha de Inicio</h2>
+                <p className={styles.stepSubtitle}>
+                  Selecciona cuándo quieres comenzar tu protocolo. Recomendamos empezar un día sin grandes compromisos.
+                </p>
+              </div>
+
+              {renderCalendar()}
+              {renderSummary()}
+
+              <div className={styles.infoNote}>
+                <Info size={20} weight="fill" className={styles.infoIcon} />
+                <p>Podrás ajustar la dosis y el horario en cualquier momento desde la configuración de tu perfil.</p>
+              </div>
+            </>
+          )}
+        </main>
+
+        {/* ═══ FOOTER ═══ */}
+        <footer className={`${styles.footer} ${step === 1 ? styles.footerGradient : ''}`}>
+          <div className={styles.footerInner}>
+            {step === 1 && (
+              <button
+                type="button"
+                className={styles.continueFullBtn}
+                onClick={handleNext}
+                disabled={!canAdvance()}
+              >
+                Continuar
+                <ArrowRight size={20} weight="bold" />
               </button>
-            </div>
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            {/* FECHA DE INICIO - Solo si NO es intuitivo */}
-            {!isIntuitive && (
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>📅 Fecha de Inicio</h2>
-                <input
-                  type="date"
-                  value={protocol.startDate}
-                  onChange={(e) => setProtocol(prev => ({ ...prev, startDate: e.target.value }))}
-                  className={styles.dateInput}
-                  required
-                />
-                <p className={styles.datePreview}>{formatDateDisplay(protocol.startDate)}</p>
-                <p className={styles.hint}>¿Cuándo comenzarás o comenzaste tu protocolo?</p>
-              </div>
             )}
 
-            {/* HORA - Solo si NO es intuitivo */}
-            {!isIntuitive && (
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>⏰ Hora de la Dosis</h2>
-                <input
-                  type="time"
-                  value={protocol.doseTime}
-                  onChange={(e) => setProtocol(prev => ({ ...prev, doseTime: e.target.value }))}
-                  className={styles.timeInput}
-                  required
-                />
-                <p className={styles.hint}>¿A qué hora prefieres tomar tu microdosis?</p>
-              </div>
+            {step > 1 && step < totalSteps && (
+              <>
+                <button type="button" className={styles.prevBtn} onClick={() => setStep(step - 1)}>
+                  Anterior
+                </button>
+                <button type="button" className={styles.continueBtn} onClick={handleNext}>
+                  Continuar
+                  <ArrowRight size={20} weight="bold" />
+                </button>
+              </>
             )}
 
-            {/* DOSIFICACIÓN */}
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>💊 Dosificación</h2>
-              <DosePicker
-                selectedDose={Number(protocol.dose)}
-                onSelect={(val) => setProtocol(prev => ({ ...prev, dose: val }))}
-                recommendedDose={recetaSuggestions?.dose ?? null}
-                extraOptions={extraDoseOptions}
-              />
-            </div>
-
-            {/* DURACIÓN (Opcional) - Solo si NO es intuitivo */}
-            {!isIntuitive && (
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>📆 Duración del Protocolo (Opcional)</h2>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min="1"
-                  max="365"
-                  value={protocol.duration || ''}
-                  onChange={(e) => setProtocol(prev => ({ ...prev, duration: e.target.value }))}
-                  className={styles.numberInput}
-                  placeholder="Ejemplo: 30 días"
-                />
-                <p className={styles.hint}>¿Por cuántos días planeas seguir este protocolo? Déjalo vacío si no lo sabes aún.</p>
-                {estimatedDuration && (
-                  <p className={styles.durationHint}>
-                    📋 Con {recetaSuggestions?.totalMicro} cápsulas y este protocolo: ~{estimatedDuration} días
-                  </p>
-                )}
-                {recetaSuggestions?.rawDuracion && (
-                  <p className={styles.durationHint}>
-                    📋 Receta sugiere: {recetaSuggestions.rawDuracion}
-                  </p>
-                )}
-              </div>
-            )}
-
-            <div className={styles.stepNav}>
-              <button type="button" className={styles.prevStepButton} onClick={() => setStep(1)}>
-                <ArrowLeft size={18} weight="bold" /> Volver
+            {step === totalSteps && step > 1 && (
+              <button type="submit" className={styles.saveBtn} disabled={loading}>
+                {loading ? 'Guardando...' : 'Guardar Protocolo'}
+                {!loading && <CheckCircle size={20} weight="bold" />}
               </button>
-              <button type="submit" className={styles.submitButton} disabled={loading}>
-                {loading ? 'Guardando...' : existingProtocol ? 'Actualizar Protocolo' : 'Guardar Protocolo'}
-              </button>
-            </div>
-          </>
-        )}
-
+            )}
+          </div>
+        </footer>
       </form>
     </div>
   );

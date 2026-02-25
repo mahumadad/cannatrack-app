@@ -9,7 +9,7 @@ import { requestNotificationPermission, getNotificationPermission, startNotifica
 import storage, { STORAGE_KEYS } from '../utils/storage';
 import { useProtocol, useBaseline, useShopifyProfile, useHasPassword, useDeleteProtocol, useChangePassword, useCreatePassword } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
-import BottomNav from './BottomNav';
+
 import type { User as UserType } from '../types';
 
 const Settings: React.FC = () => {
@@ -208,8 +208,8 @@ const Settings: React.FC = () => {
   return (
     <div className={styles.settings}>
       <div className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={24} weight="bold" /></button>
-        <h1 className={styles.title}>Configuración</h1>
+        <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
+        <h1 className={styles.title}>Mi Perfil</h1>
         <div className={styles.headerSpacer}></div>
       </div>
 
@@ -613,7 +613,6 @@ const Settings: React.FC = () => {
           </div>
         </div>
       )}
-      <BottomNav activePage="settings" />
     </div>
   );
 };

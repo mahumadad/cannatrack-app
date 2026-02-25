@@ -1,10 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { House, BookOpen, ChartLine, UserCircle, Plus } from '@phosphor-icons/react';
+import { House, BookOpen, ChartLine, Storefront, Plus } from '@phosphor-icons/react';
 import styles from './BottomNav.module.css';
 
 interface BottomNavProps {
-  activePage: 'dashboard' | 'reflect' | 'insights' | 'settings' | 'none';
+  activePage: 'dashboard' | 'reflect' | 'insights' | 'store' | 'none';
   onFabPress?: () => void;
 }
 
@@ -23,7 +23,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activePage, onFabPress }) => {
     { key: 'dashboard', icon: House, label: 'Inicio', route: '/dashboard' },
     { key: 'reflect', icon: BookOpen, label: 'Diario', route: '/reflect' },
     { key: 'insights', icon: ChartLine, label: 'Reportes', route: '/insights' },
-    { key: 'settings', icon: UserCircle, label: 'Perfil', route: '/settings' },
+    { key: 'store', icon: Storefront, label: 'Tienda', route: '/store' },
   ];
 
   const leftItems = navItems.slice(0, 2);

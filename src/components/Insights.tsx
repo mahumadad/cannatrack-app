@@ -421,7 +421,7 @@ const Insights: React.FC = () => {
       <div className={styles.insights}>
         <div className={styles.header}>
           <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
-          <h1 className={styles.title}>C&D</h1>
+          <h1 className={styles.title}>Análisis y Tendencias</h1>
           <div style={{ width: 36 }}></div>
         </div>
         <div className={styles.loading}>
@@ -437,7 +437,7 @@ const Insights: React.FC = () => {
       <div className={styles.insights}>
         <div className={styles.header}>
           <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
-          <h1 className={styles.title}>C&D</h1>
+          <h1 className={styles.title}>Análisis y Tendencias</h1>
           <div style={{ width: 36 }}></div>
         </div>
         <div className={styles.noData}>
@@ -766,9 +766,9 @@ const Insights: React.FC = () => {
   return (
     <div className={styles.insights}>
       <div className={styles.header}>
-        <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={24} weight="bold" /></button>
-        <h1 className={styles.title}>Análisis</h1>
-        <div style={{ width: 40 }}></div>
+        <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
+        <h1 className={styles.title}>Análisis y Tendencias</h1>
+        <div style={{ width: 36 }}></div>
       </div>
 
       <div className={styles.periodToggle}>

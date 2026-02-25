@@ -863,7 +863,7 @@ const BaselineForm: React.FC = () => {
     <div className={`${styles.baseline} ${styles.baselineEditing}`}>
       <div className={styles.header}>
         <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button>
-        <h1 className={styles.title}>Baseline</h1>
+        <h1 className={styles.title}>Evaluación Baseline</h1>
         <span className={styles.progress}>{completedSteps}/{totalSteps}</span>
       </div>
 
@@ -896,9 +896,12 @@ const BaselineForm: React.FC = () => {
             </button>
           ))}
         </div>
-        <button className={styles.nextButton} onClick={() => handleSave(true)} disabled={saving}>
-          {saving ? 'Guardando...' : currentSection === sections.length - 1 && subStep >= (sectionSubSteps[sections[currentSection].id] || 1) - 1 ? '🔒 Finalizar y Bloquear' : 'Continuar →'}
-        </button>
+        <div className={styles.footerButtons}>
+          <button className={styles.prevButton} onClick={goBack}>Anterior</button>
+          <button className={styles.nextButton} onClick={() => handleSave(true)} disabled={saving}>
+            {saving ? 'Guardando...' : currentSection === sections.length - 1 && subStep >= (sectionSubSteps[sections[currentSection].id] || 1) - 1 ? 'Finalizar' : 'Continuar'}
+          </button>
+        </div>
       </div>
     </div>
   );
