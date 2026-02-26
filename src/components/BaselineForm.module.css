@@ -4,7 +4,7 @@
 }
 
 .baselineEditing {
-  padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
 }
 
 .baselineResults {
@@ -58,56 +58,64 @@
   flex: 1;
 }
 
-.progress {
+/* ===== Step Counter ===== */
+.stepCounter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px 6px;
+}
+
+.stepCounter span:first-child {
   font-size: var(--text-sm);
   font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.stepCounter span:last-child {
+  font-size: var(--text-sm);
+  font-weight: 700;
   color: var(--color-primary);
-  background: rgba(165, 127, 80, 0.08);
-  padding: 6px 12px;
-  border-radius: 10px;
 }
 
 /* ===== Progress Bar ===== */
 .progressBar {
-  height: 6px;
-  background: rgba(165, 127, 80, 0.1);
+  height: 10px;
+  background: rgba(165, 127, 80, 0.12);
+  border-radius: 5px;
+  margin: 0 24px;
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
   background: var(--color-primary);
-  border-radius: 0 3px 3px 0;
+  border-radius: 5px;
   transition: width 0.5s ease;
 }
 
-/* ===== Section Header ===== */
-.sectionHeader {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 24px 20px 16px;
+/* ===== Section Heading (standalone) ===== */
+.sectionHeadingBlock {
+  padding: 20px 24px 8px;
 }
 
-.sectionIcon {
-  font-size: 40px;
-}
-
-.sectionTitle {
+.sectionHeadingTitle {
   font-size: var(--text-2xl);
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-text);
-  margin-bottom: 4px;
+  margin: 0;
 }
 
-.sectionDescription {
+.sectionHeadingDesc {
   font-size: var(--text-base);
   color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-top: 8px;
 }
 
 .subPageIndicator {
   display: inline-block;
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: var(--text-xs);
   font-weight: 700;
   color: var(--color-primary);
@@ -279,16 +287,53 @@
   color: var(--color-text-secondary);
 }
 
-/* ===== Instructions / Scale Key ===== */
-.instructions {
-  background: rgba(165, 127, 80, 0.06);
+/* ===== Reference Card (DASS/PSS) ===== */
+.referenceCard {
+  background: rgba(165, 127, 80, 0.05);
   border: 1px solid rgba(165, 127, 80, 0.1);
-  padding: 16px;
-  border-radius: 12px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  margin-bottom: 4px;
+}
+
+.referenceCard p {
   font-size: var(--text-base);
   color: var(--color-text-secondary);
   line-height: 1.5;
-  margin-bottom: 8px;
+  margin: 0;
+}
+
+.referenceTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.referenceList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.referenceItem {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.referenceNumber {
+  font-weight: 700;
+  color: var(--color-primary);
+  min-width: 16px;
+  text-align: center;
 }
 
 .subTitle {
@@ -298,24 +343,6 @@
   margin: 16px 0 8px;
   padding-top: 16px;
   border-top: 1px solid rgba(165, 127, 80, 0.1);
-}
-
-/* ===== Scale Key Legend ===== */
-.scaleKey {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 16px;
-  background: rgba(165, 127, 80, 0.06);
-  border: 1px solid rgba(165, 127, 80, 0.1);
-  border-radius: 12px;
-  margin-bottom: 4px;
-}
-
-.scaleKeyItem {
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
-  font-weight: 600;
 }
 
 /* ===== Question Card (DASS/PANAS/PSS) ===== */
@@ -344,125 +371,162 @@
   line-height: 1.5;
 }
 
-.questionNumber {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: white;
-  font-size: var(--text-xs);
-  font-weight: 700;
-  margin-right: 8px;
-  flex-shrink: 0;
-}
-
-/* ===== Scale Options (circular for DASS, grid for PANAS) ===== */
-.scaleOptions {
+/* ===== Circular Scale (DASS / PSS) ===== */
+.scaleRow {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 4px;
-  padding: 0 4px;
+  align-items: flex-start;
+  padding: 4px 0;
 }
 
-.scaleOption {
+.connectingLine {
+  height: 2px;
+  flex: 1;
+  background: rgba(165, 127, 80, 0.15);
+  margin: 0 -2px;
+  align-self: center;
+  margin-top: -16px;
+}
+
+.scaleCircleWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.scaleCircle {
   width: 44px;
   height: 44px;
-  border: 2px solid rgba(165, 127, 80, 0.2);
   border-radius: 50%;
+  border: 2px solid rgba(165, 127, 80, 0.2);
   background: white;
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.scaleCircle:hover {
+  border-color: var(--color-primary);
+  background: rgba(165, 127, 80, 0.06);
+}
+
+.scaleCircle.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  box-shadow: 0 3px 12px rgba(165, 127, 80, 0.3);
+  transform: scale(1.08);
+}
+
+.scaleLabel {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  white-space: nowrap;
+  font-weight: 500;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== PANAS Grid (5-col squares) ===== */
+.panasCard {
+  background: white;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(165, 127, 80, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  animation: fadeUp 0.3s ease-out both;
+}
+
+.panasEmotionLabel {
+  display: block;
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 12px;
+}
+
+.panasGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.panasSquare {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1.5px solid rgba(165, 127, 80, 0.2);
+  background: white;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  padding: 0;
-  flex-shrink: 0;
+  gap: 3px;
+  padding: 4px 2px;
 }
 
-.scaleOptionNumber {
-  font-size: var(--text-md);
+.panasSquare:hover {
+  border-color: var(--color-primary);
+  background: rgba(165, 127, 80, 0.04);
+}
+
+.panasSquare.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  box-shadow: 0 3px 12px rgba(165, 127, 80, 0.25);
+  transform: scale(1.04);
+}
+
+.panasSquareNumber {
+  font-size: var(--text-lg);
   font-weight: 700;
   line-height: 1;
 }
 
-.scaleOptionLabel {
-  font-size: 0;
-  opacity: 0;
-  height: 0;
-  overflow: hidden;
-}
-
-.scaleOption:hover {
-  border-color: var(--color-primary);
-  background: rgba(165, 127, 80, 0.06);
-}
-
-.scaleOption.selected {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
-  box-shadow: 0 2px 8px rgba(165, 127, 80, 0.3);
-}
-
-.scaleOption.selected .scaleOptionLabel {
-  opacity: 0;
-}
-
-/* ===== Section Indicators ===== */
-.sectionIndicators {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 0 12px;
-  width: 100%;
-}
-
-.indicator {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(165, 127, 80, 0.2);
-  background: white;
-  font-size: var(--text-base);
-  line-height: 1;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
+.panasSquareLabel {
+  font-size: 9px;
+  font-weight: 500;
   text-align: center;
+  line-height: 1.1;
+  opacity: 0.8;
 }
 
-.indicator:hover {
-  border-color: var(--color-primary);
+.panasSquare.selected .panasSquareLabel {
+  opacity: 1;
+  color: white;
 }
 
-.indicatorActive {
-  border-color: var(--color-primary);
+/* ===== Info Card ===== */
+.infoCard {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
   background: rgba(165, 127, 80, 0.08);
-  transform: scale(1.15);
+  border-radius: 14px;
+  align-items: flex-start;
 }
 
-.indicatorCompleted {
-  border-color: rgba(76, 175, 80, 0.5);
-  background: rgba(76, 175, 80, 0.08);
+.infoIcon {
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
-.indicatorDisabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  pointer-events: none;
+.infoCard p {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* ===== Footer ===== */
@@ -471,7 +535,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 0 20px calc(12px + env(safe-area-inset-bottom, 0px));
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
   background: rgba(247, 246, 242, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -526,38 +590,156 @@
   box-shadow: none;
 }
 
+/* ===== Progress Segments (results view) ===== */
+.progressSegments {
+  display: flex;
+  gap: 4px;
+  padding: 0 20px;
+  margin: 12px 0;
+}
+
+.progressSegment {
+  height: 6px;
+  flex: 1;
+  border-radius: 3px;
+  background: rgba(165, 127, 80, 0.15);
+}
+
+.progressSegmentFilled {
+  background: var(--color-primary);
+}
+
+/* ===== Success Section ===== */
+.successSection {
+  text-align: center;
+  padding: 32px 20px 24px;
+}
+
+.successIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(165, 127, 80, 0.12);
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.successHeading {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 8px;
+}
+
+.successDate {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* ===== Score Grid (3-col) ===== */
+.scoreGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.scoreBox {
+  border-radius: 14px;
+  background: rgba(165, 127, 80, 0.06);
+  padding: 16px 8px;
+  text-align: center;
+  border: 1px solid rgba(165, 127, 80, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.scoreBoxNumber {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.scoreBoxLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.scoreBoxSeverity {
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+/* ===== Lock Warning ===== */
+.lockWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(255, 183, 77, 0.1);
+  border: 1.5px solid rgba(255, 183, 77, 0.4);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.lockWarningIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.lockWarning strong {
+  display: block;
+  font-size: var(--text-base);
+  color: #E65100;
+  margin-bottom: 4px;
+}
+
+.lockWarning p {
+  font-size: var(--text-sm);
+  color: #BF360C;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ===== Dashboard Button ===== */
+.dashboardButton {
+  width: 100%;
+  padding: 16px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(165, 127, 80, 0.25);
+  margin-bottom: 20px;
+}
+
+.dashboardButton:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.dashboardButton:active {
+  transform: scale(0.98);
+}
+
 /* ===== Analysis View (completed baseline) ===== */
 .analysisContent {
   padding: 0 20px 40px;
-}
-
-.analysisBanner {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  background: rgba(76, 175, 80, 0.08);
-  border: 1px solid rgba(76, 175, 80, 0.15);
-  border-radius: 16px;
-}
-
-.analysisBannerIcon {
-  font-size: 36px;
-  flex-shrink: 0;
-}
-
-.analysisBanner h2 {
-  font-size: var(--text-lg);
-  font-weight: 700;
-  color: #2E7D32;
-  margin: 0 0 4px 0;
-}
-
-.analysisBanner p {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  margin: 0;
 }
 
 /* ===== Analysis Cards ===== */
@@ -692,124 +874,6 @@
   color: var(--color-primary);
   min-width: 36px;
   text-align: right;
-}
-
-/* ===== Score rows (DASS, PANAS, PSS) ===== */
-.analysisScores {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.scoreRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.scoreLabel {
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--color-text);
-  min-width: 90px;
-}
-
-.scoreBarContainer {
-  flex: 1;
-  height: 8px;
-  background: rgba(165, 127, 80, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-  min-width: 60px;
-}
-
-.scoreBar {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.6s ease;
-}
-
-.scoreValue {
-  font-size: var(--text-md);
-  font-weight: 700;
-  color: var(--color-text);
-  min-width: 36px;
-  text-align: right;
-}
-
-.scoreSeverity {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  width: 100%;
-  text-align: right;
-  margin-top: -4px;
-}
-
-/* ===== Life Satisfaction ===== */
-.lifeSatDisplay {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  margin: 12px 0;
-}
-
-.lifeSatValue {
-  font-size: 48px;
-  font-weight: 700;
-  color: var(--color-primary);
-}
-
-.lifeSatMax {
-  font-size: var(--text-xl);
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
-
-.lifeSatBar {
-  height: 8px;
-  background: rgba(165, 127, 80, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.lifeSatFill {
-  height: 100%;
-  background: var(--color-primary);
-  border-radius: 4px;
-  transition: width 0.6s ease;
-}
-
-/* ===== Actions ===== */
-.analysisActions {
-  margin-top: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
-}
-
-.contactAdmin {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  text-align: center;
-}
-
-.backToDashboard {
-  width: 100%;
-  padding: 16px;
-  background: white;
-  color: var(--color-primary);
-  border: 1.5px solid var(--color-primary);
-  border-radius: 12px;
-  font-size: var(--text-lg);
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.backToDashboard:hover {
-  background: rgba(165, 127, 80, 0.06);
 }
 
 /* ===== Final Warning ===== */

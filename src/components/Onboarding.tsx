@@ -3,10 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from './Toast';
 import { useUserRecord, useSaveBaseline, useMarkOnboarding } from '../hooks/queries';
 import {
-  Sparkle,
   NotePencil,
   Clock,
-  ChartLineUp,
   ArrowRight,
   ArrowLeft
 } from '@phosphor-icons/react';
@@ -34,7 +32,7 @@ const Onboarding: React.FC = () => {
     life_satisfaction: 5,
   });
 
-  const { data: userData, isLoading: loadingUser } = useUserRecord(user?.id);
+  const { data: userData } = useUserRecord(user?.id);
   const saveBaseline = useSaveBaseline();
   const markOnboarding = useMarkOnboarding(user?.id);
 
@@ -53,7 +51,8 @@ const Onboarding: React.FC = () => {
     if (userData) setLoading(false);
   }, [userData]);
 
-  const totalSteps = 5;
+  const totalSteps = 4;
+  const showcaseSteps = 3; // steps 0, 1, 2
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
@@ -97,75 +96,95 @@ const Onboarding: React.FC = () => {
     );
   }
 
+  const isShowcase = currentStep < showcaseSteps;
+
   const renderStep = () => {
     switch (currentStep) {
       case 0:
         return (
-          <div className={styles.slideContent}>
-            <p className={styles.welcomeTitle}>Bienvenido a</p>
-            <div className={styles.logoContainer}>
-              <img src="/logo-camellos.png" alt="Camellos & Dromedarios" className={styles.logo} />
+          <div className={styles.showcaseSlide}>
+            <div className={styles.heroArea}>
+              <div className={styles.heroGlow}></div>
+              <div className={styles.heroImage}>
+                <img src="/logo-camellos.png" alt="Camellos & Dromedarios" className={styles.heroLogo} />
+                <div className={styles.heroOverlay}></div>
+              </div>
             </div>
-            <p className={styles.subtitle}>Tu compañero de microdosificación</p>
+            <div className={styles.showcaseText}>
+              <div className={styles.iconBadge}>🌿</div>
+              <h1 className={styles.showcaseTitle}>
+                Bienvenido a tu camino de auto-investigación
+              </h1>
+              <p className={styles.showcaseDesc}>
+                DromedApp te acompaña en tu proceso de microdosis, ayudándote a registrar y entender tu experiencia de manera segura.
+              </p>
+            </div>
           </div>
         );
 
       case 1:
         return (
-          <div className={styles.slideContent}>
-            <div className={styles.iconCircle}>
-              <NotePencil size={64} weight="light" />
+          <div className={styles.showcaseSlide}>
+            <div className={styles.illustrationCircle}>
+              <div className={styles.illustrationGradient}></div>
+              <div className={styles.illustrationInner}>
+                <div className={styles.illustrationRing}></div>
+                <NotePencil size={80} weight="light" />
+              </div>
+              <div className={styles.floatingDot1}></div>
+              <div className={styles.floatingDot2}></div>
             </div>
-            <h2 className={styles.slideTitle}>Registra tu estado</h2>
-            <p className={styles.slideDescription}>
-              Reflexiona sobre tus días & observa patrones en tu bienestar
-            </p>
+            <div className={styles.showcaseText}>
+              <h2 className={styles.showcaseTitle}>Registra tu estado</h2>
+              <p className={styles.showcaseDesc}>
+                Reflexiona sobre tus días y observa patrones en tu bienestar emocional y cognitivo.
+              </p>
+            </div>
           </div>
         );
 
       case 2:
         return (
-          <div className={styles.slideContent}>
-            <div className={styles.iconCircle}>
-              <Clock size={64} weight="light" />
+          <div className={styles.showcaseSlide}>
+            <div className={styles.illustrationCircle}>
+              <div className={styles.illustrationGradient}></div>
+              <div className={styles.illustrationInner}>
+                <div className={styles.illustrationRing}></div>
+                <Clock size={80} weight="light" />
+              </div>
+              <div className={styles.floatingDot1}></div>
+              <div className={styles.floatingDot2}></div>
             </div>
-            <h2 className={styles.slideTitle}>Desarrolla una rutina</h2>
-            <p className={styles.slideDescription}>
-              Elige tu protocolo, registra tus dosis & mantén consistencia
-            </p>
+            <div className={styles.showcaseText}>
+              <h2 className={styles.showcaseTitle}>Desarrolla una rutina</h2>
+              <p className={styles.showcaseDesc}>
+                Lleva un registro de tus dosis diarias y realiza check-ins para monitorear tu progreso y bienestar.
+              </p>
+            </div>
           </div>
         );
 
       case 3:
         return (
-          <div className={styles.slideContent}>
-            <div className={styles.iconCircle}>
-              <ChartLineUp size={64} weight="light" />
+          <div className={styles.sliderStep}>
+            <div className={styles.sliderStepHeader}>
+              <h1 className={styles.sliderStepTitle}>Tu estado base</h1>
+              <p className={styles.sliderStepDesc}>
+                Define tu nivel actual en estas áreas antes de comenzar el protocolo. Sé honesto contigo mismo.
+              </p>
             </div>
-            <h2 className={styles.slideTitle}>Aprende de tu viaje</h2>
-            <p className={styles.slideDescription}>
-              Monitorea cambios & descubre qué funciona para ti
-            </p>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className={styles.slideContent}>
-            <h2 className={styles.slideTitle}>¿Cómo te sientes?</h2>
-            <p className={styles.slideDescription}>Generalmente estos días</p>
             <div className={styles.slidersContainer}>
               {[
-                { key: 'usual_energy', label: 'Energía', emoji: '⚡' },
-                { key: 'usual_focus', label: 'Enfoque', emoji: '🎯' },
-                { key: 'usual_creativity', label: 'Creatividad', emoji: '✨' },
-                { key: 'life_satisfaction', label: 'Satisfacción', emoji: '😊' },
-              ].map(({ key, label, emoji }) => (
+                { key: 'usual_energy', label: 'Energía', icon: '⚡', low: 'Baja', high: 'Alta' },
+                { key: 'usual_focus', label: 'Enfoque', icon: '🎯', low: 'Disperso', high: 'Enfocado' },
+                { key: 'usual_creativity', label: 'Creatividad', icon: '✨', low: 'Bloqueado', high: 'Fluido' },
+                { key: 'life_satisfaction', label: 'Satisfacción', icon: '😊', low: 'Insatisfecho', high: 'Pleno' },
+              ].map(({ key, label, icon, low, high }) => (
                 <div key={key} className={styles.sliderRow}>
                   <div className={styles.sliderLabel}>
-                    <span>{emoji}</span>
-                    <span>{label}</span>
-                    <span className={styles.sliderValue}>{data[key]}</span>
+                    <span className={styles.sliderIcon}>{icon}</span>
+                    <span className={styles.sliderLabelText}>{label}</span>
+                    <span className={styles.sliderValueBadge}>{data[key]}/10</span>
                   </div>
                   <input
                     type="range"
@@ -174,13 +193,19 @@ const Onboarding: React.FC = () => {
                     value={data[key]}
                     onChange={(e) => setData(prev => ({ ...prev, [key]: parseInt(e.target.value) }))}
                     className={styles.slider}
+                    style={{
+                      background: `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${data[key] * 10}%, var(--color-border) ${data[key] * 10}%, var(--color-border) 100%)`
+                    }}
                   />
                   <div className={styles.sliderScale}>
-                    <span>Bajo</span>
-                    <span>Alto</span>
+                    <span>{low}</span>
+                    <span>{high}</span>
                   </div>
                 </div>
               ))}
+            </div>
+            <div className={styles.decorativeBar}>
+              <span className={styles.decorativeIcon}>📊</span>
             </div>
           </div>
         );
@@ -192,54 +217,79 @@ const Onboarding: React.FC = () => {
 
   return (
     <div className={styles.onboarding}>
-      {currentStep > 0 && currentStep < 4 && (
-        <button className={styles.skipButton} onClick={() => setCurrentStep(4)}>
-          Saltar
-        </button>
-      )}
-
-      <div className={styles.progressDots}>
-        {Array.from({ length: totalSteps }).map((_, index) => (
-          <div
-            key={index}
-            className={`${styles.dot} ${index === currentStep ? styles.active : ''} ${index < currentStep ? styles.completed : ''}`}
-          />
-        ))}
-      </div>
-
-      <div className={styles.content}>
-        {renderStep()}
-      </div>
-
-      <div className={styles.navigation}>
-        <div className={styles.navButtons}>
-          {currentStep > 0 && (
-            <button className={styles.backButton} onClick={handleBack}>
-              <ArrowLeft size={20} weight="bold" />
+      {isShowcase ? (
+        <>
+          {/* Absolute skip button */}
+          <div className={styles.topBar}>
+            <div className={styles.topBarSpacer}></div>
+            <button className={styles.skipButton} onClick={() => setCurrentStep(3)}>
+              Omitir
             </button>
-          )}
-          
-          {currentStep < totalSteps - 1 ? (
-            <button 
-              className={styles.nextButton} 
-              onClick={handleNext}
-            >
-              {currentStep === 0 ? 'Comenzar' : 'Siguiente'}
+          </div>
+
+          {/* Centered column with slide + dots + CTA */}
+          <div className={styles.showcaseLayout}>
+            {renderStep()}
+
+            {/* Progress dots */}
+            <div className={styles.progressDots}>
+              {[0, 1, 2].map(i => (
+                <div
+                  key={i}
+                  className={`${styles.dot} ${i === currentStep ? styles.dotActive : ''} ${i < currentStep ? styles.dotCompleted : ''}`}
+                />
+              ))}
+            </div>
+
+            {/* CTA Button */}
+            <button className={styles.ctaButton} onClick={handleNext}>
+              <span>{currentStep === 0 ? 'Comenzar' : 'Siguiente'}</span>
               <ArrowRight size={20} weight="bold" />
             </button>
-          ) : (
-            <button 
-              className={styles.completeButton} 
-              onClick={handleComplete}
-            >
-              Comenzar mi viaje
-              <Sparkle size={20} weight="fill" />
-            </button>
-          )}
-        </div>
-      </div>
 
-      <div className={styles.wave}></div>
+            {/* Legal text on welcome only */}
+            {currentStep === 0 && (
+              <p className={styles.legalText}>
+                Al continuar, aceptas nuestros Términos de Servicio y Política de Privacidad.
+              </p>
+            )}
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Header with back */}
+          <header className={styles.sliderHeader}>
+            <button className={styles.headerBack} onClick={handleBack}>
+              <ArrowLeft size={24} weight="bold" />
+            </button>
+            <h2 className={styles.headerTitle}>Onboarding</h2>
+            <div className={styles.headerSpacer}></div>
+          </header>
+
+          {/* Segmented progress */}
+          <div className={styles.progressSegments}>
+            {[0, 1, 2, 3].map(i => (
+              <div
+                key={i}
+                className={`${styles.segment} ${i <= currentStep ? styles.segmentFilled : ''}`}
+              />
+            ))}
+          </div>
+
+          {/* Scrollable content */}
+          <main className={styles.sliderContent}>
+            {renderStep()}
+          </main>
+
+          {/* Fixed bottom button */}
+          <div className={styles.fixedFooter}>
+            <button className={styles.ctaButton} onClick={handleComplete}>
+              <span>Guardar y Empezar</span>
+              <ArrowRight size={20} weight="bold" />
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

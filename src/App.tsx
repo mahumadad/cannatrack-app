@@ -186,7 +186,33 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 function App() {
   const isOnline = useOnlineStatus();
   const [pendingCount, setPendingCount] = useState(0);
-  useRegisterSW({ immediate: true });
+
+  // PWA: register SW with periodic update checks
+  useRegisterSW({
+    immediate: true,
+    onRegisteredSW(_swUrl, registration) {
+      if (registration) {
+        // Check for new SW version every 60 seconds
+        setInterval(() => { registration.update(); }, 60 * 1000);
+      }
+    },
+  });
+
+  // Auto-reload when a new SW takes control (ensures fresh JS/CSS)
+  useEffect(() => {
+    if (!navigator.serviceWorker) return;
+    let reloading = false;
+    const onControllerChange = () => {
+      if (!reloading) {
+        reloading = true;
+        window.location.reload();
+      }
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+    return () => {
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+    };
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.remove('dark');

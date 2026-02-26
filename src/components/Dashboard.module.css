@@ -91,6 +91,12 @@
   transform: scale(0.95);
 }
 
+.notificationButtonActive {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
 /* Task Cards (Baseline & Follow-up) */
 .taskCard {
   margin: 12px 20px;
@@ -812,10 +818,72 @@
 }
 .dayDoseItem span { font-size: var(--text-base); font-weight: 600; color: var(--color-text); }
 
+/* Dose status row in day detail */
+.doseRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.doseStatusIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--color-surface-warm);
+  color: var(--color-text-secondary);
+}
+
+.doseIconSuccess {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.doseStatusText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.doseStatusTitle {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.doseStatusSub {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.doseChipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.doseChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #F5EDE4 0%, #EBD9C4 100%);
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
 .doseChipWithDelete {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 }
 
 .deleteChipButton {

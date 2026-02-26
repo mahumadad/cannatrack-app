@@ -17,7 +17,7 @@ type Tab = 'orders' | 'subscriptions' | 'solicitudes' | 'recetas';
 const ShopifyStore: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast()!;
-  const { user } = useUser();
+  const { user, loading: userLoading } = useUser();
   const { data: allRecetas = [], isLoading: loadingRecetas } = useRecetasQuery(user?.id);
   const recetasActivas = allRecetas.filter((r: Receta) => r.estado === 'activa');
   const recetasPasadas = allRecetas.filter((r: Receta) => r.estado !== 'activa');
@@ -47,7 +47,7 @@ const ShopifyStore: React.FC = () => {
     lastPaymentAt?: string | null;
   } | null>(null);
   const [membershipLoading, setMembershipLoading] = useState(true);
-  const loading = loadingStore || loadingRecetas || loadingSolicitudes || membershipLoading;
+  const loading = userLoading || loadingStore || loadingRecetas || loadingSolicitudes || membershipLoading;
   const [subscribing, setSubscribing] = useState(false);
   const cancelMembership = useCancelMembership();
   const [cancelling, setCancelling] = useState(false);
@@ -57,6 +57,7 @@ const ShopifyStore: React.FC = () => {
   // Fetch full membership data from API (includes Flow subscription details)
   useEffect(() => {
     if (!user?.id) { setMembershipLoading(false); return; }
+    setMembershipLoading(true);
     api.get('/api/membership/status')
       .then((data: Record<string, unknown>) => {
         setMembershipStatus((data.membershipStatus as string) || 'none');

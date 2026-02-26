@@ -253,188 +253,75 @@ const BaselineForm: React.FC = () => {
       <div className={`${styles.baseline} ${styles.baselineResults}`}>
         <div className={styles.header}>
           <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
-          <h1 className={styles.title}>Resultados Baseline</h1>
+          <h1 className={styles.title}>Evaluación Baseline</h1>
           <div style={{ width: 36 }}></div>
         </div>
 
+        {/* Segmented progress bar — all 9 filled */}
+        <div className={styles.progressSegments}>
+          {sections.map((_, i) => (
+            <div key={i} className={`${styles.progressSegment} ${styles.progressSegmentFilled}`} />
+          ))}
+        </div>
+
         <div className={styles.analysisContent}>
-          {/* Banner */}
-          <div className={styles.analysisBanner}>
-            <span className={styles.analysisBannerIcon}>📋</span>
-            <div>
-              <h2>Tu Evaluación Inicial</h2>
-              <p>Completado el {existingBaseline?.locked_at ? new Date(existingBaseline.locked_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</p>
+          {/* Success section */}
+          <div className={styles.successSection}>
+            <div className={styles.successIcon}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
             </div>
+            <h2 className={styles.successHeading}>Evaluacion Completada!</h2>
+            <p className={styles.successDate}>
+              {existingBaseline?.locked_at ? new Date(existingBaseline.locked_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+            </p>
           </div>
 
-          {/* Perfil */}
-          <div className={styles.analysisCard}>
-            <div className={styles.analysisCardHeader}>
-              <span>👤</span>
-              <h3>Perfil</h3>
-            </div>
-            <div className={styles.profileGrid}>
-              {formData.age_range && <div className={styles.profileItem}><span className={styles.profileLabel}>Edad</span><span className={styles.profileValue}>{formData.age_range}</span></div>}
-              {formData.country && <div className={styles.profileItem}><span className={styles.profileLabel}>País</span><span className={styles.profileValue}>{formData.country}</span></div>}
-              {formData.education && <div className={styles.profileItem}><span className={styles.profileLabel}>Educación</span><span className={styles.profileValue}>{formData.education}</span></div>}
-              {formData.occupation && <div className={styles.profileItem}><span className={styles.profileLabel}>Ocupación</span><span className={styles.profileValue}>{formData.occupation}</span></div>}
-            </div>
-          </div>
-
-          {/* Motivaciones */}
-          {(formData.motivations as string[])?.length > 0 && (
-            <div className={styles.analysisCard}>
-              <div className={styles.analysisCardHeader}>
-                <span>🎯</span>
-                <h3>Motivaciones</h3>
-              </div>
-              <div className={styles.chipGroup}>
-                {(formData.motivations as string[]).map(m => (
-                  <span key={m} className={styles.chip}>{motivationLabels[m] || m}</span>
-                ))}
-              </div>
-              {formData.main_expectation && (
-                <p className={styles.analysisNote}>{formData.main_expectation}</p>
-              )}
-            </div>
-          )}
-
-          {/* Expectativas */}
-          <div className={styles.analysisCard}>
-            <div className={styles.analysisCardHeader}>
-              <span>💭</span>
-              <h3>Expectativas</h3>
-            </div>
-            <div className={styles.gaugeGroup}>
-              <div className={styles.gaugeItem}>
-                <span className={styles.gaugeLabel}>Efectividad esperada</span>
-                <div className={styles.gaugeBarContainer}>
-                  <div className={styles.gaugeBar} style={{ width: `${Number(formData.effectiveness_belief || 0) * 10}%` }} />
-                </div>
-                <span className={styles.gaugeValue}>{formData.effectiveness_belief}/10</span>
-              </div>
-              <div className={styles.gaugeItem}>
-                <span className={styles.gaugeLabel}>Creencia psicodélica</span>
-                <div className={styles.gaugeBarContainer}>
-                  <div className={styles.gaugeBar} style={{ width: `${Number(formData.psychedelic_belief || 0) * 10}%` }} />
-                </div>
-                <span className={styles.gaugeValue}>{formData.psychedelic_belief}/10</span>
-              </div>
-              <div className={styles.gaugeItem}>
-                <span className={styles.gaugeLabel}>Efecto placebo</span>
-                <div className={styles.gaugeBarContainer}>
-                  <div className={styles.gaugeBar} style={{ width: `${Number(formData.placebo_belief || 0) * 10}%` }} />
-                </div>
-                <span className={styles.gaugeValue}>{formData.placebo_belief}/10</span>
-              </div>
-              <div className={styles.gaugeItem}>
-                <span className={styles.gaugeLabel}>Sugestionabilidad</span>
-                <div className={styles.gaugeBarContainer}>
-                  <div className={styles.gaugeBar} style={{ width: `${Number(formData.suggestibility || 0) * 10}%` }} />
-                </div>
-                <span className={styles.gaugeValue}>{formData.suggestibility}/10</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Historia de uso */}
-          <div className={styles.analysisCard}>
-            <div className={styles.analysisCardHeader}>
-              <span>📜</span>
-              <h3>Historia de Uso</h3>
-            </div>
-            <div className={styles.profileGrid}>
-              <div className={styles.profileItem}>
-                <span className={styles.profileLabel}>Exp. psicodélica</span>
-                <span className={styles.profileValue}>{experienceLabels[formData.psychedelic_experience as string] || 'N/A'}</span>
-              </div>
-              {formData.alcohol_frequency && <div className={styles.profileItem}><span className={styles.profileLabel}>Alcohol</span><span className={styles.profileValue}>{frequencyLabels[formData.alcohol_frequency as string] || formData.alcohol_frequency}</span></div>}
-              {formData.cannabis_frequency && <div className={styles.profileItem}><span className={styles.profileLabel}>Cannabis</span><span className={styles.profileValue}>{frequencyLabels[formData.cannabis_frequency as string] || formData.cannabis_frequency}</span></div>}
-              {formData.nicotine_frequency && <div className={styles.profileItem}><span className={styles.profileLabel}>Nicotina</span><span className={styles.profileValue}>{frequencyLabels[formData.nicotine_frequency as string] || formData.nicotine_frequency}</span></div>}
-              {formData.stimulants_frequency && <div className={styles.profileItem}><span className={styles.profileLabel}>Estimulantes</span><span className={styles.profileValue}>{frequencyLabels[formData.stimulants_frequency as string] || formData.stimulants_frequency}</span></div>}
-              <div className={styles.profileItem}>
-                <span className={styles.profileLabel}>Med. psiquiátrica</span>
-                <span className={styles.profileValue}>{formData.psychiatric_medication === 'si' ? 'Sí' : 'No'}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Salud mental */}
-          <div className={styles.analysisCard}>
-            <div className={styles.analysisCardHeader}>
-              <span>🧠</span>
-              <h3>Salud Mental</h3>
-            </div>
-            {(formData.mental_health_concerns as string[])?.length > 0 && (
-              <div className={styles.chipGroup}>
-                {(formData.mental_health_concerns as string[]).map(c => (
-                  <span key={c} className={styles.chip}>{concernLabels[c] || c}</span>
-                ))}
-              </div>
-            )}
-            <div className={styles.profileGrid}>
-              <div className={styles.profileItem}>
-                <span className={styles.profileLabel}>En terapia</span>
-                <span className={styles.profileValue}>{formData.in_therapy === 'si' ? 'Sí' : 'No'}</span>
-              </div>
-              <div className={styles.profileItem}>
-                <span className={styles.profileLabel}>Tto. psiquiátrico</span>
-                <span className={styles.profileValue}>{formData.psychiatric_treatment === 'si' ? 'Sí' : 'No'}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* DASS-21 */}
+          {/* DASS-21 Score Grid */}
           {dass && (
             <div className={styles.analysisCard}>
               <div className={styles.analysisCardHeader}>
                 <span>📊</span>
                 <h3>DASS-21</h3>
               </div>
-              <p className={styles.analysisCardSubtitle}>Depresión, Ansiedad y Estrés</p>
-              <div className={styles.analysisScores}>
-                {([
-                  { label: 'Depresión', data: dass.depression, max: 42 },
-                  { label: 'Ansiedad', data: dass.anxiety, max: 42 },
-                  { label: 'Estrés', data: dass.stress, max: 42 },
-                ] as const).map(({ label, data, max }) => (
-                  <div key={label} className={styles.scoreRow}>
-                    <span className={styles.scoreLabel}>{label}</span>
-                    <div className={styles.scoreBarContainer}>
-                      <div className={styles.scoreBar} style={{ width: `${Math.min(data.scaled / max * 100, 100)}%`, backgroundColor: getSeverityColor(data.severity) }} />
-                    </div>
-                    <span className={styles.scoreValue}>{data.scaled}</span>
-                    <span className={styles.scoreSeverity} style={{ color: getSeverityColor(data.severity) }}>{data.severity}</span>
-                  </div>
-                ))}
+              <div className={styles.scoreGrid}>
+                <div className={styles.scoreBox}>
+                  <span className={styles.scoreBoxNumber} style={{ color: getSeverityColor(dass.depression.severity) }}>{dass.depression.scaled}</span>
+                  <span className={styles.scoreBoxLabel}>Depresion</span>
+                  <span className={styles.scoreBoxSeverity} style={{ color: getSeverityColor(dass.depression.severity) }}>{dass.depression.severity}</span>
+                </div>
+                <div className={styles.scoreBox}>
+                  <span className={styles.scoreBoxNumber} style={{ color: getSeverityColor(dass.anxiety.severity) }}>{dass.anxiety.scaled}</span>
+                  <span className={styles.scoreBoxLabel}>Ansiedad</span>
+                  <span className={styles.scoreBoxSeverity} style={{ color: getSeverityColor(dass.anxiety.severity) }}>{dass.anxiety.severity}</span>
+                </div>
+                <div className={styles.scoreBox}>
+                  <span className={styles.scoreBoxNumber} style={{ color: getSeverityColor(dass.stress.severity) }}>{dass.stress.scaled}</span>
+                  <span className={styles.scoreBoxLabel}>Estres</span>
+                  <span className={styles.scoreBoxSeverity} style={{ color: getSeverityColor(dass.stress.severity) }}>{dass.stress.severity}</span>
+                </div>
               </div>
             </div>
           )}
 
-          {/* PANAS */}
+          {/* PANAS Score Grid */}
           {panas && (
             <div className={styles.analysisCard}>
               <div className={styles.analysisCardHeader}>
                 <span>😊</span>
                 <h3>PANAS</h3>
               </div>
-              <p className={styles.analysisCardSubtitle}>Afecto Positivo y Negativo</p>
-              <div className={styles.analysisScores}>
-                <div className={styles.scoreRow}>
-                  <span className={styles.scoreLabel}>Positivo</span>
-                  <div className={styles.scoreBarContainer}>
-                    <div className={styles.scoreBar} style={{ width: `${(panas.positiveAffect / 50) * 100}%`, backgroundColor: panas.positiveAffect >= 28 ? '#4CAF50' : '#FF9800' }} />
-                  </div>
-                  <span className={styles.scoreValue}>{panas.positiveAffect}/50</span>
-                  <span className={styles.scoreSeverity} style={{ color: panas.positiveAffect >= 38 ? '#4CAF50' : panas.positiveAffect >= 28 ? '#FF9800' : '#F44336' }}>{panas.paLabel}</span>
+              <div className={styles.scoreGrid} style={{ gridTemplateColumns: '1fr 1fr' }}>
+                <div className={styles.scoreBox}>
+                  <span className={styles.scoreBoxNumber} style={{ color: panas.positiveAffect >= 28 ? '#4CAF50' : '#FF9800' }}>{panas.positiveAffect}</span>
+                  <span className={styles.scoreBoxLabel}>Positivo</span>
+                  <span className={styles.scoreBoxSeverity} style={{ color: panas.positiveAffect >= 38 ? '#4CAF50' : panas.positiveAffect >= 28 ? '#FF9800' : '#F44336' }}>{panas.paLabel}</span>
                 </div>
-                <div className={styles.scoreRow}>
-                  <span className={styles.scoreLabel}>Negativo</span>
-                  <div className={styles.scoreBarContainer}>
-                    <div className={styles.scoreBar} style={{ width: `${(panas.negativeAffect / 50) * 100}%`, backgroundColor: getSeverityColor(panas.naLabel) }} />
-                  </div>
-                  <span className={styles.scoreValue}>{panas.negativeAffect}/50</span>
-                  <span className={styles.scoreSeverity} style={{ color: getSeverityColor(panas.naLabel) }}>{panas.naLabel}</span>
+                <div className={styles.scoreBox}>
+                  <span className={styles.scoreBoxNumber} style={{ color: getSeverityColor(panas.naLabel) }}>{panas.negativeAffect}</span>
+                  <span className={styles.scoreBoxLabel}>Negativo</span>
+                  <span className={styles.scoreBoxSeverity} style={{ color: getSeverityColor(panas.naLabel) }}>{panas.naLabel}</span>
                 </div>
               </div>
             </div>
@@ -445,76 +332,86 @@ const BaselineForm: React.FC = () => {
             <div className={styles.analysisCard}>
               <div className={styles.analysisCardHeader}>
                 <span>😰</span>
-                <h3>Estrés Percibido (PSS-10)</h3>
+                <h3>Estres Percibido (PSS-10)</h3>
               </div>
-              <div className={styles.analysisScores}>
-                <div className={styles.scoreRow}>
-                  <span className={styles.scoreLabel}>Puntaje</span>
-                  <div className={styles.scoreBarContainer}>
-                    <div className={styles.scoreBar} style={{ width: `${(pss.total / 40) * 100}%`, backgroundColor: getSeverityColor(pss.severity) }} />
-                  </div>
-                  <span className={styles.scoreValue}>{pss.total}/40</span>
-                  <span className={styles.scoreSeverity} style={{ color: getSeverityColor(pss.severity) }}>{pss.severity}</span>
+              <div className={styles.scoreGrid} style={{ gridTemplateColumns: '1fr' }}>
+                <div className={styles.scoreBox}>
+                  <span className={styles.scoreBoxNumber} style={{ color: getSeverityColor(pss.severity) }}>{pss.total}</span>
+                  <span className={styles.scoreBoxLabel}>Puntaje total / 40</span>
+                  <span className={styles.scoreBoxSeverity} style={{ color: getSeverityColor(pss.severity) }}>{pss.severity}</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Funcionamiento y Satisfacción */}
+          {/* Funcionamiento Basal */}
           <div className={styles.analysisCard}>
             <div className={styles.analysisCardHeader}>
               <span>⚡</span>
-              <h3>Funcionamiento Basal</h3>
+              <h3>Funcionamiento</h3>
             </div>
-            <div className={styles.gaugeGroup}>
-              <div className={styles.gaugeItem}>
-                <span className={styles.gaugeLabel}>Foco habitual</span>
-                <div className={styles.gaugeBarContainer}>
-                  <div className={styles.gaugeBar} style={{ width: `${Number(formData.usual_focus || 0) * 10}%` }} />
+            <div className={styles.scoreGrid}>
+              {([
+                ['usual_focus', 'Foco'],
+                ['usual_creativity', 'Creatividad'],
+                ['usual_energy', 'Energia'],
+              ] as const).map(([key, label]) => (
+                <div key={key} className={styles.scoreBox}>
+                  <span className={styles.scoreBoxNumber}>{formData[key]}</span>
+                  <span className={styles.scoreBoxLabel}>{label} / 10</span>
                 </div>
-                <span className={styles.gaugeValue}>{formData.usual_focus}/10</span>
-              </div>
-              <div className={styles.gaugeItem}>
-                <span className={styles.gaugeLabel}>Creatividad habitual</span>
-                <div className={styles.gaugeBarContainer}>
-                  <div className={styles.gaugeBar} style={{ width: `${Number(formData.usual_creativity || 0) * 10}%` }} />
-                </div>
-                <span className={styles.gaugeValue}>{formData.usual_creativity}/10</span>
-              </div>
-              <div className={styles.gaugeItem}>
-                <span className={styles.gaugeLabel}>Energía habitual</span>
-                <div className={styles.gaugeBarContainer}>
-                  <div className={styles.gaugeBar} style={{ width: `${Number(formData.usual_energy || 0) * 10}%` }} />
-                </div>
-                <span className={styles.gaugeValue}>{formData.usual_energy}/10</span>
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Satisfacción Vital */}
+          {/* Satisfaccion Vital */}
           <div className={styles.analysisCard}>
             <div className={styles.analysisCardHeader}>
               <span>⭐</span>
-              <h3>Satisfacción Vital</h3>
+              <h3>Satisfaccion Vital</h3>
             </div>
-            <div className={styles.lifeSatDisplay}>
-              <span className={styles.lifeSatValue}>{lifeSat}</span>
-              <span className={styles.lifeSatMax}>/10</span>
-            </div>
-            <div className={styles.lifeSatBar}>
-              <div className={styles.lifeSatFill} style={{ width: `${lifeSat * 10}%` }} />
+            <div className={styles.scoreGrid} style={{ gridTemplateColumns: '1fr' }}>
+              <div className={styles.scoreBox}>
+                <span className={styles.scoreBoxNumber}>{lifeSat}</span>
+                <span className={styles.scoreBoxLabel}>/ 10</span>
+              </div>
             </div>
           </div>
 
-          {/* Volver */}
-          <div className={styles.analysisActions}>
-            <p className={styles.contactAdmin}>
-              Si necesitas modificar tu baseline, contacta al administrador.
-            </p>
-            <button className={styles.backToDashboard} onClick={() => navigate('/dashboard')}>
-              ← Volver al Inicio
-            </button>
+          {/* Perfil resumen */}
+          <div className={styles.analysisCard}>
+            <div className={styles.analysisCardHeader}>
+              <span>👤</span>
+              <h3>Perfil</h3>
+            </div>
+            <div className={styles.profileGrid}>
+              {formData.age_range && <div className={styles.profileItem}><span className={styles.profileLabel}>Edad</span><span className={styles.profileValue}>{formData.age_range}</span></div>}
+              {formData.country && <div className={styles.profileItem}><span className={styles.profileLabel}>Pais</span><span className={styles.profileValue}>{formData.country}</span></div>}
+              {formData.education && <div className={styles.profileItem}><span className={styles.profileLabel}>Educacion</span><span className={styles.profileValue}>{formData.education}</span></div>}
+              {formData.occupation && <div className={styles.profileItem}><span className={styles.profileLabel}>Ocupacion</span><span className={styles.profileValue}>{formData.occupation}</span></div>}
+            </div>
+            {(formData.motivations as string[])?.length > 0 && (
+              <div className={styles.chipGroup}>
+                {(formData.motivations as string[]).map(m => (
+                  <span key={m} className={styles.chip}>{motivationLabels[m] || m}</span>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* Lock warning card */}
+          <div className={styles.lockWarning}>
+            <div className={styles.lockWarningIcon}>🔒</div>
+            <div>
+              <strong>Baseline bloqueado</strong>
+              <p>Tu evaluacion inicial esta protegida. Si necesitas modificarla, contacta al administrador.</p>
+            </div>
+          </div>
+
+          {/* Dashboard button */}
+          <button className={styles.dashboardButton} onClick={() => navigate('/dashboard')}>
+            Ir al Dashboard
+          </button>
         </div>
       </div>
     );
@@ -718,36 +615,51 @@ const BaselineForm: React.FC = () => {
     </div>
   );
 
-  const dassScaleLabels = ['No me pasó', 'Un poco', 'Bastante', 'Mucho'];
+  const dassScaleLabels = ['Nada', 'Poco', 'Bastante', 'Mucho'];
+  const dassReferenceDescriptions = [
+    'No se aplicó a mí en absoluto',
+    'Se aplicó a mí en algún grado',
+    'Se aplicó a mí en grado considerable',
+    'Se aplicó a mí mucho o la mayoría del tiempo',
+  ];
 
   const renderDASS21 = () => {
     const start = subStep * 7;
     const questions = dassQuestions.slice(start, start + 7);
     return (
       <div className={styles.fields}>
-        <p className={styles.instructions}>
-          Indica cuánto te ha afectado cada situación <strong>durante la última semana</strong>.
-        </p>
-        <div className={styles.scaleKey}>
-          {dassScaleLabels.map((label, i) => (
-            <span key={i} className={styles.scaleKeyItem}>{i} = {label}</span>
-          ))}
+        <div className={styles.referenceCard}>
+          <span className={styles.referenceTitle}>REFERENCIA</span>
+          <div className={styles.referenceList}>
+            {dassReferenceDescriptions.map((desc, i) => (
+              <div key={i} className={styles.referenceItem}>
+                <span className={styles.referenceNumber}>{i}</span>
+                <span>{desc}</span>
+              </div>
+            ))}
+          </div>
         </div>
         {questions.map((q, i) => {
           const globalIndex = start + i;
+          const isFirst = i === 0;
           return (
             <div key={globalIndex} className={styles.questionCard}>
               <label className={styles.questionLabel}>
-                <span className={styles.questionNumber}>{globalIndex + 1}</span> {q}
+                {globalIndex + 1}. {q}
               </label>
-              <div className={styles.scaleOptions}>
-                {[0, 1, 2, 3].map(val => (
-                  <button key={val} type="button"
-                    className={`${styles.scaleOption} ${formData[`dass_${globalIndex + 1}`] === val ? styles.selected : ''}`}
-                    onClick={() => handleChange(`dass_${globalIndex + 1}`, val)}>
-                    <span className={styles.scaleOptionNumber}>{val}</span>
-                    <span className={styles.scaleOptionLabel}>{dassScaleLabels[val]}</span>
-                  </button>
+              <div className={styles.scaleRow}>
+                {[0, 1, 2, 3].map((val, idx) => (
+                  <React.Fragment key={val}>
+                    {idx > 0 && <div className={styles.connectingLine} />}
+                    <div className={styles.scaleCircleWrapper}>
+                      <button type="button"
+                        className={`${styles.scaleCircle} ${formData[`dass_${globalIndex + 1}`] === val ? styles.selected : ''}`}
+                        onClick={() => handleChange(`dass_${globalIndex + 1}`, val)}>
+                        {val}
+                      </button>
+                      {isFirst && <span className={styles.scaleLabel}>{dassScaleLabels[val]}</span>}
+                    </div>
+                  </React.Fragment>
                 ))}
               </div>
             </div>
@@ -761,67 +673,83 @@ const BaselineForm: React.FC = () => {
 
   const renderPANAS = () => {
     const items = subStep === 0 ? panasPositive : panasNegative;
-    const subTitle = subStep === 0 ? 'Afecto Positivo' : 'Afecto Negativo';
     return (
       <div className={styles.fields}>
-        <p className={styles.instructions}>
-          Indica cuánto has sentido cada emoción <strong>durante la última semana</strong>.
-        </p>
-        <div className={styles.scaleKey}>
-          {[1, 2, 3, 4, 5].map(i => (
-            <span key={i} className={styles.scaleKeyItem}>{i} = {panasScaleLabels[i]}</span>
-          ))}
-        </div>
-        <h3 className={styles.subTitle}>{subTitle}</h3>
-        {items.map(({ key, label }) => (
-          <div key={key} className={styles.questionCard}>
-            <label className={styles.questionLabel}>{label}</label>
-            <div className={styles.scaleOptions}>
-              {[1, 2, 3, 4, 5].map(val => (
-                <button key={val} type="button"
-                  className={`${styles.scaleOption} ${formData[key] === val ? styles.selected : ''}`}
-                  onClick={() => handleChange(key, val)}>
-                  <span className={styles.scaleOptionNumber}>{val}</span>
-                  <span className={styles.scaleOptionLabel}>{panasScaleLabels[val]}</span>
-                </button>
-              ))}
+        {items.map(({ key, label }, i) => {
+          const isFirst = i === 0;
+          return (
+            <div key={key} className={styles.panasCard}>
+              <label className={styles.panasEmotionLabel}>{i + 1}. {label}</label>
+              <div className={styles.panasGrid}>
+                {[1, 2, 3, 4, 5].map(val => (
+                  <button key={val} type="button"
+                    className={`${styles.panasSquare} ${formData[key] === val ? styles.selected : ''}`}
+                    onClick={() => handleChange(key, val)}>
+                    <span className={styles.panasSquareNumber}>{val}</span>
+                    {isFirst && <span className={styles.panasSquareLabel}>{panasScaleLabels[val]}</span>}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
+        <div className={styles.infoCard}>
+          <span className={styles.infoIcon}>ℹ️</span>
+          <p>Responde con sinceridad. No hay respuestas correctas o incorrectas, solo tu experiencia personal.</p>
+        </div>
       </div>
     );
   };
 
   const pssScaleLabels = ['Nunca', 'Casi nunca', 'A veces', 'Frecuente', 'Muy frecuente'];
+  const pssReferenceDescriptions = [
+    'Nunca me he sentido así',
+    'Casi nunca me he sentido así',
+    'A veces me he sentido así',
+    'Con frecuencia me he sentido así',
+    'Muy frecuentemente me he sentido así',
+  ];
 
   const renderEstres = () => {
     const start = subStep * 5;
     const questions = pssQuestions.slice(start, start + 5);
     return (
       <div className={styles.fields}>
-        <p className={styles.instructions}>
-          Indica con qué frecuencia te has sentido así <strong>durante el último mes</strong>.
-        </p>
-        <div className={styles.scaleKey}>
-          {pssScaleLabels.map((label, i) => (
-            <span key={i} className={styles.scaleKeyItem}>{i} = {label}</span>
-          ))}
-        </div>
-        {questions.map(({ key, label }) => (
-          <div key={key} className={styles.questionCard}>
-            <label className={styles.questionLabel}>{label}</label>
-            <div className={styles.scaleOptions}>
-              {[0, 1, 2, 3, 4].map(val => (
-                <button key={val} type="button"
-                  className={`${styles.scaleOption} ${formData[key] === val ? styles.selected : ''}`}
-                  onClick={() => handleChange(key, val)}>
-                  <span className={styles.scaleOptionNumber}>{val}</span>
-                  <span className={styles.scaleOptionLabel}>{pssScaleLabels[val]}</span>
-                </button>
-              ))}
-            </div>
+        <div className={styles.referenceCard}>
+          <span className={styles.referenceTitle}>REFERENCIA</span>
+          <div className={styles.referenceList}>
+            {pssReferenceDescriptions.map((desc, i) => (
+              <div key={i} className={styles.referenceItem}>
+                <span className={styles.referenceNumber}>{i}</span>
+                <span>{desc}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+        {questions.map(({ key, label }, i) => {
+          const isFirst = i === 0;
+          const globalIndex = start + i;
+          return (
+            <div key={key} className={styles.questionCard}>
+              <label className={styles.questionLabel}>{globalIndex + 1}. {label}</label>
+              <div className={styles.scaleRow}>
+                {[0, 1, 2, 3, 4].map((val, idx) => (
+                  <React.Fragment key={val}>
+                    {idx > 0 && <div className={styles.connectingLine} />}
+                    <div className={styles.scaleCircleWrapper}>
+                      <button type="button"
+                        className={`${styles.scaleCircle} ${formData[key] === val ? styles.selected : ''}`}
+                        onClick={() => handleChange(key, val)}>
+                        {val}
+                      </button>
+                      {isFirst && <span className={styles.scaleLabel}>{pssScaleLabels[val]}</span>}
+                    </div>
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -864,22 +792,23 @@ const BaselineForm: React.FC = () => {
       <div className={styles.header}>
         <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button>
         <h1 className={styles.title}>Evaluación Baseline</h1>
-        <span className={styles.progress}>{completedSteps}/{totalSteps}</span>
+        <div style={{ width: 36 }}></div>
       </div>
 
+      <div className={styles.stepCounter}>
+        <span>Paso {currentSection + 1} de {sections.length}</span>
+        <span>{Math.round(progress)}%</span>
+      </div>
       <div className={styles.progressBar}>
         <div className={styles.progressFill} style={{ width: `${progress}%` }}></div>
       </div>
 
-      <div className={styles.sectionHeader}>
-        <span className={styles.sectionIcon}>{sections[currentSection].icon}</span>
-        <div>
-          <h2 className={styles.sectionTitle}>{sections[currentSection].title}</h2>
-          <p className={styles.sectionDescription}>{sections[currentSection].description}</p>
-          {(sectionSubSteps[sections[currentSection].id] || 1) > 1 && (
-            <span className={styles.subPageIndicator}>Parte {subStep + 1} de {sectionSubSteps[sections[currentSection].id]}</span>
-          )}
-        </div>
+      <div className={styles.sectionHeadingBlock}>
+        <h2 className={styles.sectionHeadingTitle}>{sections[currentSection].title}</h2>
+        <p className={styles.sectionHeadingDesc}>{sections[currentSection].description}</p>
+        {(sectionSubSteps[sections[currentSection].id] || 1) > 1 && (
+          <span className={styles.subPageIndicator}>Parte {subStep + 1} de {sectionSubSteps[sections[currentSection].id]}</span>
+        )}
       </div>
 
       <div className={styles.content}>
@@ -887,15 +816,6 @@ const BaselineForm: React.FC = () => {
       </div>
 
       <div className={styles.footer}>
-        <div className={styles.sectionIndicators}>
-          {sections.map((s, i) => (
-            <button key={s.id}
-              className={`${styles.indicator} ${i === currentSection ? styles.indicatorActive : ''} ${isSectionComplete(i) ? styles.indicatorCompleted : ''}`}
-              onClick={() => navigateToSection(i)}>
-              {s.icon}
-            </button>
-          ))}
-        </div>
         <div className={styles.footerButtons}>
           <button className={styles.prevButton} onClick={goBack}>Anterior</button>
           <button className={styles.nextButton} onClick={() => handleSave(true)} disabled={saving}>

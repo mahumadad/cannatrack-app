@@ -18,6 +18,10 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         skipWaiting: true,
         clientsClaim: true,
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//],
+        // Limpiar caches viejos al actualizar SW
+        cleanupOutdatedCaches: true,
         // Fix #14: NO cachear endpoints de API sensibles
         // Solo cachear assets estaticos, no datos de usuario
         runtimeCaching: [

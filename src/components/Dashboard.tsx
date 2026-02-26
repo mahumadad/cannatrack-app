@@ -7,9 +7,9 @@ import { SkeletonCard, SkeletonCalendar } from './Skeleton';
 import DoseSection from './DoseSection';
 import DayDetailModal from './DayDetailModal';
 import BottomNav from './BottomNav';
-import { ClipboardText, Notepad, Prescription, X, Bell, Quotes } from '@phosphor-icons/react';
+import { ClipboardText, Notepad, Prescription, X, Bell, BellSlash, Quotes } from '@phosphor-icons/react';
 import { INTERNAL_SUBSTANCE } from '../utils/doseOptions';
-import { startNotificationScheduler, stopNotificationScheduler, cleanupFiredNotifications } from '../utils/notifications';
+import { requestNotificationPermission, getNotificationPermission, startNotificationScheduler, stopNotificationScheduler, cleanupFiredNotifications } from '../utils/notifications';
 import { toLocalDateString } from '../utils/dateHelpers';
 import styles from './Dashboard.module.css';
 import fieldLabels from '../utils/fieldLabels';
@@ -56,6 +56,10 @@ const Dashboard: React.FC = () => {
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
 
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(() => {
+    const prefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
+    return prefs.notificationsEnabled === true && getNotificationPermission() === 'granted';
+  });
   const recetaActiva = allRecetas.find((r: Receta) => r.estado === 'activa') || null;
   const [recetaCardDismissed, setRecetaCardDismissed] = useState<boolean>(() => {
     return storage.getItem(STORAGE_KEYS.RECETA_DISMISSED) === 'true';
@@ -69,10 +73,12 @@ const Dashboard: React.FC = () => {
     storage.setItem(STORAGE_KEYS.RECETA_DISMISSED, 'true');
   };
 
-  // Notification scheduler (mount/unmount)
+  // Notification scheduler (mount/unmount) + sync state from preferences
   useEffect(() => {
     const prefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
-    if (prefs.notificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
+    const isEnabled = prefs.notificationsEnabled === true && 'Notification' in window && Notification.permission === 'granted';
+    setNotificationsEnabled(isEnabled);
+    if (isEnabled) {
       cleanupFiredNotifications();
       startNotificationScheduler();
     }
@@ -295,6 +301,29 @@ const Dashboard: React.FC = () => {
     navigate(`/reflect?date=${dateString}`);
   };
 
+  const handleToggleNotifications = async () => {
+    if (notificationsEnabled) {
+      setNotificationsEnabled(false);
+      const prefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
+      storage.setItem(STORAGE_KEYS.PREFERENCES, JSON.stringify({ ...prefs, notificationsEnabled: false }));
+      stopNotificationScheduler();
+      toast.info('Notificaciones desactivadas');
+    } else {
+      const permission = await requestNotificationPermission();
+      if (permission === 'granted') {
+        setNotificationsEnabled(true);
+        const prefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
+        storage.setItem(STORAGE_KEYS.PREFERENCES, JSON.stringify({ ...prefs, notificationsEnabled: true }));
+        startNotificationScheduler();
+        toast.success('Notificaciones activadas');
+      } else if (permission === 'denied') {
+        toast.warning('Notificaciones bloqueadas. Actívalas en la configuración de tu navegador.');
+      } else {
+        toast.warning('Tu navegador no soporta notificaciones.');
+      }
+    }
+  };
+
   const getGreeting = (): string => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Buenos días';
@@ -395,8 +424,8 @@ const Dashboard: React.FC = () => {
             <span className={styles.headerBrand}>DromedApp</span>
           </div>
         </div>
-        <button className={styles.notificationButton} aria-label="Notificaciones">
-          <Bell size={22} weight="regular" />
+        <button className={`${styles.notificationButton} ${notificationsEnabled ? styles.notificationButtonActive : ''}`} onClick={handleToggleNotifications} aria-label="Notificaciones">
+          {notificationsEnabled ? <Bell size={22} weight="fill" /> : <BellSlash size={22} weight="regular" />}
         </button>
       </div>
 

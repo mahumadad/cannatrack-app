@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { trackEvent } from '../utils/analytics';
 import { calcWellbeingPercent } from '../utils/wellbeing';
 import { useToast } from './Toast';
-import { ArrowLeft, Calendar, PencilSimple, Warning, Pill } from '@phosphor-icons/react';
+import { ArrowLeft, ArrowRight, Calendar, PencilSimple } from '@phosphor-icons/react';
 import BottomNav from './BottomNav';
 import styles from './Reflect.module.css';
 import sharedFieldLabels from '../utils/fieldLabels';
@@ -63,12 +63,12 @@ const Reflect: React.FC = () => {
   });
 
   const sections = [
-    { id: 'estado', title: 'Estado General', icon: '😊', description: '¿Cómo te sientes hoy?', fields: ['mood', 'anxiety', 'energy'] },
-    { id: 'mental', title: 'Estado Mental', icon: '🧠', description: 'Tu claridad y enfoque', fields: ['focus', 'rumination', 'productivity'] },
-    { id: 'social', title: 'Estado Social', icon: '💜', description: 'Tus conexiones', fields: ['sociability', 'connection', 'functionality'] },
-    { id: 'fisico', title: 'Descanso', icon: '😴', description: 'Calidad de tu sueño', fields: ['sleep'] },
-    { id: 'cambios', title: 'Cambios Percibidos', icon: '🔄', description: '¿Notaste algo diferente?', fields: ['change_perceived', 'change_attribution'] },
-    { id: 'adversos', title: 'Efectos Adversos', icon: '⚠️', description: '¿Experimentaste algo negativo?', fields: ['adverse_event'] }
+    { id: 'estado', title: 'Estado Emocional y Mental', description: '¿Cómo te sientes hoy?', fields: ['mood', 'anxiety', 'energy'] },
+    { id: 'mental', title: 'Claridad y Enfoque', description: 'Tu estado cognitivo', fields: ['focus', 'rumination', 'productivity'] },
+    { id: 'social', title: 'Estado Social', description: 'Tus conexiones hoy', fields: ['sociability', 'connection', 'functionality'] },
+    { id: 'fisico', title: 'Descanso', description: 'Calidad de tu sueño', fields: ['sleep'] },
+    { id: 'cambios', title: 'Cambios Percibidos', description: '¿Notaste algo diferente?', fields: ['change_perceived', 'change_attribution'] },
+    { id: 'adversos', title: 'Efectos Adversos', description: '¿Experimentaste algo negativo?', fields: ['adverse_event'] }
   ];
 
   const fieldLabels: FieldLabelsMap = sharedFieldLabels;
@@ -173,13 +173,13 @@ const Reflect: React.FC = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dateOnly = new Date(year, month - 1, day);
-    
+
     if (dateOnly.getTime() === today.getTime()) return 'Hoy';
-    
+
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     if (dateOnly.getTime() === yesterday.getTime()) return 'Ayer';
-    
+
     return date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
   };
 
@@ -193,7 +193,7 @@ const Reflect: React.FC = () => {
     const circumference = 2 * Math.PI * radius;
     const progress = (score / 100) * circumference;
     const offset = circumference - progress;
-    
+
     const getColor = (s: number) => s >= 70 ? '#4CAF50' : s >= 40 ? '#FFC107' : '#F44336';
     const getLabel = (s: number) => s >= 70 ? 'Bien' : s >= 40 ? 'Regular' : 'Difícil';
     const getStatusClass = (s: number) => {
@@ -202,7 +202,7 @@ const Reflect: React.FC = () => {
       if (s >= 40) return styles.wellbeingStatusMedium;
       return styles.wellbeingStatusLow;
     };
-    
+
     return (
       <div className={styles.wellbeingGauge}>
         <span className={styles.wellbeingGaugeLabel}>Índice de Bienestar</span>
@@ -339,10 +339,26 @@ const Reflect: React.FC = () => {
   const renderSlider = (field: string) => {
     const info = fieldLabels[field], value = formData[field];
     return (
-      <div key={field} className={styles.sliderContainer}>
-        <div className={styles.sliderHeader}><span className={styles.sliderEmoji}>{info.emoji}</span><span className={styles.sliderLabel}>{info.label}</span><span className={styles.sliderValue}>{value}/10</span></div>
-        <input type="range" min="0" max="10" value={value} onChange={(e) => handleChange(field, parseInt(e.target.value))} className={styles.slider} style={{ background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${Number(value) * 10}%, #e5e7eb ${Number(value) * 10}%, #e5e7eb 100%)` }} />
-        <div className={styles.sliderLabels}><span>{info.low}</span><span>{info.high}</span></div>
+      <div key={field} className={styles.sliderGroup}>
+        <div className={styles.sliderHeader}>
+          <label className={styles.sliderLabel}>
+            <span className={styles.sliderIcon}>{info.emoji}</span>
+            {info.label}
+          </label>
+          <span className={styles.sliderValue}>{value}</span>
+        </div>
+        <div className={styles.sliderTrack}>
+          <input
+            type="range" min="0" max="10" value={value}
+            onChange={(e) => handleChange(field, parseInt(e.target.value))}
+            className={styles.slider}
+            style={{ background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${Number(value) * 10}%, #e5e7eb ${Number(value) * 10}%, #e5e7eb 100%)` }}
+          />
+        </div>
+        <div className={styles.sliderLabels}>
+          <span>{info.low}</span>
+          <span>{info.high}</span>
+        </div>
       </div>
     );
   };
@@ -367,26 +383,81 @@ const Reflect: React.FC = () => {
     return <div className={styles.sliders}>{section.fields.map(f => renderSlider(f))}</div>;
   };
 
+  const hasSliders = ['estado', 'mental', 'social', 'fisico'].includes(section.id);
+
   const renderCheckinEditor = () => (
     <>
-      <div className={styles.progressBar}><div className={styles.progressFill} style={{ width: `${progress}%` }}></div></div>
-      <div className={styles.dateDisplay}><Calendar size={18} weight="regular" className={styles.dateIcon} /><span className={styles.dateText}>{formatDate(selectedDate)}</span>{existingCheckin && <span className={styles.editBadge}>Editando</span>}</div>
-      <div className={styles.sectionHeader}><span className={styles.sectionIcon}>{section.icon}</span><div><h2 className={styles.sectionTitle}>{section.title}</h2><p className={styles.sectionDescription}>{section.description}</p></div></div>
+      {/* Progress Section */}
+      <div className={styles.progressSection}>
+        <div className={styles.progressInfo}>
+          <span className={styles.progressStep}>Paso {currentSection + 1} de {sections.length}</span>
+          <span className={styles.progressPercent}>{Math.round(progress)}% Completado</span>
+        </div>
+        <div className={styles.progressBar}>
+          <div className={styles.progressFill} style={{ width: `${progress}%` }}></div>
+        </div>
+        <h3 className={styles.sectionSubtitle}>{section.title}</h3>
+      </div>
+
+      {/* Editing badge when modifying existing */}
+      {existingCheckin && (
+        <div className={styles.editingBadge}>
+          <PencilSimple size={14} />
+          <span>Editando check-in de {formatDate(selectedDate)}</span>
+        </div>
+      )}
+
+      {/* Title Question */}
+      <div className={styles.questionHeader}>
+        <h2 className={styles.questionTitle}>{section.description}</h2>
+        {hasSliders && (
+          <p className={styles.questionSubtitle}>Desliza para indicar tu nivel del 0 al 10.</p>
+        )}
+      </div>
+
+      {/* Content */}
       <div className={styles.content}>{renderSectionContent()}</div>
-      
-      <div className={styles.footer}><div className={styles.sectionIndicators}>{sections.map((s, i) => <button key={s.id} className={`${styles.indicator} ${i === currentSection ? styles.active : ""} ${i < currentSection ? styles.completed : ""}`} onClick={() => setCurrentSection(i)}>{s.icon}</button>)}</div><button className={styles.nextButton} onClick={goNext} disabled={saving}>{saving ? 'Guardando...' : currentSection === sections.length - 1 ? '✅ Guardar' : 'Continuar →'}</button></div>
+
+      {/* Fixed Footer */}
+      <div className={styles.footer}>
+        <button className={styles.ctaButton} onClick={goNext} disabled={saving}>
+          <span>{saving ? 'Guardando...' : currentSection === sections.length - 1 ? 'Guardar' : 'Siguiente'}</span>
+          {!saving && <ArrowRight size={20} weight="bold" />}
+        </button>
+      </div>
     </>
   );
 
   const isSummaryView = !!(existingCheckin && !isEditing);
 
-  if (loading) return (<div className={styles.reflect}><div className={styles.header}><button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button><h1 className={styles.title}>Seguimiento Diario</h1><div style={{ width: 36 }}></div></div><div className={styles.loadingContainer}><div className={styles.loadingSpinner}></div><p>Cargando...</p></div></div>);
+  if (loading) return (
+    <div className={styles.reflect}>
+      <div className={styles.header}>
+        <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button>
+        <h1 className={styles.title}>Seguimiento Diario</h1>
+        <div style={{ width: 36 }}></div>
+      </div>
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>Cargando...</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className={`${styles.reflect} ${isSummaryView ? styles.reflectSummary : styles.reflectEditing}`}>
-      <div className={styles.header}><button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button><h1 className={styles.title}>Seguimiento Diario</h1><div style={{ width: 36 }}></div></div>
+      <div className={styles.header}>
+        <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button>
+        <h1 className={styles.title}>Seguimiento Diario</h1>
+        <div style={{ width: 36 }}></div>
+      </div>
 
-      {isSummaryView ? (<><div className={styles.dateDisplaySummary}><Calendar size={18} /> {formatDate(selectedDate)}</div>{renderCheckinSummary()}</>) : renderCheckinEditor()}
+      {isSummaryView ? (
+        <>
+          <div className={styles.dateDisplaySummary}><Calendar size={18} /> {formatDate(selectedDate)}</div>
+          {renderCheckinSummary()}
+        </>
+      ) : renderCheckinEditor()}
 
       {isSummaryView && <BottomNav activePage="reflect" />}
     </div>

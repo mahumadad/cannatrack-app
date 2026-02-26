@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toLocalDateString, normalizeDate } from '../utils/dateHelpers';
 import { calcWellbeing } from '../utils/wellbeing';
 import { calculateDASS, calculatePANAS, calculatePSS } from '../utils/followUpScoring';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { EmptyChart } from './EmptyStates';
 import BottomNav from './BottomNav';
@@ -615,9 +615,260 @@ const Insights: React.FC = () => {
     );
   }
 
+  // === NEW: Bienestar General trend data ===
+  const trendData = (() => {
+    const days = period === 'weekly' ? 7 : 30;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = toLocalDateString(cutoff);
+    const periodCheckins = insightsData.checkins
+      .filter((c: any) => normalizeDate(c.date) > cutoffStr)
+      .reverse();
+    const doseDates = new Set(insightsData.doses.map((d: any) => normalizeDate(d.date)));
+    return periodCheckins.map((c: any) => ({
+      day: new Date(c.date).toLocaleDateString('es-ES', { weekday: 'short' }),
+      wellbeing: parseFloat(calcWellbeing(c).toFixed(1)),
+      isDose: doseDates.has(normalizeDate(c.date))
+    }));
+  })();
+
+  const wellbeingChange = (() => {
+    const days = period === 'weekly' ? 7 : 30;
+    const now = new Date();
+    const cutoff = new Date(now); cutoff.setDate(now.getDate() - days);
+    const prevCutoff = new Date(now); prevCutoff.setDate(now.getDate() - days * 2);
+    const cutoffStr = toLocalDateString(cutoff);
+    const prevCutoffStr = toLocalDateString(prevCutoff);
+    const current = insightsData.checkins.filter((c: any) => normalizeDate(c.date) > cutoffStr);
+    const prev = insightsData.checkins.filter((c: any) => {
+      const d = normalizeDate(c.date);
+      return d > prevCutoffStr && d <= cutoffStr;
+    });
+    if (current.length === 0 || prev.length === 0) return null;
+    const currentAvg = current.reduce((sum: number, c: any) => sum + calcWellbeing(c), 0) / current.length;
+    const prevAvg = prev.reduce((sum: number, c: any) => sum + calcWellbeing(c), 0) / prev.length;
+    return prevAvg !== 0 ? Math.round(((currentAvg - prevAvg) / prevAvg) * 100) : 0;
+  })();
+
+  const WellbeingTrendTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className={styles.tooltip}>
+          <p className={styles.tooltipLabel}>{label}</p>
+          <p style={{ margin: '4px 0' }}>Bienestar: <strong>{data.wellbeing}</strong>/10</p>
+          {data.isDose && <p style={{ color: '#FF6B6B', margin: '4px 0', fontSize: '12px' }}>💊 Día de dosis</p>}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // === NEW: Insights Rápidos cards (rich analysis) ===
+  const insightCards = (() => {
+    const defs: { field: string; icon: string; bg: string; label: string; inverse?: boolean }[] = [
+      { field: 'focus', icon: '🎯', bg: 'rgba(59, 130, 246, 0.1)', label: 'Enfoque Promedio' },
+      { field: 'anxiety', icon: '😰', bg: 'rgba(147, 51, 234, 0.1)', label: 'Ansiedad', inverse: true },
+      { field: 'sleep', icon: '😴', bg: 'rgba(249, 115, 22, 0.1)', label: 'Calidad de Sueño' },
+      { field: 'energy', icon: '⚡', bg: 'rgba(34, 197, 94, 0.1)', label: 'Energía' },
+      { field: 'mood', icon: '😊', bg: 'rgba(234, 179, 8, 0.1)', label: 'Estado de Ánimo' },
+      { field: 'productivity', icon: '📈', bg: 'rgba(236, 72, 153, 0.1)', label: 'Productividad' },
+    ];
+    return defs.map(def => {
+      const avgKey = `avg${def.field.charAt(0).toUpperCase() + def.field.slice(1)}`;
+      const val = parseFloat(String(avgs[avgKey] || avgs[def.field] || '5'));
+      const numericValue = `${val.toFixed(1)}/10`;
+      let statusLabel = numericValue;
+      let statusColor = 'var(--color-text)';
+      let desc = '';
+
+      if (comparisonData) {
+        const doseVal = parseFloat(String(comparisonData.withDose[def.field] || '5'));
+        const noDoseVal = parseFloat(String(comparisonData.withoutDose[def.field] || '5'));
+        const diff = doseVal - noDoseVal;
+        const pct = noDoseVal > 0 ? Math.round(Math.abs(diff / noDoseVal) * 100) : 0;
+        const isInverse = def.inverse === true;
+        const better = isInverse ? diff < 0 : diff > 0;
+
+        // Status labels
+        if (pct >= 15) {
+          statusLabel = better
+            ? (isInverse ? 'Reducción Alta' : 'Mejora Significativa')
+            : (isInverse ? 'Aumento Notable' : 'Variación Alta');
+          statusColor = better ? '#16a34a' : '#dc2626';
+        } else if (pct >= 5) {
+          statusLabel = better
+            ? (isInverse ? 'Reducción Moderada' : 'Mejora Moderada')
+            : (isInverse ? 'Aumento Leve' : 'Variación Leve');
+          statusColor = better ? '#16a34a' : '#ea580c';
+        } else {
+          statusLabel = 'Estable';
+          statusColor = '#6B5E50';
+        }
+
+        // Rich field-specific descriptions
+        if (def.field === 'focus') {
+          desc = pct >= 5 && better
+            ? `Tu concentración es un ${pct}% mayor en los días de dosis comparado con los días de pausa.`
+            : pct >= 5
+              ? `Tu concentración varía un ${pct}% entre días de dosis y pausa. Monitorea factores externos.`
+              : `Tu nivel de concentración se mantiene consistente independientemente de la dosis.`;
+        } else if (def.field === 'anxiety') {
+          desc = pct >= 15 && better
+            ? `Has reportado niveles significativamente más bajos de ansiedad en días de dosis.`
+            : pct >= 5 && better
+              ? `Tu ansiedad tiende a disminuir un ${pct}% en días de dosis.`
+              : pct >= 5
+                ? `Tu ansiedad muestra variación de ${pct}% entre días con y sin dosis.`
+                : `Tus patrones de ansiedad se mantienen estables sin alteraciones notables.`;
+        } else if (def.field === 'sleep') {
+          desc = pct >= 5 && better
+            ? `Tu calidad de sueño mejora un ${pct}% en días de dosis. El descanso es clave para tu bienestar.`
+            : `Tus patrones de sueño se mantienen consistentes sin alteraciones notables.`;
+        } else if (def.field === 'energy') {
+          desc = pct >= 5 && better
+            ? `Tu nivel de energía aumenta un ${pct}% en días de dosis respecto a días de pausa.`
+            : pct >= 5
+              ? `Tu energía fluctúa un ${pct}% entre días de dosis y pausa.`
+              : `Tu energía se mantiene estable independientemente del protocolo.`;
+        } else if (def.field === 'mood') {
+          desc = pct >= 5 && better
+            ? `Tu estado de ánimo es un ${pct}% mejor en días de dosis. Tendencia positiva.`
+            : pct >= 5
+              ? `Tu ánimo varía un ${pct}% entre días de dosis y pausa.`
+              : `Tu estado emocional se mantiene equilibrado durante todo el protocolo.`;
+        } else if (def.field === 'productivity') {
+          desc = pct >= 5 && better
+            ? `Tu productividad incrementa un ${pct}% en días de dosis.`
+            : pct >= 5
+              ? `Tu productividad varía un ${pct}% entre días con y sin dosis.`
+              : `Tu rendimiento productivo es consistente sin importar la dosis.`;
+        }
+      } else {
+        // No comparison data — analyze by value level
+        if (val >= 7.5) {
+          statusLabel = 'Excelente';
+          statusColor = '#16a34a';
+          desc = `Excelente ${def.label.toLowerCase()}. Mantén tus hábitos actuales.`;
+        } else if (val >= 5) {
+          statusLabel = 'Normal';
+          statusColor = '#6B5E50';
+          desc = `${def.label} dentro del rango normal. Registra más datos para análisis comparativo.`;
+        } else {
+          statusLabel = 'Bajo';
+          statusColor = '#ea580c';
+          desc = `${def.label} por debajo del promedio. Considera factores que puedan influir.`;
+        }
+      }
+
+      return { ...def, value: numericValue, statusLabel, statusColor, description: desc };
+    });
+  })();
+
+  // === NEW: Period counts for Resumen ===
+  const periodDoseCount = (() => {
+    const days = period === 'weekly' ? 7 : 30;
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
+    return insightsData.doses.filter((d: any) => normalizeDate(d.date) > toLocalDateString(cutoff)).length;
+  })();
+  const periodCheckinCount = (() => {
+    const days = period === 'weekly' ? 7 : 30;
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
+    return insightsData.checkins.filter((c: any) => normalizeDate(c.date) > toLocalDateString(cutoff)).length;
+  })();
+
+  // === Bienestar General: trend analysis text ===
+  const bienestarAnalysis = (() => {
+    if (trendData.length < 2) return null;
+    const values = trendData.map(d => d.wellbeing);
+    const avg = values.reduce((s, v) => s + v, 0) / values.length;
+    const trend = values[values.length - 1] - values[0];
+    const doseDays = trendData.filter(d => d.isDose);
+    const pauseDays = trendData.filter(d => !d.isDose);
+    const doseAvg = doseDays.length > 0 ? doseDays.reduce((s, d) => s + d.wellbeing, 0) / doseDays.length : 0;
+    const pauseAvg = pauseDays.length > 0 ? pauseDays.reduce((s, d) => s + d.wellbeing, 0) / pauseDays.length : 0;
+
+    let text = '';
+    if (trend > 1) {
+      text = `Tu bienestar muestra una tendencia al alza. Has mejorado ${trend.toFixed(1)} puntos en ${period === 'weekly' ? 'la última semana' : 'el último mes'}.`;
+    } else if (trend < -1) {
+      text = `Tu bienestar ha disminuido ${Math.abs(trend).toFixed(1)} puntos recientemente. Considera revisar tus hábitos.`;
+    } else {
+      text = `Tu bienestar se mantiene estable con un promedio de ${avg.toFixed(1)}/10.`;
+    }
+
+    if (doseDays.length > 0 && pauseDays.length > 0 && Math.abs(doseAvg - pauseAvg) > 0.5) {
+      const better = doseAvg > pauseAvg;
+      text += ` ${better ? 'Los días de dosis muestran mejores resultados' : 'Los días de pausa muestran mejores resultados'} (${doseAvg.toFixed(1)} vs ${pauseAvg.toFixed(1)}).`;
+    }
+    return text;
+  })();
+
   // Build sections array — filter conditional ones
   const sections: React.ReactNode[] = [
-    /* 0: Estado Emocional */
+    /* 0: Bienestar General (trend chart + analysis) */
+    <>
+      <div className={styles.bienestarHeader}>
+        <p className={styles.bienestarLabel}>Bienestar General</p>
+        <div className={styles.bienestarValueRow}>
+          <span className={styles.bienestarValue}>
+            {wellbeingScore.toFixed(1)}<span className={styles.bienestarUnit}>/10</span>
+          </span>
+          {wellbeingChange !== null && (
+            <span className={`${styles.bienestarBadge} ${wellbeingChange >= 0 ? styles.badgeUp : styles.badgeDown}`}>
+              {wellbeingChange >= 0 ? '↑' : '↓'} {Math.abs(wellbeingChange)}% vs {period === 'weekly' ? 'semana' : 'mes'} ant.
+            </span>
+          )}
+        </div>
+      </div>
+      {trendData.length > 1 ? (
+        <div className={styles.chartContainer}>
+          <ResponsiveContainer width="100%" height={180}>
+            <AreaChart data={trendData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+              <defs>
+                <linearGradient id="wbGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#D4A574" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="#D4A574" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E8C9A1" />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#6B5D52', fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <YAxis domain={[0, 10]} tick={{ fontSize: 10, fill: '#6B5D52' }} width={30} axisLine={false} tickLine={false} />
+              <Tooltip content={<WellbeingTrendTooltip />} />
+              <Area type="monotone" dataKey="wellbeing" stroke="#C17D4A" strokeWidth={2.5} fill="url(#wbGradient)"
+                dot={(props: any) => {
+                  const { cx, cy, payload, index } = props;
+                  if (payload.isDose) {
+                    return <circle key={`dose-${index}`} cx={cx} cy={cy} r={5} fill="#FF6B6B" stroke="white" strokeWidth={2} />;
+                  }
+                  return <circle key={`no-${index}`} cx={cx} cy={cy} r={3} fill="#D4A574" stroke="white" strokeWidth={1.5} />;
+                }}
+                activeDot={{ r: 6, fill: '#C17D4A', stroke: 'white', strokeWidth: 2 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <p style={{ textAlign: 'center', color: '#6B5E50', padding: '20px 0', fontSize: '14px' }}>
+          Necesitas al menos 2 reflexiones para ver la tendencia.
+        </p>
+      )}
+      <div className={styles.chartLegendRow}>
+        <div className={styles.legendItem}>
+          <span className={styles.legendDot} style={{ background: '#FF6B6B' }} />
+          <span>Día de Dosis</span>
+        </div>
+        <div className={styles.legendItem}>
+          <span className={styles.legendDot} style={{ background: '#D4A574' }} />
+          <span>Día de Pausa</span>
+        </div>
+      </div>
+      {bienestarAnalysis && (
+        <p className={styles.bienestarAnalysis}>{bienestarAnalysis}</p>
+      )}
+    </>,
+
+    /* 1: Estado Emocional */
     <>
       <h2 className={styles.cardTitle}>📈 Estado Emocional</h2>
       <p className={styles.cardSubtitle}>{period === 'weekly' ? 'Evolución diaria' : 'Evolución semanal'}</p>
@@ -718,48 +969,76 @@ const Insights: React.FC = () => {
     /* Evolución Clínica (condicional) */
     ...(evolutionCard ? [evolutionCard] : []),
 
-    /* Resumen (siempre) */
+    /* Insights Rápidos */
     <>
-      <h2 className={styles.cardTitle}>📊 Resumen</h2>
-      <p className={styles.cardSubtitle}>Tu actividad en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
-      <div className={styles.compareGauges}>
-        <div className={styles.compareGaugeItem}>
-          <span style={{ fontSize: '32px' }}>💊</span>
-          <span className={styles.compareGaugeLabel}>
-            {(() => {
-              const days = period === 'weekly' ? 7 : 30;
-              const cutoff = new Date();
-              cutoff.setDate(cutoff.getDate() - days);
-              const cutoffStr = toLocalDateString(cutoff);
-              return insightsData.doses.filter(d => normalizeDate(d.date) > cutoffStr).length;
-            })()}
-          </span>
-          <span className={styles.compareGaugeDays}>Dosis</span>
-        </div>
-        <div className={styles.compareGaugeItem}>
-          <span style={{ fontSize: '32px' }}>📝</span>
-          <span className={styles.compareGaugeLabel}>
-            {(() => {
-              const days = period === 'weekly' ? 7 : 30;
-              const cutoff = new Date();
-              cutoff.setDate(cutoff.getDate() - days);
-              const cutoffStr = toLocalDateString(cutoff);
-              return insightsData.checkins.filter(c => normalizeDate(c.date) > cutoffStr).length;
-            })()}
-          </span>
-          <span className={styles.compareGaugeDays}>Reflexiones</span>
-        </div>
-      </div>
-      {comparisonData && (
-        <>
-          <div className={styles.summaryDivider} />
-          <p className={styles.cardSubtitle} style={{ marginTop: 8 }}>Bienestar: con dosis vs sin dosis</p>
-          <div className={styles.compareGauges}>
-            <ComparisonGauge score={comparisonData.withDose.wellbeing} label="Con Dosis" color="#4CAF50" days={comparisonData.withDose.count} />
-            <ComparisonGauge score={comparisonData.withoutDose.wellbeing} label="Sin Dosis" color="#9E9E9E" days={comparisonData.withoutDose.count} />
+      <h2 className={styles.cardTitle}>💡 Insights Rápidos</h2>
+      <p className={styles.cardSubtitle}>Análisis basado en tus datos</p>
+      <div className={styles.insightsGrid}>
+        {insightCards.map((card, i) => (
+          <div key={i} className={styles.insightCard}>
+            <div className={styles.insightHeader}>
+              <div className={styles.insightIconBadge} style={{ background: card.bg }}>
+                <span>{card.icon}</span>
+              </div>
+              <div>
+                <p className={styles.insightLabel}>{card.label}</p>
+                <p className={styles.insightStatus} style={{ color: card.statusColor }}>{card.statusLabel}</p>
+              </div>
+            </div>
+            <p className={styles.insightDesc}>{card.description}</p>
           </div>
-        </>
-      )}
+        ))}
+      </div>
+    </>,
+
+    /* Resumen (siempre, estilo Stitch list) */
+    <>
+      <h2 className={styles.cardTitle}>📊 Resumen {period === 'weekly' ? 'Semanal' : 'Mensual'}</h2>
+      <p className={styles.cardSubtitle}>Tu actividad en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
+      <div className={styles.resumenList}>
+        <div className={styles.resumenRow}>
+          <div className={styles.resumenLeft}>
+            <div className={styles.resumenIcon} style={{ background: 'rgba(34, 197, 94, 0.1)' }}>💊</div>
+            <div>
+              <p className={styles.resumenLabel}>Tomas Registradas</p>
+              <p className={styles.resumenSub}>{periodDoseCount} en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
+            </div>
+          </div>
+          <span className={styles.resumenValue}>{periodDoseCount}</span>
+        </div>
+        <div className={styles.resumenRow}>
+          <div className={styles.resumenLeft}>
+            <div className={styles.resumenIcon} style={{ background: 'rgba(234, 179, 8, 0.1)' }}>📝</div>
+            <div>
+              <p className={styles.resumenLabel}>Reflexiones</p>
+              <p className={styles.resumenSub}>{periodCheckinCount} en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
+            </div>
+          </div>
+          <span className={styles.resumenValue}>{periodCheckinCount}</span>
+        </div>
+        <div className={styles.resumenRow}>
+          <div className={styles.resumenLeft}>
+            <div className={styles.resumenIcon} style={{ background: 'rgba(59, 130, 246, 0.1)' }}>🌟</div>
+            <div>
+              <p className={styles.resumenLabel}>Bienestar General</p>
+              <p className={styles.resumenSub}>Puntuación promedio</p>
+            </div>
+          </div>
+          <span className={styles.resumenValue}>{wellbeingScore.toFixed(1)}</span>
+        </div>
+        {comparisonData && (
+          <div className={styles.resumenRow}>
+            <div className={styles.resumenLeft}>
+              <div className={styles.resumenIcon} style={{ background: 'rgba(76, 175, 80, 0.1)' }}>⚖️</div>
+              <div>
+                <p className={styles.resumenLabel}>Impacto de Dosis</p>
+                <p className={styles.resumenSub}>Con vs sin dosis</p>
+              </div>
+            </div>
+            <span className={styles.resumenValue}>{comparisonData.withDose.wellbeing} vs {comparisonData.withoutDose.wellbeing}</span>
+          </div>
+        )}
+      </div>
     </>
   ];
 
