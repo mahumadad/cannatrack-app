@@ -10,9 +10,9 @@
   justify-content: space-around;
   align-items: flex-end;
   padding: 8px 16px calc(8px + var(--safe-area-bottom));
-  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.04), 0 -4px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -1px 0 rgba(64, 45, 33, 0.04), 0 -4px 20px rgba(64, 45, 33, 0.05);
   z-index: var(--z-nav);
-  border-top: 1px solid rgba(165, 127, 80, 0.1);
+  border-top: 1px solid var(--overlay-10);
 }
 
 /* Nav buttons */
@@ -80,7 +80,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(165, 127, 80, 0.4);
+  box-shadow: 0 4px 16px var(--overlay-40);
   transition: all 0.25s var(--ease-spring);
   z-index: calc(var(--z-nav) + 1);
 }
@@ -92,5 +92,5 @@
 
 .fab:active {
   transform: translateY(0) scale(0.95);
-  box-shadow: 0 2px 8px rgba(165, 127, 80, 0.3);
+  box-shadow: 0 2px 8px var(--overlay-30);
 }

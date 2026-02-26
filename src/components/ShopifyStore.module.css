@@ -9,12 +9,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: var(--header-padding);
   padding-top: calc(16px + var(--safe-area-top));
-  background: rgba(247, 246, 242, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(165, 127, 80, 0.08);
+  background: var(--header-bg);
+  backdrop-filter: var(--header-blur);
+  -webkit-backdrop-filter: var(--header-blur);
+  border-bottom: var(--header-border);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
@@ -24,14 +24,14 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(165, 127, 80, 0.08);
+  background: var(--overlay-light);
   color: var(--color-primary);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .backButton:hover {
@@ -60,11 +60,11 @@
   margin: 16px 20px 0;
   padding: 14px 16px;
   background: white;
-  border-radius: 16px;
-  border: 1px solid rgba(165, 127, 80, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--overlay-10);
+  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .recetaBanner:active {
@@ -117,7 +117,7 @@
   font-family: inherit;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .recetaNewOrderBtn:active {
@@ -142,7 +142,7 @@
 .miniSaldoBar {
   flex: 1;
   height: 6px;
-  background: rgba(165, 127, 80, 0.1);
+  background: var(--overlay-10);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -168,9 +168,9 @@
   background: white;
   margin: 16px 20px;
   padding: 4px;
-  border-radius: 12px;
-  border: 1px solid rgba(165, 127, 80, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--overlay-10);
+  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
 }
 
 .tabButton {
@@ -187,8 +187,8 @@
   font-weight: 600;
   color: var(--color-text-secondary);
   cursor: pointer;
-  border-radius: 10px;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
   font-family: inherit;
   text-align: center;
   line-height: 1.2;
@@ -201,7 +201,7 @@
 .tabActive {
   background: var(--color-primary);
   color: white;
-  box-shadow: 0 2px 8px rgba(165, 127, 80, 0.25);
+  box-shadow: 0 2px 8px var(--overlay-25);
 }
 
 @media (min-width: 480px) {
@@ -224,16 +224,16 @@
 
 .orderCard {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 16px;
-  border: 1px solid rgba(165, 127, 80, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--overlay-10);
+  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .orderCard:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 12px rgba(64, 45, 33, 0.06);
 }
 
 .orderHeader {
@@ -275,10 +275,10 @@
 /* ===== Draft Order Card ===== */
 .draftOrderCard {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 16px;
-  border: 1px solid rgba(165, 127, 80, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--overlay-10);
+  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
   border-left: 4px solid var(--color-primary);
 }
 
@@ -294,7 +294,7 @@
   gap: 8px;
   margin-top: 10px;
   padding: 8px 12px;
-  background: rgba(165, 127, 80, 0.06);
+  background: var(--overlay-lighter);
   border-radius: 8px;
 }
 
@@ -310,8 +310,8 @@
 }
 
 .statusPendingPayment {
-  background: rgba(255, 152, 0, 0.1);
-  color: #E65100;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
 }
 
 .paymentButton {
@@ -325,14 +325,14 @@
   background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
   font-family: inherit;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(165, 127, 80, 0.25);
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 12px var(--overlay-25);
 }
 
 .paymentButton:hover {
@@ -348,23 +348,23 @@
   font-size: var(--text-xs);
   font-weight: 600;
   padding: 3px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   white-space: nowrap;
 }
 
-.statusFulfilled { background: rgba(76, 175, 80, 0.1); color: #2E7D32; }
-.statusUnfulfilled { background: rgba(255, 152, 0, 0.1); color: #E65100; }
-.statusPartial { background: rgba(33, 150, 243, 0.1); color: #1565C0; }
-.statusPaid { background: rgba(76, 175, 80, 0.1); color: #2E7D32; }
-.statusPending { background: rgba(255, 152, 0, 0.1); color: #E65100; }
-.statusActive { background: rgba(76, 175, 80, 0.1); color: #2E7D32; }
-.statusPaused { background: rgba(255, 152, 0, 0.1); color: #E65100; }
-.statusCancelled { background: rgba(244, 67, 54, 0.08); color: #C62828; }
-.statusInTransit { background: rgba(33, 150, 243, 0.1); color: #1565C0; }
-.statusDefault { background: rgba(0, 0, 0, 0.04); color: var(--color-text-muted); }
+.statusFulfilled { background: var(--color-success-bg); color: var(--color-success-text); }
+.statusUnfulfilled { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.statusPartial { background: var(--color-info-bg); color: var(--color-info-text); }
+.statusPaid { background: var(--color-success-bg); color: var(--color-success-text); }
+.statusPending { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.statusActive { background: var(--color-success-bg); color: var(--color-success-text); }
+.statusPaused { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.statusCancelled { background: var(--color-danger-bg); color: var(--color-danger-dark); }
+.statusInTransit { background: var(--color-info-bg); color: var(--color-info-text); }
+.statusDefault { background: rgba(64, 45, 33, 0.04); color: var(--color-text-muted); }
 
-.tipoBadgeReceta { background: rgba(255, 152, 0, 0.1); color: #E65100; }
-.tipoBadgeDispensacion { background: rgba(33, 150, 243, 0.1); color: #1565C0; }
+.tipoBadgeReceta { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.tipoBadgeDispensacion { background: var(--color-info-bg); color: var(--color-info-text); }
 
 /* ===== Tracking Bar ===== */
 .trackingBar {
@@ -373,8 +373,8 @@
   gap: 8px;
   padding: 10px 12px;
   margin-top: 12px;
-  background: rgba(165, 127, 80, 0.06);
-  border-radius: 10px;
+  background: var(--overlay-lighter);
+  border-radius: var(--radius-md);
   font-size: var(--text-sm);
   color: var(--color-primary);
   font-weight: 500;
@@ -399,7 +399,7 @@
 .lineItems {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(165, 127, 80, 0.1);
+  border-top: 1px solid var(--overlay-10);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -415,7 +415,7 @@
 .lineItemImage {
   width: 48px;
   height: 48px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   object-fit: cover;
   background: var(--color-bg);
   flex-shrink: 0;
@@ -424,8 +424,8 @@
 .lineItemImagePlaceholder {
   width: 48px;
   height: 48px;
-  border-radius: 10px;
-  background: rgba(165, 127, 80, 0.06);
+  border-radius: var(--radius-md);
+  background: var(--overlay-lighter);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -472,7 +472,7 @@
   margin-top: 4px;
   padding: 12px;
   background: var(--color-bg);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -492,13 +492,13 @@
 }
 
 .summaryRow .discountAmount {
-  color: #2E7D32;
+  color: var(--color-success-text);
   font-weight: 600;
 }
 
 .summaryTotal {
   padding-top: 8px;
-  border-top: 1px solid rgba(165, 127, 80, 0.1);
+  border-top: 1px solid var(--overlay-10);
   font-weight: 700;
   color: var(--color-text);
   font-size: var(--text-base);
@@ -518,8 +518,8 @@
 .shippingSection {
   margin-top: 4px;
   padding: 12px;
-  background: rgba(165, 127, 80, 0.06);
-  border-radius: 10px;
+  background: var(--overlay-lighter);
+  border-radius: var(--radius-md);
 }
 
 .shippingSectionTitle {
@@ -543,17 +543,17 @@
 
 /* ===== Membership Card ===== */
 .membershipCard {
-  background: rgba(76, 175, 80, 0.06);
-  border-radius: 16px;
+  background: var(--color-success-bg);
+  border-radius: var(--radius-xl);
   padding: 16px;
   margin-bottom: 12px;
-  border: 1px solid rgba(76, 175, 80, 0.15);
+  border: 1px solid var(--color-success-bg);
 }
 
 .membershipCardPending {
   composes: membershipCard;
-  background: rgba(255, 152, 0, 0.06);
-  border-color: rgba(255, 152, 0, 0.15);
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-bg);
 }
 
 .membershipHeader {
@@ -566,12 +566,12 @@
 .membershipTitle {
   font-weight: 700;
   font-size: 15px;
-  color: #2E7D32;
+  color: var(--color-success-text);
   flex: 1;
 }
 
 .membershipBadge {
-  background: #2E7D32;
+  background: var(--color-success-text);
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -583,18 +583,18 @@
 
 .membershipBadgePending {
   composes: membershipBadge;
-  background: #F57C00;
+  background: var(--color-warning);
 }
 
 .membershipCardCancelled {
   composes: membershipCard;
-  background: rgba(244, 67, 54, 0.04);
-  border-color: rgba(244, 67, 54, 0.12);
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger-bg);
 }
 
 .membershipBadgeCancelled {
   composes: membershipBadge;
-  background: #C62828;
+  background: var(--color-danger-dark);
 }
 
 .membershipDetail {
@@ -612,19 +612,19 @@
   padding: 10px;
   margin-top: 12px;
   background: transparent;
-  color: #C62828;
-  border: 1px solid #C62828;
-  border-radius: 10px;
+  color: var(--color-danger-dark);
+  border: 1px solid var(--color-danger-dark);
+  border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .membershipCancelBtn:active:not(:disabled) {
   transform: scale(0.98);
-  background: rgba(244, 67, 54, 0.04);
+  background: var(--color-danger-bg);
 }
 
 .membershipCancelBtn:disabled {
@@ -641,10 +641,10 @@
 
 .subscriptionCard {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 16px;
-  border: 1px solid rgba(165, 127, 80, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--overlay-10);
+  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
 }
 
 .subHeader {
@@ -664,8 +664,8 @@
   gap: 8px;
   padding: 10px 12px;
   margin-top: 12px;
-  background: rgba(165, 127, 80, 0.06);
-  border-radius: 10px;
+  background: var(--overlay-lighter);
+  border-radius: var(--radius-md);
   font-size: var(--text-sm);
   color: var(--color-primary);
   font-weight: 500;
@@ -710,7 +710,7 @@
 .loadingSpinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(165, 127, 80, 0.15);
+  border: 3px solid var(--overlay-15);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -723,10 +723,10 @@
 /* ===== Receta Detail ===== */
 .recetaDetailCard {
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   padding: 20px;
-  border: 1px solid rgba(165, 127, 80, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--overlay-10);
+  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
 }
 
 .recetaCardHeader {
@@ -771,7 +771,7 @@
 .recetaSaldoBar {
   flex: 1;
   height: 8px;
-  background: rgba(165, 127, 80, 0.1);
+  background: var(--overlay-10);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -796,7 +796,7 @@
   gap: 12px;
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid rgba(165, 127, 80, 0.1);
+  border-top: 1px solid var(--overlay-10);
 }
 
 .recetaMetaItem {
@@ -823,15 +823,15 @@
   width: 100%;
   padding: 12px;
   margin-top: 20px;
-  background: rgba(165, 127, 80, 0.06);
+  background: var(--overlay-lighter);
   color: var(--color-text);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .recetaDetailBtn:active {
@@ -845,7 +845,7 @@
   background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: var(--text-md);
   font-weight: 700;
   cursor: pointer;
@@ -854,8 +854,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(165, 127, 80, 0.25);
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 12px var(--overlay-25);
 }
 
 .recetaOrderBtn:active {
@@ -869,19 +869,19 @@
   gap: 10px;
   padding: 14px 18px;
   background: white;
-  border: 1.5px dashed rgba(165, 127, 80, 0.25);
-  border-radius: 12px;
+  border: 1.5px dashed var(--overlay-25);
+  border-radius: var(--radius-md);
   cursor: pointer;
   margin-bottom: 16px;
   font-size: var(--text-base);
   font-weight: 600;
   color: var(--color-primary);
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .recetaUploadBanner:hover {
   border-color: var(--color-primary);
-  background: rgba(165, 127, 80, 0.04);
+  background: var(--overlay-lightest);
 }
 
 /* Recetas pasadas */
@@ -900,12 +900,12 @@
 
 .recetaPasadaCard {
   background: white;
-  border: 1px solid rgba(165, 127, 80, 0.1);
-  border-radius: 12px;
+  border: 1px solid var(--overlay-10);
+  border-radius: var(--radius-md);
   padding: 12px 16px;
   margin-bottom: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .recetaPasadaCard:hover {
@@ -933,19 +933,19 @@
 }
 
 .recetaPasadaCompletada {
-  background: rgba(76, 175, 80, 0.1);
-  color: #2E7D32;
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
 }
 
 .recetaPasadaVencida {
-  background: rgba(255, 152, 0, 0.1);
-  color: #E65100;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
 }
 
 .recetaPasadaCancelada,
 .recetaPasadaReemplazada {
-  background: rgba(0, 0, 0, 0.04);
-  color: #666;
+  background: rgba(64, 45, 33, 0.04);
+  color: var(--color-text-muted);
 }
 
 .recetaPasadaMeta {

@@ -10,12 +10,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  padding-top: calc(20px + var(--safe-area-top));
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  padding: var(--header-padding);
+  padding-top: calc(16px + var(--safe-area-top));
+  background: var(--header-bg);
+  backdrop-filter: var(--header-blur);
+  -webkit-backdrop-filter: var(--header-blur);
+  border-bottom: var(--header-border);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
@@ -25,7 +25,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--color-surface-warm);
+  background: var(--overlay-light);
   color: var(--color-primary);
   border: none;
   cursor: pointer;
@@ -155,9 +155,9 @@
 .microCard:active { transform: scale(0.98); }
 
 .microCardActive {
-  border-color: #D4A060;
-  background: linear-gradient(135deg, #FFFDF8, #FFF8F0);
-  box-shadow: 0 0 0 1px #D4A060;
+  border-color: var(--color-primary-light);
+  background: linear-gradient(135deg, var(--color-bg), var(--color-surface-warm));
+  box-shadow: 0 0 0 1px var(--color-primary-light);
 }
 
 
@@ -193,10 +193,10 @@
   gap: 4px;
   font-size: 10px;
   font-weight: 700;
-  color: #D4A060;
-  background: #FFF3E0;
+  color: var(--color-primary-light);
+  background: var(--color-warning-bg);
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -206,15 +206,15 @@
   font-size: 10px;
   font-weight: 700;
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .badgePautaGray {
   composes: badgePauta;
-  color: #6B7280;
-  background: #F3F4F6;
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
 }
 
 .badgePopular {
@@ -226,14 +226,14 @@
   color: white;
   background: var(--step-color, #5048e5);
   padding: 3px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .badgeExcede {
   composes: badgePopular;
-  background: #DC2626;
+  background: var(--color-danger-dark);
 }
 
 .saldoBadge {
@@ -288,7 +288,7 @@
 
 .qtyError {
   font-size: var(--text-xs);
-  color: #DC2626;
+  color: var(--color-danger-dark);
   margin-top: 6px;
 }
 
@@ -440,8 +440,8 @@
 
 .macroCardBtnDisabled {
   composes: macroCardBtn;
-  background: #D1D5DB;
-  color: #9CA3AF;
+  background: var(--color-border);
+  color: var(--color-text-muted);
   cursor: not-allowed;
 }
 
@@ -849,7 +849,7 @@
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-primary);
-  background: #FFF8F0;
+  background: var(--color-surface-warm);
   padding: 8px 16px;
   border-radius: 8px;
   margin-bottom: 24px;
@@ -892,17 +892,17 @@
   align-items: flex-start;
   gap: 8px;
   padding: 10px 14px;
-  background: #FFF8E1;
-  border: 1.5px solid #FFD54F;
+  background: var(--color-warning-bg);
+  border: 1.5px solid var(--color-warning);
   border-radius: var(--radius-sm);
   margin-bottom: 12px;
   font-size: var(--text-sm);
-  color: #7B6B00;
+  color: var(--color-warning-text);
   line-height: 1.4;
 }
 
 .warningBanner svg {
-  color: #F9A825;
+  color: var(--color-warning);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -916,8 +916,8 @@
 }
 
 .recetaCard {
-  background: linear-gradient(135deg, #FEFCF9, #FFF8F0);
-  border: 1.5px solid #E8DDD4;
+  background: linear-gradient(135deg, var(--color-bg), var(--color-surface-warm));
+  border: 1.5px solid var(--color-border-light);
   border-radius: var(--radius-md);
   padding: 12px 14px;
   display: flex;
@@ -949,8 +949,8 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: #5D4037;
-  background: #EFEBE9;
+  color: var(--color-text);
+  background: var(--color-border-light);
   padding: 2px 8px;
   border-radius: var(--radius-sm);
 }
@@ -965,12 +965,12 @@
 }
 
 .recetaCardRow svg {
-  color: #A0907E;
+  color: var(--color-text-secondary);
   flex-shrink: 0;
 }
 
 .recetaCardSep {
-  color: #C4B8AC;
+  color: var(--color-border);
 }
 
 .recetaCardDosis {
@@ -989,7 +989,7 @@
   text-transform: uppercase;
   letter-spacing: 0.3px;
   color: var(--color-text);
-  background: #F0EBE5;
+  background: var(--color-border-light);
   padding: 1px 6px;
   border-radius: 4px;
 }
@@ -1005,7 +1005,7 @@
 }
 
 .recetaCardUsed {
-  color: #A0907E;
+  color: var(--color-text-secondary);
   font-size: var(--text-xs);
 }
 

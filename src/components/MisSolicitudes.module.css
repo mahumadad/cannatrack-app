@@ -8,12 +8,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  padding-top: calc(20px + var(--safe-area-top));
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  padding: var(--header-padding);
+  padding-top: calc(16px + var(--safe-area-top));
+  background: var(--header-bg);
+  backdrop-filter: var(--header-blur);
+  -webkit-backdrop-filter: var(--header-blur);
+  border-bottom: var(--header-border);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
@@ -23,13 +23,19 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--color-surface-warm);
+  background: var(--overlay-light);
   color: var(--color-primary);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.backButton:hover {
+  background: var(--color-primary);
+  color: white;
 }
 
 .backButton:active { transform: scale(0.95); }
@@ -52,7 +58,7 @@
   background: white;
   border-radius: var(--radius-md);
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.06);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -109,7 +115,7 @@
 .statusPreAprobado { background: var(--color-info-bg); color: var(--color-info-text); }
 .statusAprobado { background: var(--color-success-bg); color: var(--color-success-text); }
 .statusRechazado { background: var(--color-danger-bg); color: var(--color-danger-dark); }
-.statusCancelado { background: #F5F5F5; color: var(--color-text-secondary); }
+.statusCancelado { background: var(--color-bg); color: var(--color-text-secondary); }
 .statusPagado { background: var(--color-success-bg); color: var(--color-success-text); }
 .statusDespachado { background: var(--color-info-bg); color: var(--color-info-text); }
 .statusEntregado { background: var(--color-success-bg); color: var(--color-success-text); }
