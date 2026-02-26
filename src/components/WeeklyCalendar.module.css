@@ -147,7 +147,7 @@
   min-width: 0;
   flex: 1;
   padding: 4px 0;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast) ease;
 }
 
 .monthDayCard {
@@ -216,7 +216,7 @@
   color: var(--color-text);
   background: white;
   border: 1.5px solid rgba(193, 125, 74, 0.15);
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast) ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 

@@ -26,7 +26,7 @@
   cursor: pointer;
   padding: 6px 12px;
   border-radius: var(--radius-md);
-  transition: all 0.2s var(--ease-out);
+  transition: all var(--transition-fast) var(--ease-out);
   min-width: 56px;
 }
 
@@ -37,7 +37,7 @@
 .navIcon {
   font-size: 24px;
   color: var(--color-text-secondary);
-  transition: color 0.2s ease;
+  transition: color var(--transition-fast);
 }
 
 .navButton.active .navIcon {
@@ -81,7 +81,7 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 4px 16px var(--overlay-40);
-  transition: all 0.25s var(--ease-spring);
+  transition: all var(--transition-normal) var(--ease-spring);
   z-index: calc(var(--z-nav) + 1);
 }
 

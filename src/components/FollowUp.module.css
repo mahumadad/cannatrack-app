@@ -57,7 +57,7 @@
   color: var(--color-primary);
   background: var(--overlay-light);
   padding: 6px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
 /* ===== Progress Bar ===== */
@@ -71,7 +71,7 @@
   height: 100%;
   background: var(--color-primary);
   border-radius: 0 3px 3px 0;
-  transition: width 0.5s ease;
+  transition: width var(--transition-slow);
 }
 
 /* ===== Section Header ===== */
@@ -106,7 +106,7 @@
   color: var(--color-primary);
   background: var(--overlay-light);
   padding: 4px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -153,7 +153,7 @@
   padding: 20px;
   margin-bottom: 20px;
   border: 1px solid var(--overlay-10);
-  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
+  box-shadow: var(--shadow-card);
   text-align: left;
 }
 
@@ -188,7 +188,7 @@
   align-items: center;
   gap: 4px;
   padding: 8px 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 1.5px solid var(--overlay-bold);
   background: white;
   font-size: var(--text-sm);
@@ -268,7 +268,7 @@
   padding: 20px;
   text-align: left;
   border: 1px solid var(--overlay-10);
-  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
+  box-shadow: var(--shadow-card);
 }
 
 .whatToExpect h3 {
@@ -326,7 +326,7 @@
   padding: 18px;
   border-radius: var(--radius-xl);
   border: 1px solid var(--overlay-10);
-  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
+  box-shadow: var(--shadow-card);
   animation: fadeUp 0.3s ease-out both;
 }
 
@@ -458,7 +458,7 @@
   padding: 20px;
   border-radius: var(--radius-xl);
   border: 1px solid var(--overlay-10);
-  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
+  box-shadow: var(--shadow-card);
 }
 
 .field label {
@@ -539,7 +539,7 @@
   resize: vertical;
   min-height: 80px;
   box-sizing: border-box;
-  transition: border-color 0.2s ease;
+  transition: border-color var(--transition-fast);
 }
 
 .textarea:focus {
@@ -589,7 +589,7 @@
   color: var(--color-primary);
   background: var(--overlay-light);
   padding: 6px 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
 .slider {
@@ -609,7 +609,7 @@
   background: var(--color-primary);
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(165, 127, 80, 0.35);
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-fast);
 }
 
 .slider::-webkit-slider-thumb:hover {
@@ -849,7 +849,7 @@
   padding: 20px;
   margin-bottom: 16px;
   border: 1px solid var(--overlay-10);
-  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
+  box-shadow: var(--shadow-card);
 }
 
 .analysisCardHeader {
@@ -969,7 +969,7 @@
   gap: 8px;
   padding: 10px 18px;
   background: var(--overlay-light);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-size: var(--text-md);
   font-weight: 600;
   color: var(--color-text);
@@ -996,7 +996,7 @@
   display: inline-block;
   padding: 6px 14px;
   background: var(--overlay-light);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-text);
@@ -1044,7 +1044,7 @@
   padding: 16px;
   border-radius: var(--radius-xl);
   border: 1px solid var(--overlay-10);
-  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
+  box-shadow: var(--shadow-card);
 }
 
 .scaleField label {

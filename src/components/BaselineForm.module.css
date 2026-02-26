@@ -91,7 +91,7 @@
   height: 100%;
   background: var(--color-primary);
   border-radius: 5px;
-  transition: width 0.5s ease;
+  transition: width var(--transition-slow);
 }
 
 /* ===== Section Heading (standalone) ===== */
@@ -121,7 +121,7 @@
   color: var(--color-primary);
   background: var(--overlay-light);
   padding: 4px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -149,7 +149,7 @@
   padding: 20px;
   border-radius: var(--radius-xl);
   border: 1px solid var(--overlay-10);
-  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
+  box-shadow: var(--shadow-card);
   animation: fadeUp 0.3s ease-out both;
 }
 
@@ -262,7 +262,7 @@
   background: var(--color-primary);
   cursor: pointer;
   box-shadow: 0 2px 8px var(--overlay-30);
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-fast);
 }
 
 .slider::-webkit-slider-thumb:hover {
@@ -351,7 +351,7 @@
   padding: 18px;
   border-radius: var(--radius-xl);
   border: 1px solid var(--overlay-10);
-  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
+  box-shadow: var(--shadow-card);
   animation: fadeUp 0.3s ease-out both;
 }
 
@@ -442,7 +442,7 @@
   padding: 16px;
   border-radius: var(--radius-xl);
   border: 1px solid var(--overlay-10);
-  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
+  box-shadow: var(--shadow-card);
   animation: fadeUp 0.3s ease-out both;
 }
 
@@ -749,7 +749,7 @@
   padding: 20px;
   margin-bottom: 16px;
   border: 1px solid var(--overlay-10);
-  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.04);
+  box-shadow: var(--shadow-card);
 }
 
 .analysisCardHeader {

@@ -23,7 +23,7 @@
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all var(--transition-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
   font-family: inherit;
   gap: 2px;
 }
@@ -99,13 +99,13 @@
   color: #D4A574;
   background: var(--color-warning-bg);
   padding: 1px 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   letter-spacing: 0.3px;
 }
 
 @keyframes softPulse {
   0%, 100% {
-    box-shadow: 0 2px 8px rgba(64, 45, 33, 0.06);
+    box-shadow: var(--shadow-card);
   }
   50% {
     box-shadow: 0 2px 16px rgba(166, 128, 80, 0.25);
