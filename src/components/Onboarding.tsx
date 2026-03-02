@@ -5,6 +5,7 @@ import { useUserRecord, useSaveBaseline, useMarkOnboarding } from '../hooks/quer
 import {
   NotePencil,
   Clock,
+  Storefront,
   ArrowRight,
   ArrowLeft
 } from '@phosphor-icons/react';
@@ -51,8 +52,8 @@ const Onboarding: React.FC = () => {
     if (userData) setLoading(false);
   }, [userData]);
 
-  const totalSteps = 4;
-  const showcaseSteps = 3; // steps 0, 1, 2
+  const totalSteps = 5;
+  const showcaseSteps = 4; // steps 0, 1, 2, 3
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
@@ -166,6 +167,27 @@ const Onboarding: React.FC = () => {
 
       case 3:
         return (
+          <div className={styles.showcaseSlide}>
+            <div className={styles.illustrationCircle}>
+              <div className={styles.illustrationGradient}></div>
+              <div className={styles.illustrationInner}>
+                <div className={styles.illustrationRing}></div>
+                <Storefront size={80} weight="light" />
+              </div>
+              <div className={styles.floatingDot1}></div>
+              <div className={styles.floatingDot2}></div>
+            </div>
+            <div className={styles.showcaseText}>
+              <h2 className={styles.showcaseTitle}>Tu dispensario personal</h2>
+              <p className={styles.showcaseDesc}>
+                Accede a nuestro store para pedir tus microdosis y macrodosis. Sube tu receta médica, gestiona tus pedidos y recibe todo en tu domicilio.
+              </p>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
           <div className={styles.sliderStep}>
             <div className={styles.sliderStepHeader}>
               <h1 className={styles.sliderStepTitle}>Tu estado base</h1>
@@ -222,7 +244,7 @@ const Onboarding: React.FC = () => {
           {/* Absolute skip button */}
           <div className={styles.topBar}>
             <div className={styles.topBarSpacer}></div>
-            <button className={styles.skipButton} onClick={() => setCurrentStep(3)}>
+            <button className={styles.skipButton} onClick={() => setCurrentStep(4)}>
               Omitir
             </button>
           </div>
@@ -233,7 +255,7 @@ const Onboarding: React.FC = () => {
 
             {/* Progress dots */}
             <div className={styles.progressDots}>
-              {[0, 1, 2].map(i => (
+              {[0, 1, 2, 3].map(i => (
                 <div
                   key={i}
                   className={`${styles.dot} ${i === currentStep ? styles.dotActive : ''} ${i < currentStep ? styles.dotCompleted : ''}`}
@@ -268,7 +290,7 @@ const Onboarding: React.FC = () => {
 
           {/* Segmented progress */}
           <div className={styles.progressSegments}>
-            {[0, 1, 2, 3].map(i => (
+            {[0, 1, 2, 3, 4].map(i => (
               <div
                 key={i}
                 className={`${styles.segment} ${i <= currentStep ? styles.segmentFilled : ''}`}
