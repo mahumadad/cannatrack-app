@@ -107,15 +107,8 @@ const Login: React.FC = () => {
             </div>
             <h1 className={styles.successTitle}>Pago exitoso</h1>
             <p className={styles.successText}>
-              Tu suscripcion fue procesada exitosamente. Recibiras un correo con acceso a la app cuando tu proceso de inscripcion este completo.
+              Tu suscripcion fue procesada exitosamente. Recibiras un correo con los siguientes pasos para completar tu inscripcion.
             </p>
-            <button
-              type="button"
-              className={styles.successLink}
-              onClick={() => setShowLoginForm(true)}
-            >
-              ¿Ya tienes acceso? Inicia sesion
-            </button>
           </div>
         ) : (
           <>
