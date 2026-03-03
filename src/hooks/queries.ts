@@ -152,8 +152,16 @@ export function useUserRecord(userId: string | undefined) {
 export function useAddDose() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: Record<string, unknown>) => api.post('/api/doses', body),
-    onSuccess: () => {
+    mutationFn: (body: Record<string, unknown>) => api.post('/api/doses', body) as Promise<DoseLog>,
+    onSuccess: (newDose, variables) => {
+      // Optimistically add dose to cache so calendar updates immediately
+      const userId = (variables as Record<string, unknown>).userId as string;
+      if (userId && newDose) {
+        qc.setQueriesData<DoseLog[]>(
+          { queryKey: ['doses', userId] },
+          (old) => old ? [newDose, ...old] : [newDose]
+        );
+      }
       qc.invalidateQueries({ queryKey: ['doses'] });
     },
   });
@@ -203,8 +211,13 @@ export function useDeleteCheckin() {
 export function useSaveProtocol() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: Record<string, unknown>) => api.post('/api/protocol', body),
-    onSuccess: () => {
+    mutationFn: (body: Record<string, unknown>) => api.post('/api/protocol', body) as Promise<Protocol>,
+    onSuccess: (data, variables) => {
+      // Update cache immediately so Dashboard sees it on mount
+      const userId = (variables as Record<string, unknown>).userId as string;
+      if (userId && data) {
+        qc.setQueryData(queryKeys.protocol(userId), data);
+      }
       qc.invalidateQueries({ queryKey: ['protocol'] });
     },
   });
