@@ -152,14 +152,12 @@ const SolicitudForm: React.FC = () => {
     ? recetaMacroGramsMax * (recetaMacroConSaldo.saldo_macro || 0)
     : 0;
 
-  // Micro equivalence check: cart grams per capsule should be multiple of prescribed dose
+  // Micro: total grams authorized by receta saldo
   const recetaMicroGramPerCap = recetaMicroConSaldo?.gramaje_micro ? parseGrams(recetaMicroConSaldo.gramaje_micro) : 0;
-  const microEquivalenceOk = (() => {
-    if (!recetaMicroGramPerCap || cartMicroCaps === 0 || cartMicroTotalGrams === 0) return true;
-    const gramsPerCap = cartMicroTotalGrams / cartMicroCaps;
-    const ratio = gramsPerCap / recetaMicroGramPerCap;
-    return Math.abs(ratio - Math.round(ratio)) < 0.01;
-  })();
+  const recetaMicroTotalGramsAuth = recetaMicroConSaldo
+    ? recetaMicroGramPerCap * (recetaMicroConSaldo.saldo_micro || 0)
+    : 0;
+  const microGramsExceeded = recetaMicroTotalGramsAuth > 0 && cartMicroTotalGrams > recetaMicroTotalGramsAuth;
 
   // ─── Add to cart ───────────────────────
   const addMicroToCart = () => {
@@ -510,17 +508,10 @@ const SolicitudForm: React.FC = () => {
               </div>
             )}
 
-            {cartMacroGrams > 0 && recetaMacroGramsMax > 0 && cartMacroGrams > recetaMacroGramsMax && (
-              <div className={styles.warningBanner}>
-                <Warning size={16} weight="fill" />
-                <span>Tu carrito tiene {cartMacroGrams}g de {recetaMacroGramsMax}g autorizados por dispensación. El admin decidirá.</span>
-              </div>
-            )}
-
             {cartMacroGrams > 0 && recetaMacroTotalGramsAuth > 0 && cartMacroGrams > recetaMacroTotalGramsAuth && (
               <div className={styles.warningBanner}>
                 <Warning size={16} weight="fill" />
-                <span>Pides {cartMacroGrams}g pero tu receta autoriza máximo {recetaMacroTotalGramsAuth}g en total ({recetaMacroGramsMax}g × {recetaMacroConSaldo?.saldo_macro} disp.).</span>
+                <span>Pides {cartMacroGrams}g pero tu receta autoriza máximo {recetaMacroTotalGramsAuth}g en total ({recetaMacroGramsMax}g × {recetaMacroConSaldo?.saldo_macro} disp.). El admin decidirá.</span>
               </div>
             )}
 
@@ -629,16 +620,16 @@ const SolicitudForm: React.FC = () => {
                 <span>No te quedan dispensaciones de macrodosis.</span>
               </div>
             )}
-            {hasMacro && recetaMacroConSaldo && recetaMacroGramsMax > 0 && cartMacroGrams > recetaMacroGramsMax && (
+            {hasMacro && recetaMacroConSaldo && recetaMacroTotalGramsAuth > 0 && cartMacroGrams > recetaMacroTotalGramsAuth && (
               <div className={styles.warningBanner}>
                 <Warning size={16} weight="fill" />
-                <span>Pides {cartMacroGrams}g macro pero tu receta autoriza {recetaMacroGramsMax}g.</span>
+                <span>Pides {cartMacroGrams}g macro pero tu receta autoriza máximo {recetaMacroTotalGramsAuth}g ({recetaMacroGramsMax}g × {recetaMacroConSaldo.saldo_macro} disp.).</span>
               </div>
             )}
-            {hasMicro && recetaMicroConSaldo && !microEquivalenceOk && (
+            {hasMicro && recetaMicroConSaldo && microGramsExceeded && (
               <div className={styles.warningBanner}>
                 <Warning size={16} weight="fill" />
-                <span>La suma de gramajes ({cartMicroTotalGrams.toFixed(3)}g en {cartMicroCaps} caps = {(cartMicroTotalGrams / cartMicroCaps).toFixed(3)}g/cap) no es múltiplo de tu dosis prescrita ({recetaMicroConSaldo.gramaje_micro}). El admin decidirá.</span>
+                <span>Pides {cartMicroTotalGrams.toFixed(1)}g en micro pero tu receta autoriza máximo {recetaMicroTotalGramsAuth.toFixed(1)}g ({recetaMicroConSaldo.gramaje_micro} × {recetaMicroConSaldo.saldo_micro} caps). El admin decidirá.</span>
               </div>
             )}
 
@@ -749,16 +740,16 @@ const SolicitudForm: React.FC = () => {
                 <span>Pides {cartMicroCaps} caps pero tu saldo es {recetaMicroConSaldo.saldo_micro}.</span>
               </div>
             )}
-            {hasMicro && !microEquivalenceOk && recetaMicroConSaldo && (
+            {hasMicro && microGramsExceeded && recetaMicroConSaldo && (
               <div className={styles.warningBanner}>
                 <Warning size={16} weight="fill" />
-                <span>El gramaje del carrito no es múltiplo de tu dosis prescrita ({recetaMicroConSaldo.gramaje_micro}).</span>
+                <span>Micro: {cartMicroTotalGrams.toFixed(1)}g (autorizado: {recetaMicroTotalGramsAuth.toFixed(1)}g).</span>
               </div>
             )}
-            {hasMacro && recetaMacroConSaldo && cartMacroGrams > recetaMacroGramsMax && recetaMacroGramsMax > 0 && (
+            {hasMacro && recetaMacroConSaldo && recetaMacroTotalGramsAuth > 0 && cartMacroGrams > recetaMacroTotalGramsAuth && (
               <div className={styles.warningBanner}>
                 <Warning size={16} weight="fill" />
-                <span>Carrito: {cartMacroGrams}g macro (autorizado: {recetaMacroGramsMax}g/disp.).</span>
+                <span>Macro: {cartMacroGrams}g (autorizado: {recetaMacroTotalGramsAuth}g).</span>
               </div>
             )}
 
