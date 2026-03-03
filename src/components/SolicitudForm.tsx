@@ -22,6 +22,17 @@ const STEP_COLORS: Record<Step, { color: string; light: string; label: string }>
 };
 
 
+/** Parse grams from string like "0.2g", "0.2 g", "200mg" */
+const parseGrams = (str: string): number => {
+  if (!str) return 0;
+  const s = str.trim().toLowerCase();
+  const mgMatch = s.match(/^(\d+(?:[.,]\d+)?)\s*mg$/);
+  if (mgMatch) return parseFloat(mgMatch[1].replace(',', '.')) / 1000;
+  const gMatch = s.match(/(\d+(?:[.,]\d+)?)\s*g/);
+  if (gMatch) return parseFloat(gMatch[1].replace(',', '.'));
+  return 0;
+};
+
 const SolicitudForm: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast()!;
@@ -118,6 +129,23 @@ const SolicitudForm: React.FC = () => {
     ? parseFloat(recetaMacroConSaldo.gramaje_macro.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0
     : 0;
   const cartMicroGramajes = [...new Set(cart.filter(i => i.category === 'Microdosis').map(i => i.gramaje))];
+
+  // Accumulated grams
+  const cartMicroTotalGrams = cart.filter(i => i.category === 'Microdosis').reduce((sum, i) => {
+    return sum + parseGrams(i.gramaje || '') * parseInt(i.capsulas || '0') * (i.quantity || 1);
+  }, 0);
+  const recetaMacroTotalGramsAuth = recetaMacroConSaldo
+    ? recetaMacroGramsMax * (recetaMacroConSaldo.saldo_macro || 0)
+    : 0;
+
+  // Micro equivalence check: cart grams per capsule should be multiple of prescribed dose
+  const recetaMicroGramPerCap = recetaMicroConSaldo?.gramaje_micro ? parseGrams(recetaMicroConSaldo.gramaje_micro) : 0;
+  const microEquivalenceOk = (() => {
+    if (!recetaMicroGramPerCap || cartMicroCaps === 0 || cartMicroTotalGrams === 0) return true;
+    const gramsPerCap = cartMicroTotalGrams / cartMicroCaps;
+    const ratio = gramsPerCap / recetaMicroGramPerCap;
+    return Math.abs(ratio - Math.round(ratio)) < 0.01;
+  })();
 
   // ─── Add to cart ───────────────────────
   const addMicroToCart = () => {
@@ -267,12 +295,6 @@ const SolicitudForm: React.FC = () => {
     : [];
 
 
-  // Macro: check if product exceeds receta limit
-  const macroExceedsLimit = (m: MacrodosisOption) => {
-    if (!recetaMacroConSaldo?.gramaje_macro) return false;
-    return (m.grams || 0) > recetaMacroGramsMax;
-  };
-
   // ─── Renders ───────────────────────────
 
   if (!catalog) {
@@ -357,8 +379,10 @@ const SolicitudForm: React.FC = () => {
                 </div>
                 <div className={styles.infoBannerText}>
                   <div className={styles.infoBannerLabel}>Receta activa</div>
-                  Hemos preseleccionado tu dosis recomendada. Saldo: <strong>{recetaMicroConSaldo.saldo_micro} caps</strong>
-                  {recetaMicroConSaldo.gramaje_micro && <> · <strong>{recetaMicroConSaldo.gramaje_micro}</strong></>}
+                  Saldo: <strong>{recetaMicroConSaldo.saldo_micro} caps</strong>
+                  {recetaMicroConSaldo.gramaje_micro && <> · Gramaje: <strong>{recetaMicroConSaldo.gramaje_micro}/cap</strong></>}
+                  {recetaMicroConSaldo.total_micro_autorizado && <> · Total: {recetaMicroConSaldo.total_micro_autorizado} caps</>}
+                  {cartMicroCaps > 0 && <> · <strong>En carrito: {cartMicroCaps} caps</strong></>}
                 </div>
               </div>
             )}
@@ -455,11 +479,36 @@ const SolicitudForm: React.FC = () => {
               <h2 className={styles.sectionTitle}>Selección Macrodosis</h2>
               {recetaMacroConSaldo && (
                 <span className={styles.saldoBadge}>
-                  Disponible: {recetaMacroConSaldo.gramaje_macro || `${recetaMacroConSaldo.saldo_macro} disp.`}
+                  {recetaMacroGramsMax > 0 ? `${recetaMacroGramsMax}g/disp.` : ''} · {recetaMacroConSaldo.saldo_macro} disp. restantes
                 </span>
               )}
             </div>
-            <p className={styles.sectionSubtitle}>Elige tus productos de macrodosis según tu receta médica.</p>
+            <p className={styles.sectionSubtitle}>Elige tus productos de macrodosis según tu receta médica. Puedes combinar productos.</p>
+
+            {recetaMacroConSaldo && recetaMacroGramsMax > 0 && (
+              <div className={styles.infoBanner}>
+                <div className={styles.infoBannerIcon}><Star size={18} weight="fill" /></div>
+                <div className={styles.infoBannerText}>
+                  <div className={styles.infoBannerLabel}>Receta activa</div>
+                  {recetaMacroGramsMax}g por dispensación · {recetaMacroConSaldo.saldo_macro} dispensaciones restantes · Total autorizado: {recetaMacroTotalGramsAuth}g
+                  {cartMacroGrams > 0 && <> · <strong>En carrito: {cartMacroGrams}g</strong></>}
+                </div>
+              </div>
+            )}
+
+            {cartMacroGrams > 0 && recetaMacroGramsMax > 0 && cartMacroGrams > recetaMacroGramsMax && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>Tu carrito tiene {cartMacroGrams}g de {recetaMacroGramsMax}g autorizados por dispensación. El admin decidirá.</span>
+              </div>
+            )}
+
+            {cartMacroGrams > 0 && recetaMacroTotalGramsAuth > 0 && cartMacroGrams > recetaMacroTotalGramsAuth && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>Pides {cartMacroGrams}g pero tu receta autoriza máximo {recetaMacroTotalGramsAuth}g en total ({recetaMacroGramsMax}g × {recetaMacroConSaldo?.saldo_macro} disp.).</span>
+              </div>
+            )}
 
             {/* Category filter tabs */}
             {macroCategories.length > 2 && (
@@ -477,13 +526,11 @@ const SolicitudForm: React.FC = () => {
             )}
 
             {filteredMacro.map((m: MacrodosisOption, idx: number) => {
-              const exceeds = macroExceedsLimit(m);
-              const inCart = cart.some(c => c.producto === m.key);
+              const countInCart = cart.filter(c => c.producto === m.key).length;
 
               return (
-                <div key={m.key} className={exceeds ? styles.macroCardDisabled : styles.macroCard}>
-                  {idx === 0 && !exceeds && <span className={styles.badgePopular}>Popular</span>}
-                  {exceeds && <span className={styles.badgeExcede}>EXCEDE LÍMITE</span>}
+                <div key={m.key} className={styles.macroCard}>
+                  {idx === 0 && <span className={styles.badgePopular}>Popular</span>}
 
                   <div className={styles.macroCardBody}>
                     <div className={styles.macroCardImage}>
@@ -504,17 +551,9 @@ const SolicitudForm: React.FC = () => {
                     <div className={styles.macroCardPriceWrap}>
                       <span className={styles.macroCardPrice}>{formatCLP(m.price)}</span>
                     </div>
-                    {exceeds ? (
-                      <button className={styles.macroCardBtnDisabled} disabled>No disponible</button>
-                    ) : inCart ? (
-                      <button className={styles.macroCardBtn} style={{ background: 'var(--color-success)' }} disabled>
-                        <Check size={14} weight="bold" /> Agregado
-                      </button>
-                    ) : (
-                      <button className={styles.macroCardBtn} onClick={() => addMacroToCart(m.key)}>
-                        + Agregar
-                      </button>
-                    )}
+                    <button className={styles.macroCardBtn} onClick={() => addMacroToCart(m.key)}>
+                      + Agregar{countInCart > 0 ? ` (${countInCart})` : ''}
+                    </button>
                   </div>
                 </div>
               );
@@ -580,11 +619,10 @@ const SolicitudForm: React.FC = () => {
                 <span>Pides {cartMacroGrams}g macro pero tu receta autoriza {recetaMacroGramsMax}g.</span>
               </div>
             )}
-            {hasMicro && recetaMicroConSaldo && recetaMicroConSaldo.gramaje_micro && cartMicroGramajes.length > 0
-              && !cartMicroGramajes.some(g => g?.replace(/\s/g, '').toLowerCase() === recetaMicroConSaldo.gramaje_micro?.replace(/\s/g, '').toLowerCase()) && (
+            {hasMicro && recetaMicroConSaldo && !microEquivalenceOk && (
               <div className={styles.warningBanner}>
                 <Warning size={16} weight="fill" />
-                <span>Tu receta indica {recetaMicroConSaldo.gramaje_micro} pero pediste {cartMicroGramajes.join(', ')}.</span>
+                <span>La suma de gramajes ({cartMicroTotalGrams.toFixed(3)}g en {cartMicroCaps} caps = {(cartMicroTotalGrams / cartMicroCaps).toFixed(3)}g/cap) no es múltiplo de tu dosis prescrita ({recetaMicroConSaldo.gramaje_micro}). El admin decidirá.</span>
               </div>
             )}
 
@@ -669,12 +707,44 @@ const SolicitudForm: React.FC = () => {
                 <span className={styles.pricingLabel}>Subtotal</span>
                 <span className={styles.pricingValue}>{formatCLP(cartTotal)}</span>
               </div>
+              {cartMicroTotalGrams > 0 && (
+                <div className={styles.pricingRow}>
+                  <span className={styles.pricingLabel}>Microdosis</span>
+                  <span className={styles.pricingValue}>{cartMicroCaps} caps · {cartMicroTotalGrams.toFixed(2)}g total</span>
+                </div>
+              )}
+              {cartMacroGrams > 0 && (
+                <div className={styles.pricingRow}>
+                  <span className={styles.pricingLabel}>Macrodosis</span>
+                  <span className={styles.pricingValue}>{cartMacroGrams}g total</span>
+                </div>
+              )}
               <div className={styles.pricingDivider} />
               <div className={styles.pricingRow}>
                 <span className={styles.pricingTotalLabel}>Total</span>
                 <span className={styles.pricingTotal}>{formatCLP(cartTotal)} <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--color-text-secondary)' }}>CLP</span></span>
               </div>
             </div>
+
+            {/* Warnings in summary */}
+            {hasMicro && recetaMicroConSaldo && cartMicroCaps > recetaMicroConSaldo.saldo_micro && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>Pides {cartMicroCaps} caps pero tu saldo es {recetaMicroConSaldo.saldo_micro}.</span>
+              </div>
+            )}
+            {hasMicro && !microEquivalenceOk && recetaMicroConSaldo && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>El gramaje del carrito no es múltiplo de tu dosis prescrita ({recetaMicroConSaldo.gramaje_micro}).</span>
+              </div>
+            )}
+            {hasMacro && recetaMacroConSaldo && cartMacroGrams > recetaMacroGramsMax && recetaMacroGramsMax > 0 && (
+              <div className={styles.warningBanner}>
+                <Warning size={16} weight="fill" />
+                <span>Carrito: {cartMacroGrams}g macro (autorizado: {recetaMacroGramsMax}g/disp.).</span>
+              </div>
+            )}
 
             <p className={styles.legalText}>Al enviar aceptas los términos de uso responsable.</p>
           </>
@@ -699,6 +769,13 @@ const SolicitudForm: React.FC = () => {
               <span className={styles.cartTotalLabel}>Total</span>
               <span className={styles.cartTotalPrice}>{formatCLP(cartTotal)}</span>
             </div>
+            {(cartMicroTotalGrams > 0 || cartMacroGrams > 0) && (
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', marginTop: 4 }}>
+                {cartMicroTotalGrams > 0 && <span>Micro: {cartMicroTotalGrams.toFixed(2)}g ({cartMicroCaps} caps)</span>}
+                {cartMicroTotalGrams > 0 && cartMacroGrams > 0 && <span> · </span>}
+                {cartMacroGrams > 0 && <span>Macro: {cartMacroGrams}g</span>}
+              </div>
+            )}
           </div>
         )}
       </div>
