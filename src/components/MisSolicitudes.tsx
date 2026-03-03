@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../hooks/useUser';
 import { useSolicitudes } from '../hooks/queries';
+import { useRealtimeEvents } from '../hooks/useRealtimeEvents';
 import useSwipeBack from '../hooks/useSwipeBack';
 import { ArrowLeft, Plus } from '@phosphor-icons/react';
 import { EmptyInbox } from './EmptyStates';
@@ -28,6 +29,7 @@ const formatDate = (dateStr: string): string =>
 const MisSolicitudes: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUser();
+  useRealtimeEvents(user?.id);
   useSwipeBack();
   const { data: solicitudes = [], isLoading: loading } = useSolicitudes(user?.id);
 

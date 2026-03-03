@@ -15,6 +15,7 @@ import styles from './Dashboard.module.css';
 import fieldLabels from '../utils/fieldLabels';
 import { useUser } from '../hooks/useUser';
 import { useRecetasQuery, useProtocol, useBaseline, useDoses, useFollowUpCurrent, useRandomQuote, useAddDose, useDeleteDose, useDeleteCheckin } from '../hooks/queries';
+import { useRealtimeEvents } from '../hooks/useRealtimeEvents';
 import storage, { STORAGE_KEYS } from '../utils/storage';
 import type { DoseLog, CalendarDay, FollowUpMonthSummary, CustomDoseState, Receta } from '../types';
 
@@ -23,6 +24,9 @@ const Dashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast()!;
   const { user } = useUser();
+
+  // Realtime updates from admin/webhooks
+  useRealtimeEvents(user?.id);
 
   // React Query hooks
   const { data: protocol, isLoading: loadingProtocol } = useProtocol(user?.id);
