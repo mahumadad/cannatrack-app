@@ -1,5 +1,5 @@
 // ===== User & Auth =====
-export type MembershipStatus = 'none' | 'pending_payment' | 'active' | 'expired';
+export type MembershipStatus = 'none' | 'pending_payment' | 'pending_signing' | 'active' | 'expired' | 'cancelled';
 
 export interface User {
   id: string;

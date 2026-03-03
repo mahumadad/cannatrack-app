@@ -81,6 +81,8 @@ const ShopifyStore: React.FC = () => {
     const subParam = searchParams.get('subscription');
     if (subParam === 'processing' || subParam === 'active') {
       setSubscriptionProcessing(true);
+      // Auto-clear after 60s to prevent stuck state
+      setTimeout(() => setSubscriptionProcessing(false), 60_000);
       searchParams.delete('subscription');
       setSearchParams(searchParams, { replace: true });
     }

@@ -318,7 +318,8 @@ const Settings: React.FC = () => {
                       onClick={user.membership_status === 'active' ? () => setShowCancelOptions(!showCancelOptions) : undefined}
                       role={user.membership_status === 'active' ? 'button' : undefined}
                       tabIndex={user.membership_status === 'active' ? 0 : undefined}
-                      onKeyDown={user.membership_status === 'active' ? (e) => { if (e.key === 'Enter' || e.key === ' ') setShowCancelOptions(!showCancelOptions); } : undefined}
+                      aria-label={user.membership_status === 'active' ? 'Membresía activa — presiona para opciones de cancelación' : undefined}
+                      onKeyDown={user.membership_status === 'active' ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowCancelOptions(!showCancelOptions); } } : undefined}
                     >
                       {user.membership_status === 'active' ? 'Activa' : user.membership_status === 'pending_payment' ? 'Pendiente de pago' : user.membership_status === 'cancelled' ? 'Cancelada' : 'Expirada'}
                     </span>

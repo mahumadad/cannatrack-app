@@ -4,3 +4,17 @@
  */
 export const formatCLP = (n: number): string =>
   new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n);
+
+/** Format a date string as "dd/mm/yyyy" */
+export const formatDate = (dateStr: string): string => {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString('es-CL');
+};
+
+/** Format a date string as "15 de enero de 2025" */
+export const formatDateLong = (dateStr: string): string => {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+};
