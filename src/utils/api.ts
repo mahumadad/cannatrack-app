@@ -102,7 +102,7 @@ export interface RequestOptions {
   skipAuthRedirect?: boolean;
 }
 
-const handleResponse = async (response: Response, options?: RequestOptions): Promise<any> => {
+const handleResponse = async <T = unknown>(response: Response, options?: RequestOptions): Promise<T> => {
   // Capturar CSRF token del response header si el servidor lo envía
   const newCsrf = response.headers.get('x-csrf-token');
   if (newCsrf) {

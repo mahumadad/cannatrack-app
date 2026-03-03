@@ -13,7 +13,8 @@ vi.mock('./storage', () => ({
     removeItem: vi.fn((key: string) => { delete mockStorage[key]; })
   },
   STORAGE_KEYS: {
-    PREFERENCES: 'preferences'
+    PREFERENCES: 'preferences',
+    NOTIFICATIONS_FIRED: 'notificationsFired'
   }
 }));
 

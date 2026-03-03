@@ -7,7 +7,7 @@ import api from '../utils/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { requestNotificationPermission, getNotificationPermission, startNotificationScheduler, stopNotificationScheduler } from '../utils/notifications';
 import storage, { STORAGE_KEYS } from '../utils/storage';
-import { useProtocol, useBaseline, useShopifyProfile, useHasPassword, useDeleteProtocol, useChangePassword, useCreatePassword } from '../hooks/queries';
+import { useProtocol, useBaseline, useShopifyProfile, useHasPassword, useDeleteProtocol, useChangePassword, useCreatePassword, useCancelMembership } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
 
 import type { User as UserType } from '../types';
@@ -29,6 +29,12 @@ const Settings: React.FC = () => {
   const deleteProtocol = useDeleteProtocol(user?.id);
   const changePassword = useChangePassword();
   const createPassword = useCreatePassword();
+  const cancelMembership = useCancelMembership();
+
+  // Cancel membership
+  const [showCancelOptions, setShowCancelOptions] = useState<boolean>(false);
+  const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
+  const [cancelling, setCancelling] = useState<boolean>(false);
 
   // Preferences
   const [doseReminder, setDoseReminder] = useState<string>('09:00');
@@ -127,6 +133,28 @@ const Settings: React.FC = () => {
       setShowEndProtocolModal(false);
     } catch {
       toast!.error('Error al terminar protocolo');
+    }
+  };
+
+  const handleCancelMembership = async () => {
+    setCancelling(true);
+    try {
+      const data = await cancelMembership.mutateAsync();
+      setShowCancelModal(false);
+      setShowCancelOptions(false);
+      // Update local user data
+      const updatedUser = { ...user, membership_status: 'cancelled' as const };
+      setUser(updatedUser as UserType);
+      storage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
+      qc.invalidateQueries({ queryKey: ['user-record'] });
+      const until = (data as Record<string, unknown>)?.activeUntil;
+      toast!.success(until
+        ? `Membresía cancelada. Acceso activo hasta ${new Date(until as string).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}`
+        : 'Membresía cancelada');
+    } catch (err: unknown) {
+      toast!.error(err instanceof Error ? err.message : 'Error al cancelar');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -285,8 +313,14 @@ const Settings: React.FC = () => {
                 <div className={styles.detailContent}>
                   <span className={styles.detailLabel}>Membresía</span>
                   <div className={styles.membershipInfo}>
-                    <span className={`${styles.membershipBadge} ${user.membership_status === 'active' ? styles.membershipActive : user.membership_status === 'pending_payment' ? styles.membershipPending : styles.membershipExpired}`}>
-                      {user.membership_status === 'active' ? 'Activa' : user.membership_status === 'pending_payment' ? 'Pendiente de pago' : 'Expirada'}
+                    <span
+                      className={`${styles.membershipBadge} ${user.membership_status === 'active' ? styles.membershipActive : user.membership_status === 'pending_payment' ? styles.membershipPending : styles.membershipExpired} ${user.membership_status === 'active' ? styles.membershipBadgeClickable : ''}`}
+                      onClick={user.membership_status === 'active' ? () => setShowCancelOptions(!showCancelOptions) : undefined}
+                      role={user.membership_status === 'active' ? 'button' : undefined}
+                      tabIndex={user.membership_status === 'active' ? 0 : undefined}
+                      onKeyDown={user.membership_status === 'active' ? (e) => { if (e.key === 'Enter' || e.key === ' ') setShowCancelOptions(!showCancelOptions); } : undefined}
+                    >
+                      {user.membership_status === 'active' ? 'Activa' : user.membership_status === 'pending_payment' ? 'Pendiente de pago' : user.membership_status === 'cancelled' ? 'Cancelada' : 'Expirada'}
                     </span>
                     {user.membership_started_at && (
                       <span className={styles.membershipDetail}>
@@ -297,6 +331,14 @@ const Settings: React.FC = () => {
                       <span className={styles.membershipDetail}>
                         {user.membership_status === 'active' ? 'Vigente hasta' : 'Venció el'} {new Date(user.membership_expires_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </span>
+                    )}
+                    {showCancelOptions && user.membership_status === 'active' && (
+                      <button
+                        className={styles.cancelMembershipBtn}
+                        onClick={() => setShowCancelModal(true)}
+                      >
+                        Cancelar membresía
+                      </button>
                     )}
                   </div>
                 </div>
@@ -608,6 +650,22 @@ const Settings: React.FC = () => {
               <button className={styles.cancelButton} onClick={() => setShowPasswordModal(false)}>Cancelar</button>
               <button className={styles.confirmButton} onClick={handlePasswordSubmit} disabled={savingPassword}>
                 {savingPassword ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Cancel Membership Modal */}
+      {showCancelModal && (
+        <div className={styles.modal} onClick={() => setShowCancelModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <Warning size={48} weight="fill" className={styles.modalIcon} />
+            <h2>¿Cancelar membresía?</h2>
+            <p>Mantendrás acceso hasta el fin del periodo actual. Después no podrás realizar pedidos en la tienda.</p>
+            <div className={styles.modalButtons}>
+              <button className={styles.cancelButton} onClick={() => setShowCancelModal(false)}>No, mantener</button>
+              <button className={styles.dangerButton} onClick={handleCancelMembership} disabled={cancelling}>
+                {cancelling ? 'Cancelando...' : 'Sí, cancelar'}
               </button>
             </div>
           </div>

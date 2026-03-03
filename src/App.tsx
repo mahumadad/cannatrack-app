@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ToastProvider } from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
+import Spinner from './components/Spinner';
 import useOnlineStatus from './hooks/useOnlineStatus';
 // Eager: first-paint screens (login, register, auth callback)
 import Login from './components/Login';
@@ -87,10 +88,7 @@ const MagicLinkOrDashboard: React.FC = () => {
 
   if (processing) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <div style={{ width: 32, height: 32, border: '3px solid #EBE5DC', borderTopColor: '#A68050', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-      </div>
+      <Spinner />
     );
   }
 
@@ -162,10 +160,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (status === 'loading') {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <div style={{ width: 32, height: 32, border: '3px solid #EBE5DC', borderTopColor: '#A68050', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-      </div>
+      <Spinner />
     );
   }
 
@@ -251,13 +246,10 @@ function App() {
       )}
       <Router>
         <Suspense fallback={
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-            <div style={{ width: 32, height: 32, border: '3px solid #EBE5DC', borderTopColor: '#A68050', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-          </div>
+          <Spinner />
         }>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Navigate to="/login" />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

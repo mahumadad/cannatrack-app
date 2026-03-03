@@ -725,15 +725,6 @@ const ShopifyStore: React.FC = () => {
                     el {new Date(membershipData.lastPaymentAt).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 )}
-                {membershipStatus === 'active' && (
-                  <button
-                    className={styles.membershipCancelBtn}
-                    onClick={handleCancelMembership}
-                    disabled={cancelling}
-                  >
-                    {cancelling ? 'Cancelando...' : 'Cancelar membresía'}
-                  </button>
-                )}
               </div>
             )}
 
