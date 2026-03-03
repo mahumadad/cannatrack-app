@@ -11,14 +11,14 @@ import { formatCLP } from '../utils/formatters';
 import type { ProductCatalog, MicrodosisOption, MacrodosisOption, CartItem, Receta } from '../types';
 
 type Step = 'micro' | 'macro' | 'recetas' | 'resumen';
-const STEPS: Step[] = ['micro', 'macro', 'recetas', 'resumen'];
+const ALL_STEPS: Step[] = ['micro', 'macro', 'recetas', 'resumen'];
 
-// Per-step theme colors
-const STEP_COLORS: Record<Step, { color: string; light: string; label: string; progress: string }> = {
-  micro:   { color: '#14b858', light: '#f0fdf4', label: 'Selección Microdosis', progress: '25%' },
-  macro:   { color: '#5048e5', light: '#f0efff', label: 'Selección Macrodosis', progress: '50%' },
-  recetas: { color: '#5048e5', light: '#f0efff', label: 'Adjuntar Receta', progress: '75%' },
-  resumen: { color: '#a57f50', light: '#fbfaf9', label: 'Finalizar', progress: '100%' },
+// Per-step theme colors (progress is computed dynamically)
+const STEP_COLORS: Record<Step, { color: string; light: string; label: string }> = {
+  micro:   { color: '#14b858', light: '#f0fdf4', label: 'Selección Microdosis' },
+  macro:   { color: '#5048e5', light: '#f0efff', label: 'Selección Macrodosis' },
+  recetas: { color: '#5048e5', light: '#f0efff', label: 'Adjuntar Receta' },
+  resumen: { color: '#a57f50', light: '#fbfaf9', label: 'Finalizar' },
 };
 
 
@@ -98,6 +98,14 @@ const SolicitudForm: React.FC = () => {
 
   const hasMicro = cart.some(i => i.category === 'Microdosis');
   const hasMacro = cart.some(i => i.category === 'Macrodosis');
+
+  // Skip recetas step if user already has active receta covering their cart
+  const recetaCoversMicro = !hasMicro || !!recetaMicro;
+  const recetaCoversMacro = !hasMacro || !!recetaMacro;
+  const skipRecetas = recetaCoversMicro && recetaCoversMacro && hasAnyReceta;
+  const steps: Step[] = skipRecetas
+    ? ALL_STEPS.filter(s => s !== 'recetas')
+    : ALL_STEPS;
   const cartTotal = cart.reduce((sum, i) => sum + i.lineTotal, 0);
 
   // Cart quantities for saldo warnings
@@ -218,7 +226,8 @@ const SolicitudForm: React.FC = () => {
   };
 
   // ─── Navigation ────────────────────────
-  const stepIndex = STEPS.indexOf(step);
+  const stepIndex = steps.indexOf(step);
+  const stepProgress = `${Math.round(((stepIndex + 1) / steps.length) * 100)}%`;
   const canGoNext = () => {
     if (step === 'recetas') {
       if (loadingRecetas) return false;
@@ -230,13 +239,13 @@ const SolicitudForm: React.FC = () => {
   };
 
   const goNext = () => {
-    const idx = STEPS.indexOf(step);
-    if (idx < STEPS.length - 1) setStep(STEPS[idx + 1]);
+    const idx = steps.indexOf(step);
+    if (idx < steps.length - 1) setStep(steps[idx + 1]);
   };
 
   const goBack = () => {
-    const idx = STEPS.indexOf(step);
-    if (idx > 0) setStep(STEPS[idx - 1]);
+    const idx = steps.indexOf(step);
+    if (idx > 0) setStep(steps[idx - 1]);
     else navigate('/store');
   };
 
@@ -326,11 +335,11 @@ const SolicitudForm: React.FC = () => {
       {/* Progress stepper */}
       <div className={styles.stepperSection}>
         <div className={styles.stepCounter}>
-          <span className={styles.stepCounterText}>PASO {stepIndex + 1} de {STEPS.length}</span>
+          <span className={styles.stepCounterText}>PASO {stepIndex + 1} de {steps.length}</span>
           <span className={styles.stepCounterRight}>{stepTheme.label}</span>
         </div>
         <div className={styles.progressBar}>
-          <div className={styles.progressFill} style={{ width: stepTheme.progress }} />
+          <div className={styles.progressFill} style={{ width: stepProgress }} />
         </div>
       </div>
 
