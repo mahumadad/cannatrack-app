@@ -447,6 +447,21 @@
 
 .macroCardBtnDisabled:active { transform: none; }
 
+.macroCardSuggested {
+  border-color: var(--step-color, #5048e5);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--step-color, #5048e5) 20%, transparent);
+}
+
+.macroCardInCart {
+  border-color: var(--color-success, #16a34a);
+  background: color-mix(in srgb, var(--color-success, #16a34a) 4%, white);
+}
+
+.badgeSuggested {
+  composes: badgePopular;
+  background: var(--step-color, #5048e5);
+}
+
 /* ============ UPLOAD ZONE (Paso 3) ============ */
 .uploadZone {
   border: 2px dashed color-mix(in srgb, var(--step-color, #5048e5) 35%, transparent);

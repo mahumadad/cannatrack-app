@@ -100,7 +100,21 @@ const SolicitudForm: React.FC = () => {
       if (maxGrams > 0) {
         const sorted = [...catalog.macrodosis].sort((a, b) => (b.grams || 0) - (a.grams || 0));
         const bestFit = sorted.find(m => (m.grams || 0) <= maxGrams);
-        if (bestFit) setSelectedMacro(bestFit.key);
+        if (bestFit) {
+          setSelectedMacro(bestFit.key);
+          // Auto-add suggested macro to cart if cart has no macros yet
+          if (!cart.some(i => i.category === 'Macrodosis')) {
+            setCart(prev => [...prev, {
+              id: `macro-${bestFit.key}-${Date.now()}`,
+              category: 'Macrodosis',
+              producto: bestFit.key,
+              displayLabel: bestFit.label,
+              unitPrice: bestFit.price,
+              quantity: 1,
+              lineTotal: bestFit.price
+            } as CartItem]);
+          }
+        }
       }
     }
 
@@ -527,10 +541,12 @@ const SolicitudForm: React.FC = () => {
 
             {filteredMacro.map((m: MacrodosisOption, idx: number) => {
               const countInCart = cart.filter(c => c.producto === m.key).length;
+              const isSuggested = m.key === selectedMacro;
 
               return (
-                <div key={m.key} className={styles.macroCard}>
-                  {idx === 0 && <span className={styles.badgePopular}>Popular</span>}
+                <div key={m.key} className={`${styles.macroCard}${isSuggested ? ` ${styles.macroCardSuggested}` : ''}${countInCart > 0 ? ` ${styles.macroCardInCart}` : ''}`}>
+                  {isSuggested && <span className={styles.badgeSuggested}>Sugerido</span>}
+                  {!isSuggested && idx === 0 && <span className={styles.badgePopular}>Popular</span>}
 
                   <div className={styles.macroCardBody}>
                     <div className={styles.macroCardImage}>
