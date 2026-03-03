@@ -327,6 +327,8 @@ const SolicitudForm: React.FC = () => {
   }
 
   if (success) {
+    // Replace history so back button goes to store, not back to this form
+    window.history.replaceState(null, '', '/store');
     return (
       <div className={styles.page}>
         <div className={styles.successScreen}>
@@ -336,10 +338,10 @@ const SolicitudForm: React.FC = () => {
           <h2 className={styles.successTitle}>Solicitud enviada</h2>
           <p className={styles.successSubtitle}>Tu solicitud ha sido recibida y está en revisión</p>
           <div className={styles.successId}>{success}</div>
-          <button className={styles.btnPrimary} style={{ width: 'auto', padding: '12px 32px', background: 'var(--gradient-primary)' }} onClick={() => navigate('/store/solicitudes')}>
+          <button className={styles.btnPrimary} style={{ width: 'auto', padding: '12px 32px', background: 'var(--gradient-primary)' }} onClick={() => navigate('/store/solicitudes', { replace: true })}>
             Ver mis solicitudes
           </button>
-          <button className={styles.btnSecondary} style={{ width: 'auto', padding: '10px 24px', marginTop: 8 }} onClick={() => navigate('/store')}>
+          <button className={styles.btnSecondary} style={{ width: 'auto', padding: '10px 24px', marginTop: 8 }} onClick={() => navigate('/store', { replace: true })}>
             Volver al store
           </button>
         </div>
