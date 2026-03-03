@@ -641,7 +641,6 @@ const BaselineForm: React.FC = () => {
         </div>
         {questions.map((q, i) => {
           const globalIndex = start + i;
-          const isFirst = i === 0;
           return (
             <div key={globalIndex} className={styles.questionCard}>
               <label className={styles.questionLabel}>
@@ -657,7 +656,7 @@ const BaselineForm: React.FC = () => {
                         onClick={() => handleChange(`dass_${globalIndex + 1}`, val)}>
                         {val}
                       </button>
-                      {isFirst && <span className={styles.scaleLabel}>{dassScaleLabels[val]}</span>}
+                      <span className={styles.scaleLabel}>{dassScaleLabels[val]}</span>
                     </div>
                   </React.Fragment>
                 ))}
@@ -675,19 +674,35 @@ const BaselineForm: React.FC = () => {
     const items = subStep === 0 ? panasPositive : panasNegative;
     return (
       <div className={styles.fields}>
+        <div className={styles.referenceCard}>
+          <span className={styles.referenceTitle}>REFERENCIA</span>
+          <div className={styles.referenceList}>
+            {[1, 2, 3, 4, 5].map(val => (
+              <div key={val} className={styles.referenceItem}>
+                <span className={styles.referenceNumber}>{val}</span>
+                <span>{panasScaleLabels[val]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
         {items.map(({ key, label }, i) => {
-          const isFirst = i === 0;
+          const globalIndex = i;
           return (
-            <div key={key} className={styles.panasCard}>
-              <label className={styles.panasEmotionLabel}>{i + 1}. {label}</label>
-              <div className={styles.panasGrid}>
-                {[1, 2, 3, 4, 5].map(val => (
-                  <button key={val} type="button"
-                    className={`${styles.panasSquare} ${formData[key] === val ? styles.selected : ''}`}
-                    onClick={() => handleChange(key, val)}>
-                    <span className={styles.panasSquareNumber}>{val}</span>
-                    {isFirst && <span className={styles.panasSquareLabel}>{panasScaleLabels[val]}</span>}
-                  </button>
+            <div key={key} className={styles.questionCard}>
+              <label className={styles.questionLabel}>{globalIndex + 1}. {label}</label>
+              <div className={styles.scaleRow}>
+                {[1, 2, 3, 4, 5].map((val, idx) => (
+                  <React.Fragment key={val}>
+                    {idx > 0 && <div className={styles.connectingLine} />}
+                    <div className={styles.scaleCircleWrapper}>
+                      <button type="button"
+                        className={`${styles.scaleCircle} ${formData[key] === val ? styles.selected : ''}`}
+                        onClick={() => handleChange(key, val)}>
+                        {val}
+                      </button>
+                      <span className={styles.scaleLabel}>{panasScaleLabels[val]}</span>
+                    </div>
+                  </React.Fragment>
                 ))}
               </div>
             </div>
@@ -727,7 +742,6 @@ const BaselineForm: React.FC = () => {
           </div>
         </div>
         {questions.map(({ key, label }, i) => {
-          const isFirst = i === 0;
           const globalIndex = start + i;
           return (
             <div key={key} className={styles.questionCard}>
@@ -742,7 +756,7 @@ const BaselineForm: React.FC = () => {
                         onClick={() => handleChange(key, val)}>
                         {val}
                       </button>
-                      {isFirst && <span className={styles.scaleLabel}>{pssScaleLabels[val]}</span>}
+                      <span className={styles.scaleLabel}>{pssScaleLabels[val]}</span>
                     </div>
                   </React.Fragment>
                 ))}
