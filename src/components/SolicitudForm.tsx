@@ -158,6 +158,10 @@ const SolicitudForm: React.FC = () => {
     ? recetaMicroGramPerCap * (recetaMicroConSaldo.saldo_micro || 0)
     : 0;
   const microGramsExceeded = recetaMicroTotalGramsAuth > 0 && cartMicroTotalGrams > recetaMicroTotalGramsAuth;
+  // Micro equivalences: how many "receta doses" the cart represents
+  const microEquiv = recetaMicroGramPerCap > 0 && cartMicroTotalGrams > 0
+    ? Math.ceil(cartMicroTotalGrams / recetaMicroGramPerCap)
+    : cartMicroCaps;
 
   // ─── Add to cart ───────────────────────
   const addMicroToCart = () => {
@@ -604,10 +608,10 @@ const SolicitudForm: React.FC = () => {
                 <span>No tienes receta activa. Sube una para continuar.</span>
               </div>
             )}
-            {hasMicro && recetaMicroConSaldo && cartMicroCaps > recetaMicroConSaldo.saldo_micro && (
+            {hasMicro && recetaMicroConSaldo && microEquiv > recetaMicroConSaldo.saldo_micro && (
               <div className={styles.warningBanner}>
                 <Warning size={16} weight="fill" />
-                <span>Pides {cartMicroCaps} caps micro pero tu saldo es {recetaMicroConSaldo.saldo_micro}. El admin decidirá.</span>
+                <span>Tu pedido equivale a {microEquiv} dosis de {recetaMicroConSaldo.gramaje_micro} (saldo: {recetaMicroConSaldo.saldo_micro}). El admin decidirá.</span>
               </div>
             )}
             {hasMicro && recetaMicroConSaldo && recetaMicroConSaldo.saldo_micro === 0 && (
@@ -719,7 +723,12 @@ const SolicitudForm: React.FC = () => {
               {cartMicroTotalGrams > 0 && (
                 <div className={styles.pricingRow}>
                   <span className={styles.pricingLabel}>Microdosis</span>
-                  <span className={styles.pricingValue}>{cartMicroCaps} caps · {cartMicroTotalGrams.toFixed(2)}g total</span>
+                  <span className={styles.pricingValue}>
+                    {cartMicroCaps} caps · {cartMicroTotalGrams.toFixed(2)}g
+                    {recetaMicroConSaldo && microEquiv !== cartMicroCaps && (
+                      <> · {microEquiv} dosis de {recetaMicroConSaldo.gramaje_micro}</>
+                    )}
+                  </span>
                 </div>
               )}
               {cartMacroGrams > 0 && (
@@ -736,16 +745,10 @@ const SolicitudForm: React.FC = () => {
             </div>
 
             {/* Warnings in summary */}
-            {hasMicro && recetaMicroConSaldo && cartMicroCaps > recetaMicroConSaldo.saldo_micro && (
+            {hasMicro && recetaMicroConSaldo && microEquiv > recetaMicroConSaldo.saldo_micro && (
               <div className={styles.warningBanner}>
                 <Warning size={16} weight="fill" />
-                <span>Pides {cartMicroCaps} caps pero tu saldo es {recetaMicroConSaldo.saldo_micro}.</span>
-              </div>
-            )}
-            {hasMicro && microGramsExceeded && recetaMicroConSaldo && (
-              <div className={styles.warningBanner}>
-                <Warning size={16} weight="fill" />
-                <span>Micro: {cartMicroTotalGrams.toFixed(1)}g (autorizado: {recetaMicroTotalGramsAuth.toFixed(1)}g).</span>
+                <span>Equivalencia: {microEquiv} dosis de {recetaMicroConSaldo.gramaje_micro} (saldo: {recetaMicroConSaldo.saldo_micro}).</span>
               </div>
             )}
             {hasMacro && recetaMacroConSaldo && recetaMacroTotalGramsAuth > 0 && cartMacroGrams > recetaMacroTotalGramsAuth && (
