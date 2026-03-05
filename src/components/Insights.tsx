@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toLocalDateString, normalizeDate } from '../utils/dateHelpers';
 import { calcWellbeing } from '../utils/wellbeing';
-import { calculateDASS, calculatePANAS, calculatePSS } from '../utils/followUpScoring';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { EmptyChart } from './EmptyStates';
@@ -11,199 +9,32 @@ import styles from './Insights.module.css';
 import sharedFieldLabels from '../utils/fieldLabels';
 import { useUser } from '../hooks/useUser';
 import useSwipeBack from '../hooks/useSwipeBack';
-import { useCheckins, useDoses, useBaseline, useFollowUpsCompleted } from '../hooks/queries';
-import type { InsightsData, ComparisonData, ComparisonAverages, Checkin, DoseLog } from '../types';
-
-interface PeriodAverages {
-  [key: string]: string | number | undefined;
-  totalCheckins: number;
-}
+import { useInsightsAnalytics } from '../hooks/useInsightsAnalytics';
+import { useCarousel } from '../hooks/useCarousel';
+import type { ComparisonAverages } from '../types';
 
 const Insights: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useUser();
-
-  const { data: rawCheckins = [], isLoading: loadingCheckins } = useCheckins(user?.id, 30);
-  const { data: rawDoses = [], isLoading: loadingDoses } = useDoses(user?.id, 30);
-  const { data: rawBaseline } = useBaseline(user?.id);
-  const { data: rawFollowUps = [] } = useFollowUpsCompleted(user?.id);
-
-  const loading = loadingCheckins || loadingDoses;
-
   const [period, setPeriod] = useState<'weekly' | 'monthly'>('weekly');
-  const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
-  const [weeklyData, setWeeklyData] = useState<Record<string, any>[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>(['mood', 'energy']);
   const [hoveredField, setHoveredField] = useState<string | null>(null);
-  const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
   const [hoveredRadarField, setHoveredRadarField] = useState<string | null>(null);
-  const [periodAverages, setPeriodAverages] = useState<PeriodAverages | null>(null);
-  const [baselineData, setBaselineData] = useState<Record<string, any> | null>(null);
-  const [completedFollowUps, setCompletedFollowUps] = useState<Record<string, any>[]>([]);
   const [selectedEvolutionMetrics, setSelectedEvolutionMetrics] = useState<string[]>(['depression', 'anxiety', 'stress']);
   useSwipeBack();
 
-  const [activeCard, setActiveCard] = useState<number>(0);
-  const carouselRef = useRef<HTMLDivElement>(null);
-
-  const handleCarouselScroll = useCallback(() => {
-    const el = carouselRef.current;
-    if (!el) return;
-    const cardWidth = el.firstElementChild?.getBoundingClientRect().width || 1;
-    const gap = 16;
-    const index = Math.round(el.scrollLeft / (cardWidth + gap));
-    setActiveCard(index);
-  }, []);
-
-  const scrollToCard = useCallback((index: number) => {
-    const el = carouselRef.current;
-    if (!el || !el.firstElementChild) return;
-    const cardWidth = el.firstElementChild.getBoundingClientRect().width;
-    const gap = 16;
-    el.scrollTo({ left: index * (cardWidth + gap), behavior: 'smooth' });
-  }, []);
+  const { activeCard, carouselRef, handleCarouselScroll, scrollToCard } = useCarousel();
 
   const allFields = sharedFieldLabels;
-
   const radarFields = ['mood', 'anxiety', 'energy', 'sleep', 'focus', 'sociability', 'rumination', 'functionality', 'productivity', 'connection'];
 
-  useEffect(() => {
-    if (rawBaseline?.is_locked) setBaselineData(rawBaseline);
-    if (Array.isArray(rawFollowUps) && rawFollowUps.length > 0) setCompletedFollowUps(rawFollowUps);
-  }, [rawBaseline, rawFollowUps]);
-
-  useEffect(() => {
-    if (rawCheckins.length === 0) {
-      setInsightsData(null);
-      return;
-    }
-
-    const checkins = rawCheckins;
-    const doses = rawDoses;
-
-    const last7Days = checkins.slice(0, 7).reverse();
-    const emotional = last7Days.map((c: any) => ({
-      day: new Date(c.date).toLocaleDateString('es-ES', { weekday: 'short' }),
-      ...Object.keys(allFields).reduce((acc: any, key: string) => ({ ...acc, [key]: c[key] || 5 }), {})
-    }));
-
-    const avgMood = (checkins.reduce((sum: number, c: any) => sum + (c.mood || 5), 0) / checkins.length).toFixed(1);
-    const avgEnergy = (checkins.reduce((sum: number, c: any) => sum + (c.energy || 5), 0) / checkins.length).toFixed(1);
-    const avgAnxiety = (checkins.reduce((sum: number, c: any) => sum + (c.anxiety || 5), 0) / checkins.length).toFixed(1);
-    const avgFocus = (checkins.reduce((sum: number, c: any) => sum + (c.focus || 5), 0) / checkins.length).toFixed(1);
-    const avgSleep = (checkins.reduce((sum: number, c: any) => sum + (c.sleep || 5), 0) / checkins.length).toFixed(1);
-    const avgSociability = (checkins.reduce((sum: number, c: any) => sum + (c.sociability || 5), 0) / checkins.length).toFixed(1);
-    const avgRumination = (checkins.reduce((sum: number, c: any) => sum + (c.rumination || 5), 0) / checkins.length).toFixed(1);
-    const avgFunctionality = (checkins.reduce((sum: number, c: any) => sum + (c.functionality || 5), 0) / checkins.length).toFixed(1);
-    const avgProductivity = (checkins.reduce((sum: number, c: any) => sum + (c.productivity || 5), 0) / checkins.length).toFixed(1);
-    const avgConnection = (checkins.reduce((sum: number, c: any) => sum + (c.connection || 5), 0) / checkins.length).toFixed(1);
-
-    setInsightsData({
-      emotional,
-      avgMood, avgEnergy, avgAnxiety, avgFocus, avgSleep,
-      avgSociability, avgRumination, avgFunctionality, avgProductivity, avgConnection,
-      totalDoses: doses.length,
-      totalCheckins: checkins.length,
-      checkins,
-      doses
-    });
-
-    const weeks = [];
-    for (let i = 0; i < 4; i++) {
-      const weekCheckins = checkins.slice(i * 7, (i + 1) * 7);
-      if (weekCheckins.length > 0) {
-        const firstDate = new Date(weekCheckins[weekCheckins.length - 1].date);
-        const lastDate = new Date(weekCheckins[0].date);
-        const formatDay = (d: Date) => d.getDate();
-        const formatMonth = (d: Date) => d.toLocaleDateString('es-ES', { month: 'short' });
-        const weekLabel = firstDate.getMonth() === lastDate.getMonth()
-          ? `${formatDay(firstDate)}-${formatDay(lastDate)} ${formatMonth(lastDate)}`
-          : `${formatDay(firstDate)} ${formatMonth(firstDate)}-${formatDay(lastDate)} ${formatMonth(lastDate)}`;
-        const weekPoint: Record<string, any> = { label: weekLabel };
-        Object.keys(allFields).forEach(field => {
-          weekPoint[field] = (weekCheckins.reduce((s: number, c: any) => s + (c[field] || 5), 0) / weekCheckins.length).toFixed(1);
-        });
-        weeks.push(weekPoint);
-      }
-    }
-    setWeeklyData(weeks.reverse());
-  }, [rawCheckins, rawDoses]);
-
-  useEffect(() => {
-    if (!insightsData?.checkins) return;
-    const days = period === 'weekly' ? 7 : 30;
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
-    cutoff.setHours(0, 0, 0, 0);
-
-    const periodCheckins = insightsData.checkins.filter(c => {
-      const cDate = normalizeDate(c.date);
-      return cDate > toLocalDateString(cutoff);
-    });
-
-    if (periodCheckins.length === 0) {
-      setPeriodAverages(null);
-      return;
-    }
-
-    const calcAvg = (arr: any[], field: string) => (arr.reduce((s: number, c: any) => s + (parseFloat(c[field]) || 5), 0) / arr.length).toFixed(1);
-
-    const avgs: PeriodAverages = { totalCheckins: 0 };
-    ['mood', 'energy', 'anxiety', 'focus', 'sleep', 'sociability', 'rumination', 'functionality', 'productivity', 'connection'].forEach(field => {
-      avgs[field] = calcAvg(periodCheckins, field);
-    });
-    avgs.totalCheckins = periodCheckins.length;
-
-    setPeriodAverages(avgs);
-  }, [period, insightsData?.checkins]);
-
-  // Recalcular comparación cuando cambia el período
-  useEffect(() => {
-    if (insightsData?.checkins && insightsData?.doses) {
-      const days = period === 'weekly' ? 7 : 30;
-      calculateComparison(insightsData.checkins, insightsData.doses, days);
-    }
-  }, [period, insightsData?.checkins, insightsData?.doses]);
-
-  const calculateComparison = (checkins: Checkin[], doses: DoseLog[], periodDays: number = 30) => {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - periodDays);
-    cutoffDate.setHours(0, 0, 0, 0);
-
-    const cutoffStr = toLocalDateString(cutoffDate);
-    const filteredCheckins = checkins.filter(c => normalizeDate(c.date) > cutoffStr);
-    const filteredDoses = doses.filter(d => normalizeDate(d.date) > cutoffStr);
-
-    const doseDates = new Set(filteredDoses.map(d => normalizeDate(d.date)));
-
-    const withDose = filteredCheckins.filter(c => doseDates.has(normalizeDate(c.date)));
-    const withoutDose = filteredCheckins.filter(c => !doseDates.has(normalizeDate(c.date)));
-
-    if (withDose.length > 0 && withoutDose.length > 0) {
-      const calcAvg = (arr: Checkin[], field: string) => (arr.reduce((s: number, c: any) => s + (c[field] || 5), 0) / arr.length).toFixed(1);
-
-      const avgWithDose: ComparisonAverages = { count: 0, wellbeing: '0' };
-      const avgWithoutDose: ComparisonAverages = { count: 0, wellbeing: '0' };
-
-      radarFields.forEach(field => {
-        avgWithDose[field] = calcAvg(withDose, field);
-        avgWithoutDose[field] = calcAvg(withoutDose, field);
-      });
-
-      avgWithDose.count = withDose.length;
-      avgWithoutDose.count = withoutDose.length;
-
-      avgWithDose.wellbeing = calcWellbeing(avgWithDose).toFixed(1);
-      avgWithoutDose.wellbeing = calcWellbeing(avgWithoutDose).toFixed(1);
-
-      setComparisonData({
-        withDose: avgWithDose,
-        withoutDose: avgWithoutDose
-      });
-    } else {
-      setComparisonData(null);
-    }
-  };
+  const {
+    loading, insightsData, weeklyData, periodAverages, comparisonData,
+    wellbeingScore, wellbeingChange, trendData, bienestarAnalysis,
+    insightCards, periodDoseCount, periodCheckinCount,
+    showEvolution, evolutionMetrics, chartData, availableMetrics,
+    baselineData, completedFollowUps,
+  } = useInsightsAnalytics(user?.id, period, allFields);
 
   const toggleField = (field: string) => {
     if (selectedFields.includes(field)) {
@@ -451,54 +282,9 @@ const Insights: React.FC = () => {
   }
 
   const avgs: any = periodAverages || insightsData;
-  const wellbeingScore = calcWellbeing({
-    mood: avgs.avgMood || avgs.mood,
-    energy: avgs.avgEnergy || avgs.energy,
-    anxiety: avgs.avgAnxiety || avgs.anxiety,
-    focus: avgs.avgFocus || avgs.focus,
-    sleep: avgs.avgSleep || avgs.sleep,
-    sociability: avgs.avgSociability || avgs.sociability,
-    rumination: avgs.avgRumination || avgs.rumination,
-    functionality: avgs.avgFunctionality || avgs.functionality,
-    productivity: avgs.avgProductivity || avgs.productivity,
-    connection: avgs.avgConnection || avgs.connection
-  });
-
-  // Build evolution card data (needed for sections array)
-  const showEvolution = period === 'monthly' && baselineData && completedFollowUps.length > 0;
-
-  const toNum = (v: unknown): number | null => { if (v === null || v === undefined) return null; const n = Number(v); return isNaN(n) ? null : n; };
-
-  const evolutionMetrics: Record<string, { label: string; emoji: string; color: string; lowerIsBetter: boolean; normalize: (v: number) => number; extract: (data: Record<string, any>) => number | null }> = {
-    depression: { label: 'Depresión', emoji: '😔', color: '#7B1FA2', lowerIsBetter: true, normalize: v => (v / 42) * 100, extract: d => calculateDASS(d)?.depression.scaled ?? null },
-    anxiety: { label: 'Ansiedad', emoji: '😰', color: '#F44336', lowerIsBetter: true, normalize: v => (v / 42) * 100, extract: d => calculateDASS(d)?.anxiety.scaled ?? null },
-    stress: { label: 'Estrés', emoji: '😤', color: '#FF9800', lowerIsBetter: true, normalize: v => (v / 42) * 100, extract: d => calculateDASS(d)?.stress.scaled ?? null },
-    positiveAffect: { label: 'Af. Positivo', emoji: '😊', color: '#4CAF50', lowerIsBetter: false, normalize: v => ((v - 10) / 40) * 100, extract: d => calculatePANAS(d)?.positiveAffect ?? null },
-    negativeAffect: { label: 'Af. Negativo', emoji: '😞', color: '#795548', lowerIsBetter: true, normalize: v => ((v - 10) / 40) * 100, extract: d => calculatePANAS(d)?.negativeAffect ?? null },
-    pss: { label: 'Estrés Percibido', emoji: '🧠', color: '#E91E63', lowerIsBetter: true, normalize: v => (v / 40) * 100, extract: d => calculatePSS(d)?.total ?? null },
-    lifeSat: { label: 'Satisfacción', emoji: '⭐', color: '#FFC107', lowerIsBetter: false, normalize: v => (v / 10) * 100, extract: d => toNum(d.life_satisfaction) },
-  };
 
   let evolutionCard: React.ReactNode = null;
   if (showEvolution && baselineData) {
-    const allDataPoints = [baselineData, ...completedFollowUps];
-    const availableMetrics = Object.keys(evolutionMetrics).filter(key => {
-      const metric = evolutionMetrics[key];
-      const baseVal = metric.extract(baselineData);
-      if (baseVal === null) return false;
-      return completedFollowUps.some(fu => metric.extract(fu) !== null);
-    });
-
-    const chartData = allDataPoints.map((dp, idx) => {
-      const point: Record<string, any> = { label: idx === 0 ? 'Baseline' : (dp.monthName || `Mes ${idx}`) };
-      Object.entries(evolutionMetrics).forEach(([key, metric]) => {
-        const raw = metric.extract(dp);
-        if (raw !== null) point[key] = metric.normalize(raw);
-        point[`${key}_raw`] = raw;
-      });
-      return point;
-    });
-
     const lastFU = completedFollowUps[completedFollowUps.length - 1];
     const effectiveSelection = selectedEvolutionMetrics.filter(k => availableMetrics.includes(k));
     if (effectiveSelection.length === 0 && availableMetrics.length > 0) {
@@ -615,41 +401,6 @@ const Insights: React.FC = () => {
     );
   }
 
-  // === NEW: Bienestar General trend data ===
-  const trendData = (() => {
-    const days = period === 'weekly' ? 7 : 30;
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - days);
-    const cutoffStr = toLocalDateString(cutoff);
-    const periodCheckins = insightsData.checkins
-      .filter((c: any) => normalizeDate(c.date) > cutoffStr)
-      .reverse();
-    const doseDates = new Set(insightsData.doses.map((d: any) => normalizeDate(d.date)));
-    return periodCheckins.map((c: any) => ({
-      day: new Date(c.date).toLocaleDateString('es-ES', { weekday: 'short' }),
-      wellbeing: parseFloat(calcWellbeing(c).toFixed(1)),
-      isDose: doseDates.has(normalizeDate(c.date))
-    }));
-  })();
-
-  const wellbeingChange = (() => {
-    const days = period === 'weekly' ? 7 : 30;
-    const now = new Date();
-    const cutoff = new Date(now); cutoff.setDate(now.getDate() - days);
-    const prevCutoff = new Date(now); prevCutoff.setDate(now.getDate() - days * 2);
-    const cutoffStr = toLocalDateString(cutoff);
-    const prevCutoffStr = toLocalDateString(prevCutoff);
-    const current = insightsData.checkins.filter((c: any) => normalizeDate(c.date) > cutoffStr);
-    const prev = insightsData.checkins.filter((c: any) => {
-      const d = normalizeDate(c.date);
-      return d > prevCutoffStr && d <= cutoffStr;
-    });
-    if (current.length === 0 || prev.length === 0) return null;
-    const currentAvg = current.reduce((sum: number, c: any) => sum + calcWellbeing(c), 0) / current.length;
-    const prevAvg = prev.reduce((sum: number, c: any) => sum + calcWellbeing(c), 0) / prev.length;
-    return prevAvg !== 0 ? Math.round(((currentAvg - prevAvg) / prevAvg) * 100) : 0;
-  })();
-
   const WellbeingTrendTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -663,146 +414,6 @@ const Insights: React.FC = () => {
     }
     return null;
   };
-
-  // === NEW: Insights Rápidos cards (rich analysis) ===
-  const insightCards = (() => {
-    const defs: { field: string; icon: string; bg: string; label: string; inverse?: boolean }[] = [
-      { field: 'focus', icon: '🎯', bg: 'rgba(59, 130, 246, 0.1)', label: 'Enfoque Promedio' },
-      { field: 'anxiety', icon: '😰', bg: 'rgba(147, 51, 234, 0.1)', label: 'Ansiedad', inverse: true },
-      { field: 'sleep', icon: '😴', bg: 'rgba(249, 115, 22, 0.1)', label: 'Calidad de Sueño' },
-      { field: 'energy', icon: '⚡', bg: 'rgba(34, 197, 94, 0.1)', label: 'Energía' },
-      { field: 'mood', icon: '😊', bg: 'rgba(234, 179, 8, 0.1)', label: 'Estado de Ánimo' },
-      { field: 'productivity', icon: '📈', bg: 'rgba(236, 72, 153, 0.1)', label: 'Productividad' },
-    ];
-    return defs.map(def => {
-      const avgKey = `avg${def.field.charAt(0).toUpperCase() + def.field.slice(1)}`;
-      const val = parseFloat(String(avgs[avgKey] || avgs[def.field] || '5'));
-      const numericValue = `${val.toFixed(1)}/10`;
-      let statusLabel = numericValue;
-      let statusColor = 'var(--color-text)';
-      let desc = '';
-
-      if (comparisonData) {
-        const doseVal = parseFloat(String(comparisonData.withDose[def.field] || '5'));
-        const noDoseVal = parseFloat(String(comparisonData.withoutDose[def.field] || '5'));
-        const diff = doseVal - noDoseVal;
-        const pct = noDoseVal > 0 ? Math.round(Math.abs(diff / noDoseVal) * 100) : 0;
-        const isInverse = def.inverse === true;
-        const better = isInverse ? diff < 0 : diff > 0;
-
-        // Status labels
-        if (pct >= 15) {
-          statusLabel = better
-            ? (isInverse ? 'Reducción Alta' : 'Mejora Significativa')
-            : (isInverse ? 'Aumento Notable' : 'Variación Alta');
-          statusColor = better ? '#16a34a' : '#dc2626';
-        } else if (pct >= 5) {
-          statusLabel = better
-            ? (isInverse ? 'Reducción Moderada' : 'Mejora Moderada')
-            : (isInverse ? 'Aumento Leve' : 'Variación Leve');
-          statusColor = better ? '#16a34a' : '#ea580c';
-        } else {
-          statusLabel = 'Estable';
-          statusColor = '#6B5E50';
-        }
-
-        // Rich field-specific descriptions
-        if (def.field === 'focus') {
-          desc = pct >= 5 && better
-            ? `Tu concentración es un ${pct}% mayor en los días de dosis comparado con los días de pausa.`
-            : pct >= 5
-              ? `Tu concentración varía un ${pct}% entre días de dosis y pausa. Monitorea factores externos.`
-              : `Tu nivel de concentración se mantiene consistente independientemente de la dosis.`;
-        } else if (def.field === 'anxiety') {
-          desc = pct >= 15 && better
-            ? `Has reportado niveles significativamente más bajos de ansiedad en días de dosis.`
-            : pct >= 5 && better
-              ? `Tu ansiedad tiende a disminuir un ${pct}% en días de dosis.`
-              : pct >= 5
-                ? `Tu ansiedad muestra variación de ${pct}% entre días con y sin dosis.`
-                : `Tus patrones de ansiedad se mantienen estables sin alteraciones notables.`;
-        } else if (def.field === 'sleep') {
-          desc = pct >= 5 && better
-            ? `Tu calidad de sueño mejora un ${pct}% en días de dosis. El descanso es clave para tu bienestar.`
-            : `Tus patrones de sueño se mantienen consistentes sin alteraciones notables.`;
-        } else if (def.field === 'energy') {
-          desc = pct >= 5 && better
-            ? `Tu nivel de energía aumenta un ${pct}% en días de dosis respecto a días de pausa.`
-            : pct >= 5
-              ? `Tu energía fluctúa un ${pct}% entre días de dosis y pausa.`
-              : `Tu energía se mantiene estable independientemente del protocolo.`;
-        } else if (def.field === 'mood') {
-          desc = pct >= 5 && better
-            ? `Tu estado de ánimo es un ${pct}% mejor en días de dosis. Tendencia positiva.`
-            : pct >= 5
-              ? `Tu ánimo varía un ${pct}% entre días de dosis y pausa.`
-              : `Tu estado emocional se mantiene equilibrado durante todo el protocolo.`;
-        } else if (def.field === 'productivity') {
-          desc = pct >= 5 && better
-            ? `Tu productividad incrementa un ${pct}% en días de dosis.`
-            : pct >= 5
-              ? `Tu productividad varía un ${pct}% entre días con y sin dosis.`
-              : `Tu rendimiento productivo es consistente sin importar la dosis.`;
-        }
-      } else {
-        // No comparison data — analyze by value level
-        if (val >= 7.5) {
-          statusLabel = 'Excelente';
-          statusColor = '#16a34a';
-          desc = `Excelente ${def.label.toLowerCase()}. Mantén tus hábitos actuales.`;
-        } else if (val >= 5) {
-          statusLabel = 'Normal';
-          statusColor = '#6B5E50';
-          desc = `${def.label} dentro del rango normal. Registra más datos para análisis comparativo.`;
-        } else {
-          statusLabel = 'Bajo';
-          statusColor = '#ea580c';
-          desc = `${def.label} por debajo del promedio. Considera factores que puedan influir.`;
-        }
-      }
-
-      return { ...def, value: numericValue, statusLabel, statusColor, description: desc };
-    });
-  })();
-
-  // === NEW: Period counts for Resumen ===
-  const periodDoseCount = (() => {
-    const days = period === 'weekly' ? 7 : 30;
-    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
-    return insightsData.doses.filter((d: any) => normalizeDate(d.date) > toLocalDateString(cutoff)).length;
-  })();
-  const periodCheckinCount = (() => {
-    const days = period === 'weekly' ? 7 : 30;
-    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
-    return insightsData.checkins.filter((c: any) => normalizeDate(c.date) > toLocalDateString(cutoff)).length;
-  })();
-
-  // === Bienestar General: trend analysis text ===
-  const bienestarAnalysis = (() => {
-    if (trendData.length < 2) return null;
-    const values = trendData.map(d => d.wellbeing);
-    const avg = values.reduce((s, v) => s + v, 0) / values.length;
-    const trend = values[values.length - 1] - values[0];
-    const doseDays = trendData.filter(d => d.isDose);
-    const pauseDays = trendData.filter(d => !d.isDose);
-    const doseAvg = doseDays.length > 0 ? doseDays.reduce((s, d) => s + d.wellbeing, 0) / doseDays.length : 0;
-    const pauseAvg = pauseDays.length > 0 ? pauseDays.reduce((s, d) => s + d.wellbeing, 0) / pauseDays.length : 0;
-
-    let text = '';
-    if (trend > 1) {
-      text = `Tu bienestar muestra una tendencia al alza. Has mejorado ${trend.toFixed(1)} puntos en ${period === 'weekly' ? 'la última semana' : 'el último mes'}.`;
-    } else if (trend < -1) {
-      text = `Tu bienestar ha disminuido ${Math.abs(trend).toFixed(1)} puntos recientemente. Considera revisar tus hábitos.`;
-    } else {
-      text = `Tu bienestar se mantiene estable con un promedio de ${avg.toFixed(1)}/10.`;
-    }
-
-    if (doseDays.length > 0 && pauseDays.length > 0 && Math.abs(doseAvg - pauseAvg) > 0.5) {
-      const better = doseAvg > pauseAvg;
-      text += ` ${better ? 'Los días de dosis muestran mejores resultados' : 'Los días de pausa muestran mejores resultados'} (${doseAvg.toFixed(1)} vs ${pauseAvg.toFixed(1)}).`;
-    }
-    return text;
-  })();
 
   // Build sections array — filter conditional ones
   const sections: React.ReactNode[] = [

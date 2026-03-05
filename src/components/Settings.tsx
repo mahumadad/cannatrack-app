@@ -5,10 +5,12 @@ import styles from './Settings.module.css';
 import { useToast } from './Toast';
 import api from '../utils/api';
 import { useQueryClient } from '@tanstack/react-query';
-import { requestNotificationPermission, getNotificationPermission, startNotificationScheduler, stopNotificationScheduler } from '../utils/notifications';
+import { stopNotificationScheduler } from '../utils/notifications';
 import storage, { STORAGE_KEYS } from '../utils/storage';
-import { useProtocol, useBaseline, useShopifyProfile, useHasPassword, useDeleteProtocol, useChangePassword, useCreatePassword, useCancelMembership } from '../hooks/queries';
+import { useProtocol, useBaseline, useShopifyProfile, useHasPassword, useDeleteProtocol, useCancelMembership } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
+import { useNotificationSettings } from '../hooks/useNotificationSettings';
+import { usePasswordManagement } from '../hooks/usePasswordManagement';
 
 import type { User as UserType } from '../types';
 
@@ -27,8 +29,6 @@ const Settings: React.FC = () => {
 
   // Mutation hooks
   const deleteProtocol = useDeleteProtocol(user?.id);
-  const changePassword = useChangePassword();
-  const createPassword = useCreatePassword();
   const cancelMembership = useCancelMembership();
 
   // Cancel membership
@@ -40,42 +40,41 @@ const Settings: React.FC = () => {
   const [doseReminder, setDoseReminder] = useState<string>('09:00');
   const [reflectionReminder, setReflectionReminder] = useState<string>('21:00');
 
-  // Notifications
-  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
-  const [doseNotification, setDoseNotification] = useState<boolean>(true);
-  const [reflectionNotification, setReflectionNotification] = useState<boolean>(true);
+  // Notification settings hook
+  const {
+    notificationsEnabled, doseNotification, reflectionNotification,
+    protocolNotification, notificationPermission, handleNotificationToggle,
+  } = useNotificationSettings((msg) => toast!.warning(msg));
   useSwipeBack();
-  const [protocolNotification, setProtocolNotification] = useState<boolean>(true);
-  const [notificationPermission, setNotificationPermission] = useState<string>('default');
 
   // Modals
   const [showEndProtocolModal, setShowEndProtocolModal] = useState<boolean>(false);
   const [showTimeModal, setShowTimeModal] = useState<string | null>(null);
   const [tempTime, setTempTime] = useState<string>('');
 
-  // (Name editing removed — name comes from enrollment and cannot be changed)
-
-  // Password management
-  const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
-  const [currentPassword, setCurrentPassword] = useState<string>('');
-  const [newPassword, setNewPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [savingPassword, setSavingPassword] = useState<boolean>(false);
+  // Password management hook
+  const {
+    showPasswordModal, setShowPasswordModal,
+    currentPassword, setCurrentPassword,
+    newPassword, setNewPassword,
+    confirmPassword, setConfirmPassword,
+    savingPassword, handlePasswordSubmit, openPasswordModal,
+  } = usePasswordManagement(
+    hasPassword,
+    (msg) => toast!.success(msg),
+    (msg) => toast!.warning(msg),
+    (msg) => toast!.error(msg)
+  );
 
   // Load user from localStorage + saved preferences
   useEffect(() => {
     const userData = JSON.parse(storage.getItem(STORAGE_KEYS.USER) || '{}');
     setUser(userData);
 
-    // Load saved preferences
+    // Load saved reminder preferences
     const savedPrefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
     if (savedPrefs.doseReminder) setDoseReminder(savedPrefs.doseReminder);
     if (savedPrefs.reflectionReminder) setReflectionReminder(savedPrefs.reflectionReminder);
-    if (savedPrefs.notificationsEnabled !== undefined) setNotificationsEnabled(savedPrefs.notificationsEnabled);
-    if (savedPrefs.doseNotification !== undefined) setDoseNotification(savedPrefs.doseNotification);
-    if (savedPrefs.reflectionNotification !== undefined) setReflectionNotification(savedPrefs.reflectionNotification);
-    if (savedPrefs.protocolNotification !== undefined) setProtocolNotification(savedPrefs.protocolNotification);
-    setNotificationPermission(getNotificationPermission());
   }, []);
 
   // Sync doseReminder from protocol data
@@ -87,44 +86,6 @@ const Settings: React.FC = () => {
     const currentPrefs = JSON.parse(storage.getItem(STORAGE_KEYS.PREFERENCES) || '{}');
     const updated = { ...currentPrefs, ...newPrefs };
     storage.setItem(STORAGE_KEYS.PREFERENCES, JSON.stringify(updated));
-  };
-
-  const handlePasswordSubmit = async () => {
-    if (hasPassword && !currentPassword) {
-      toast!.warning('Ingresa tu contraseña actual');
-      return;
-    }
-    if (!newPassword || !confirmPassword) {
-      toast!.warning('Completa ambos campos');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast!.warning('Las contraseñas no coinciden');
-      return;
-    }
-    if (newPassword.length < 8 || !/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
-      toast!.warning('La contraseña debe tener al menos 8 caracteres, mayúscula, minúscula y número');
-      return;
-    }
-
-    setSavingPassword(true);
-    try {
-      if (hasPassword) {
-        await changePassword.mutateAsync({ currentPassword, newPassword });
-      } else {
-        await createPassword.mutateAsync({ password: newPassword });
-      }
-      setShowPasswordModal(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      toast!.success(hasPassword ? 'Contraseña actualizada' : 'Contraseña creada exitosamente');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error al guardar contraseña';
-      toast!.error(msg);
-    } finally {
-      setSavingPassword(false);
-    }
   };
 
   const handleEndProtocol = async () => {
@@ -186,42 +147,6 @@ const Settings: React.FC = () => {
       savePreferences({ reflectionReminder: tempTime });
     }
     setShowTimeModal(null);
-  };
-
-  const handleNotificationToggle = async (type: string, value: boolean) => {
-    switch (type) {
-      case 'enabled':
-        if (value) {
-          const permission = await requestNotificationPermission();
-          setNotificationPermission(permission);
-          if (permission === 'granted') {
-            setNotificationsEnabled(true);
-            savePreferences({ notificationsEnabled: true });
-            startNotificationScheduler();
-          } else {
-            toast!.warning('Notificaciones bloqueadas. Activalas en la configuracion de tu navegador.');
-            setNotificationsEnabled(false);
-            savePreferences({ notificationsEnabled: false });
-          }
-        } else {
-          setNotificationsEnabled(false);
-          savePreferences({ notificationsEnabled: false });
-          stopNotificationScheduler();
-        }
-        break;
-      case 'dose':
-        setDoseNotification(value);
-        savePreferences({ doseNotification: value });
-        break;
-      case 'reflection':
-        setReflectionNotification(value);
-        savePreferences({ reflectionNotification: value });
-        break;
-      case 'protocol':
-        setProtocolNotification(value);
-        savePreferences({ protocolNotification: value });
-        break;
-    }
   };
 
   const formatTime = (time: string): string => {
@@ -384,7 +309,7 @@ const Settings: React.FC = () => {
         <div className={styles.section}>
           <h2 className={styles.sectionLabel}>Seguridad</h2>
           <div className={styles.card}>
-            <div className={styles.menuItem} onClick={() => { setNewPassword(''); setConfirmPassword(''); setShowPasswordModal(true); }}>
+            <div className={styles.menuItem} onClick={openPasswordModal}>
               {hasPassword ? (
                 <Key size={24} weight="regular" className={styles.menuIcon} />
               ) : (

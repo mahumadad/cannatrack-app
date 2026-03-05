@@ -1,37 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trackEvent } from '../utils/analytics';
 import { useToast } from './Toast';
 import { useUser } from '../hooks/useUser';
 import { useRecetasQuery, useCatalog, useCreateSolicitud } from '../hooks/queries';
 import useSwipeBack from '../hooks/useSwipeBack';
-import { ArrowLeft, ArrowRight, Check, UploadSimple, ShoppingCart, Trash, CheckCircle, Pill, Warning, CalendarBlank, User, Star, Camera, PaperPlaneTilt, Plant, Leaf } from '@phosphor-icons/react';
+import { useSolicitudCart } from '../hooks/useSolicitudCart';
+import { useSolicitudSteps } from '../hooks/useSolicitudSteps';
+import { ArrowLeft, ArrowRight, UploadSimple, ShoppingCart, Trash, CheckCircle, Pill, Warning, Star, Camera, PaperPlaneTilt, Plant, Leaf } from '@phosphor-icons/react';
 import styles from './SolicitudForm.module.css';
 import { formatCLP } from '../utils/formatters';
-import type { ProductCatalog, MicrodosisOption, MacrodosisOption, CartItem, Receta } from '../types';
-
-type Step = 'micro' | 'macro' | 'recetas' | 'resumen';
-const ALL_STEPS: Step[] = ['micro', 'macro', 'recetas', 'resumen'];
-
-// Per-step theme colors (progress is computed dynamically)
-const STEP_COLORS: Record<Step, { color: string; light: string; label: string }> = {
-  micro:   { color: '#14b858', light: '#f0fdf4', label: 'Selección Microdosis' },
-  macro:   { color: '#5048e5', light: '#f0efff', label: 'Selección Macrodosis' },
-  recetas: { color: '#5048e5', light: '#f0efff', label: 'Adjuntar Receta' },
-  resumen: { color: '#a57f50', light: '#fbfaf9', label: 'Finalizar' },
-};
-
-
-/** Parse grams from string like "0.2g", "0.2 g", "200mg" */
-const parseGrams = (str: string): number => {
-  if (!str) return 0;
-  const s = str.trim().toLowerCase();
-  const mgMatch = s.match(/^(\d+(?:[.,]\d+)?)\s*mg$/);
-  if (mgMatch) return parseFloat(mgMatch[1].replace(',', '.')) / 1000;
-  const gMatch = s.match(/(\d+(?:[.,]\d+)?)\s*g/);
-  if (gMatch) return parseFloat(gMatch[1].replace(',', '.'));
-  return 0;
-};
+import type { MicrodosisOption, MacrodosisOption, Receta } from '../types';
 
 const SolicitudForm: React.FC = () => {
   const navigate = useNavigate();
@@ -43,20 +22,8 @@ const SolicitudForm: React.FC = () => {
 
   const { data: catalog } = useCatalog();
   const createSolicitud = useCreateSolicitud();
-  const [step, setStep] = useState<Step>('micro');
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const [preselected, setPreselected] = useState(false);
-
-  // Micro selection state
-  const [selectedGramaje, setSelectedGramaje] = useState<string | null>(null);
-  const [selectedCapsulas, setSelectedCapsulas] = useState<string | null>(null);
-  const [microQty, setMicroQty] = useState(1);
-
-  // Macro selection state
-  const [selectedMacro, setSelectedMacro] = useState<string | null>(null);
-  const [macroCategory, setMacroCategory] = useState('');
 
   // Receta & notas
   const [recipeFile, setRecipeFile] = useState<string | null>(null);
@@ -65,153 +32,32 @@ const SolicitudForm: React.FC = () => {
 
   const recipeFileRef = useRef<HTMLInputElement>(null);
 
-  // Derived: find receta for micro and macro from all active recetas
-  const recetaMicroConSaldo = recetasActivas.find(r => r.total_micro_autorizado > 0 && r.saldo_micro > 0) || null;
-  const recetaMacroConSaldo = recetasActivas.find(r => r.total_macro_autorizado > 0 && r.saldo_macro > 0) || null;
-  const hasAnyReceta = recetasActivas.length > 0;
-  const recetaMicro = hasAnyReceta ? recetasActivas[0] : null;
-  const recetaMacro = hasAnyReceta ? recetasActivas[0] : null;
-
-  // Auto-select gramaje and max capsulas from active micro receta once catalog loads
-  useEffect(() => {
-    if (!catalog || preselected) return;
-
-    if (recetaMicroConSaldo?.gramaje_micro && recetaMicroConSaldo.saldo_micro > 0) {
-      const matchingGramaje = catalog.microdosis.find(m =>
-        m.gramaje.replace(/\s/g, '').toLowerCase() === recetaMicroConSaldo.gramaje_micro!.replace(/\s/g, '').toLowerCase()
-      );
-      if (matchingGramaje) {
-        setSelectedGramaje(matchingGramaje.gramaje);
-        const sortedOptions = [...matchingGramaje.options].sort(
-          (a, b) => parseInt(b.capsulas) - parseInt(a.capsulas)
-        );
-        const bestFit = sortedOptions.find(o => parseInt(o.capsulas) <= recetaMicroConSaldo.saldo_micro);
-        if (bestFit) {
-          setSelectedCapsulas(bestFit.capsulas);
-        } else {
-          const smallest = sortedOptions[sortedOptions.length - 1];
-          if (smallest) setSelectedCapsulas(smallest.capsulas);
-        }
-      }
-    }
-
-    if (recetaMacroConSaldo?.gramaje_macro && recetaMacroConSaldo.saldo_macro > 0) {
-      const maxGrams = parseFloat(recetaMacroConSaldo.gramaje_macro.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0;
-      if (maxGrams > 0) {
-        const sorted = [...catalog.macrodosis].sort((a, b) => (b.grams || 0) - (a.grams || 0));
-        const bestFit = sorted.find(m => (m.grams || 0) <= maxGrams);
-        if (bestFit) {
-          setSelectedMacro(bestFit.key);
-          // Auto-add suggested macro to cart if cart has no macros yet
-          if (!cart.some(i => i.category === 'Macrodosis')) {
-            setCart(prev => [...prev, {
-              id: `macro-${bestFit.key}-${Date.now()}`,
-              category: 'Macrodosis',
-              producto: bestFit.key,
-              displayLabel: bestFit.label,
-              unitPrice: bestFit.price,
-              quantity: 1,
-              lineTotal: bestFit.price
-            } as CartItem]);
-          }
-        }
-      }
-    }
-
-    setPreselected(true);
-  }, [catalog, recetaMicroConSaldo, recetaMacroConSaldo, preselected]);
-
-  const hasMicro = cart.some(i => i.category === 'Microdosis');
-  const hasMacro = cart.some(i => i.category === 'Macrodosis');
+  // Cart hook
+  const {
+    cart, cartTotal, selectedGramaje, setSelectedGramaje,
+    selectedCapsulas, setSelectedCapsulas, microQty, setMicroQty,
+    selectedMacro, setSelectedMacro, macroCategory, setMacroCategory,
+    addMicroToCart, addMacroToCart, removeFromCart,
+    hasMicro, hasMacro, cartMicroCaps, cartMacroGrams,
+    cartMicroTotalGrams, microEquiv, microGramsExceeded,
+    recetaMicroTotalGramsAuth, recetaMacroTotalGramsAuth, recetaMacroGramsMax,
+    recetaMicroConSaldo, recetaMacroConSaldo, hasAnyReceta, recetaMicro, recetaMacro,
+  } = useSolicitudCart(catalog, recetasActivas, (msg) => toast.success(msg));
 
   // Skip recetas step if user already has active receta covering their cart
   const recetaCoversMicro = !hasMicro || !!recetaMicro;
   const recetaCoversMacro = !hasMacro || !!recetaMacro;
   const skipRecetas = recetaCoversMicro && recetaCoversMacro && hasAnyReceta;
-  const steps: Step[] = skipRecetas
-    ? ALL_STEPS.filter(s => s !== 'recetas')
-    : ALL_STEPS;
-  const cartTotal = cart.reduce((sum, i) => sum + i.lineTotal, 0);
 
-  // Cart quantities for saldo warnings
-  const cartMicroCaps = cart.filter(i => i.category === 'Microdosis').reduce((sum, i) => sum + parseInt(i.capsulas || '0') * (i.quantity || 1), 0);
-  const cartMacroGrams = cart.filter(i => i.category === 'Macrodosis').reduce((sum, i) => {
-    const producto = catalog?.macrodosis.find(m => m.key === i.producto);
-    return sum + (producto?.grams || 0) * (i.quantity || 1);
-  }, 0);
-  const recetaMacroGramsMax = recetaMacroConSaldo?.gramaje_macro
-    ? parseFloat(recetaMacroConSaldo.gramaje_macro.replace(/[^0-9.,]/g, '').replace(',', '.')) || 0
-    : 0;
-  const cartMicroGramajes = [...new Set(cart.filter(i => i.category === 'Microdosis').map(i => i.gramaje))];
-
-  // Accumulated grams
-  const cartMicroTotalGrams = cart.filter(i => i.category === 'Microdosis').reduce((sum, i) => {
-    return sum + parseGrams(i.gramaje || '') * parseInt(i.capsulas || '0') * (i.quantity || 1);
-  }, 0);
-  const recetaMacroTotalGramsAuth = recetaMacroConSaldo
-    ? recetaMacroGramsMax * (recetaMacroConSaldo.saldo_macro || 0)
-    : 0;
-
-  // Micro: total grams authorized by receta saldo
-  const recetaMicroGramPerCap = recetaMicroConSaldo?.gramaje_micro ? parseGrams(recetaMicroConSaldo.gramaje_micro) : 0;
-  const recetaMicroTotalGramsAuth = recetaMicroConSaldo
-    ? recetaMicroGramPerCap * (recetaMicroConSaldo.saldo_micro || 0)
-    : 0;
-  const microGramsExceeded = recetaMicroTotalGramsAuth > 0 && cartMicroTotalGrams > recetaMicroTotalGramsAuth;
-  // Micro equivalences: how many "receta doses" the cart represents
-  const microEquiv = recetaMicroGramPerCap > 0 && cartMicroTotalGrams > 0
-    ? Math.ceil(cartMicroTotalGrams / recetaMicroGramPerCap)
-    : cartMicroCaps;
-
-  // ─── Add to cart ───────────────────────
-  const addMicroToCart = () => {
-    if (!selectedGramaje || !selectedCapsulas || !catalog) return;
-    const gramaje = catalog.microdosis.find(m => m.gramaje === selectedGramaje);
-    const option = gramaje?.options.find(o => o.capsulas === selectedCapsulas);
-    if (!gramaje || !option) return;
-
-    const item: CartItem = {
-      id: `micro-${selectedGramaje}-${selectedCapsulas}-${Date.now()}`,
-      category: 'Microdosis',
-      gramaje: selectedGramaje,
-      capsulas: selectedCapsulas,
-      displayLabel: `${gramaje.label} x ${selectedCapsulas} caps`,
-      unitPrice: option.price,
-      quantity: microQty,
-      lineTotal: option.price * microQty
-    };
-
-    setCart(prev => [...prev, item]);
-    setSelectedGramaje(null);
-    setSelectedCapsulas(null);
-    setMicroQty(1);
-    toast.success('Agregado al carrito');
-  };
-
-  const addMacroToCart = (macroKey?: string) => {
-    const key = macroKey || selectedMacro;
-    if (!key || !catalog) return;
-    const producto = catalog.macrodosis.find(m => m.key === key);
-    if (!producto) return;
-
-    const item: CartItem = {
-      id: `macro-${key}-${Date.now()}`,
-      category: 'Macrodosis',
-      producto: key,
-      displayLabel: producto.label,
-      unitPrice: producto.price,
-      quantity: 1,
-      lineTotal: producto.price
-    };
-
-    setCart(prev => [...prev, item]);
-    setSelectedMacro(null);
-    toast.success('Agregado al carrito');
-  };
-
-  const removeFromCart = (id: string) => {
-    setCart(prev => prev.filter(i => i.id !== id));
-  };
+  // Steps hook
+  const {
+    step, steps, stepIndex, stepProgress, stepTheme,
+    canGoNext, goNext, goBack,
+  } = useSolicitudSteps(
+    skipRecetas, loadingRecetas, hasMicro, hasMacro,
+    recetaMicro, recetaMacro, recipeFile,
+    () => navigate('/store')
+  );
 
   // ─── File upload ───────────────────────
   const handleFileSelect = (
@@ -268,32 +114,6 @@ const SolicitudForm: React.FC = () => {
       setSubmitting(false);
     }
   };
-
-  // ─── Navigation ────────────────────────
-  const stepIndex = steps.indexOf(step);
-  const stepProgress = `${Math.round(((stepIndex + 1) / steps.length) * 100)}%`;
-  const canGoNext = () => {
-    if (step === 'recetas') {
-      if (loadingRecetas) return false;
-      const needsReceta = (hasMicro && !recetaMicro) || (hasMacro && !recetaMacro);
-      if (needsReceta && !recipeFile) return false;
-      return true;
-    }
-    return true;
-  };
-
-  const goNext = () => {
-    const idx = steps.indexOf(step);
-    if (idx < steps.length - 1) setStep(steps[idx + 1]);
-  };
-
-  const goBack = () => {
-    const idx = steps.indexOf(step);
-    if (idx > 0) setStep(steps[idx - 1]);
-    else navigate('/store');
-  };
-
-  const stepTheme = STEP_COLORS[step];
 
   // ─── Helpers ───────────────────────────
   const fmtDate = (d: string | null) => {
