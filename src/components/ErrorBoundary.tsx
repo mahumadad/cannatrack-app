@@ -1,4 +1,5 @@
 import React from 'react';
+import config from '../config';
 
 interface Props {
   children: React.ReactNode;
@@ -21,6 +22,18 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     console.error('[ErrorBoundary]', error, errorInfo);
+    // Fire-and-forget error tracking to backend
+    fetch(`${config.API_URL}/api/errors`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        severity: 'critical',
+        source: 'ErrorBoundary',
+        message: error.message,
+        stack: error.stack,
+        context_json: { componentStack: errorInfo.componentStack?.slice(0, 500) }
+      })
+    }).catch(() => {});
   }
 
   handleReload = (): void => {

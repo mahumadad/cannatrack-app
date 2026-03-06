@@ -84,6 +84,7 @@ const Login: React.FC = () => {
   };
 
   const handleShopifyLogin = () => {
+    setLoading(true);
     // Limpiar sesion anterior antes de iniciar OAuth (evita datos residuales)
     storage.removeItem(STORAGE_KEYS.USER);
     storage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);

@@ -8,6 +8,7 @@ export const useToast = (): ToastContextType | undefined => useContext(ToastCont
 
 interface ConfirmState {
   message: string;
+  actionLabel: string;
   resolve: (value: boolean) => void;
 }
 
@@ -34,9 +35,9 @@ export const ToastProvider: React.FC<Props> = ({ children }) => {
   const info = (message: string): void => addToast(message, 'info');
   const warning = (message: string): void => addToast(message, 'warning');
 
-  const confirm = useCallback((message: string): Promise<boolean> => {
+  const confirm = useCallback((message: string, actionLabel: string = 'Confirmar'): Promise<boolean> => {
     return new Promise<boolean>((resolve) => {
-      const state = { message, resolve };
+      const state = { message, actionLabel, resolve };
       confirmRef.current = state;
       setConfirmState(state);
     });
@@ -70,7 +71,7 @@ export const ToastProvider: React.FC<Props> = ({ children }) => {
             <p className={styles.confirmMessage}>{confirmState.message}</p>
             <div className={styles.confirmButtons}>
               <button className={styles.confirmCancel} onClick={() => handleConfirm(false)}>Cancelar</button>
-              <button className={styles.confirmAccept} onClick={() => handleConfirm(true)}>Eliminar</button>
+              <button className={styles.confirmAccept} onClick={() => handleConfirm(true)}>{confirmState.actionLabel}</button>
             </div>
           </div>
         </div>

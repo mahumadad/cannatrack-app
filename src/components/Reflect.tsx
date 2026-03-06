@@ -116,6 +116,17 @@ const Reflect: React.FC = () => {
     }
   }, [formData, selectedDate, isEditing, existingCheckin]);
 
+  // Warn before closing tab with unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isEditing && !existingCheckin) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isEditing, existingCheckin]);
+
   // Limpiar drafts viejos (>7 días) al montar
   useEffect(() => {
     try {

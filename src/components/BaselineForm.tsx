@@ -89,6 +89,7 @@ const BaselineForm: React.FC = () => {
       } else if (current.length < 3) {
         return { ...prev, [field]: [...current, value] };
       }
+      toast.warning('Máximo 3 opciones');
       return prev;
     });
   };

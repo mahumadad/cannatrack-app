@@ -96,6 +96,17 @@ const FollowUp: React.FC = () => {
     }
   }, [followUpData]);
 
+  // Warn before closing tab with unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (currentSection > 0 && !existingFollowUp) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [currentSection, existingFollowUp]);
+
   const switchMonth = (newMonthYear: string) => {
     setMonthYear(newMonthYear);
   };
