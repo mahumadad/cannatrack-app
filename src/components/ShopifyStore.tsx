@@ -8,6 +8,7 @@ import { useUser } from '../hooks/useUser';
 import api from '../utils/api';
 import storage, { STORAGE_KEYS } from '../utils/storage';
 import { useRecetasQuery, useStoreData, useSolicitudes, useMembershipSubscribe, useCancelMembership } from '../hooks/queries';
+import OnboardingDashboard from './OnboardingDashboard';
 import { formatCLP } from '../utils/formatters';
 import useSwipeBack from '../hooks/useSwipeBack';
 import type { ShopifyOrder, ShopifySubscription, ShopifyStoreData, Receta, Solicitud } from '../types';
@@ -45,6 +46,11 @@ const ShopifyStore: React.FC = () => {
     creditCardType?: string | null;
     lastPaymentAmount?: number | null;
     lastPaymentAt?: string | null;
+    onboardingState?: string;
+    graceUntil?: string | null;
+    signingUrl?: string | null;
+    paymentUrl?: string | null;
+    contractSigned?: boolean;
   } | null>(null);
   const [membershipLoading, setMembershipLoading] = useState(true);
   const loading = userLoading || loadingStore || loadingRecetas || loadingSolicitudes || membershipLoading;
@@ -69,7 +75,12 @@ const ShopifyStore: React.FC = () => {
           nextPaymentDate: data.nextPaymentDate as string | null,
           creditCardType: data.creditCardType as string | null,
           lastPaymentAmount: data.lastPaymentAmount as number | null,
-          lastPaymentAt: data.lastPaymentAt as string | null
+          lastPaymentAt: data.lastPaymentAt as string | null,
+          onboardingState: data.onboardingState as string | undefined,
+          graceUntil: data.graceUntil as string | null,
+          signingUrl: data.signingUrl as string | null,
+          paymentUrl: data.paymentUrl as string | null,
+          contractSigned: data.contractSigned as boolean | undefined
         });
       })
       .catch(() => {})
@@ -433,11 +444,14 @@ const ShopifyStore: React.FC = () => {
   // Membership gate: block store if membership is not active (cancelled still has access)
   const isCancelled = membershipStatus === 'cancelled';
   const isExpired = membershipStatus === 'expired';
-  const daysExpired = membershipExpires
-    ? Math.floor((Date.now() - new Date(membershipExpires).getTime()) / (1000 * 60 * 60 * 24))
-    : 0;
-  const blockStore = membershipStatus !== 'active' && !isCancelled && !(isExpired && daysExpired < 5);
-  const showWarning = isExpired && daysExpired < 5 && daysExpired >= 0;
+  const graceUntil = membershipData?.graceUntil;
+  const inGracePeriod = isExpired && graceUntil
+    ? new Date(graceUntil).getTime() > Date.now()
+    : false;
+  const onboardingState = membershipData?.onboardingState || 'none';
+  const isOnboarding = ['approved', 'contract_pending', 'payment_pending', 'activating'].includes(onboardingState);
+  const blockStore = membershipStatus !== 'active' && !isCancelled && !inGracePeriod;
+  const showWarning = inGracePeriod;
 
   const handleSubscribe = async (gateway: string = 'mercadopago') => {
     setSubscribing(true);
@@ -501,6 +515,22 @@ const ShopifyStore: React.FC = () => {
   }
 
   if (blockStore && membershipStatus !== 'active') {
+    // Show onboarding dashboard for users in the approval pipeline
+    if (isOnboarding) {
+      return (
+        <div className={styles.store}>
+          <OnboardingDashboard
+            onboardingState={onboardingState}
+            signingUrl={membershipData?.signingUrl}
+            paymentUrl={membershipData?.paymentUrl}
+            contractSigned={membershipData?.contractSigned}
+            membershipStatus={membershipStatus}
+          />
+          <BottomNav activePage="store" />
+        </div>
+      );
+    }
+
     return (
       <div className={styles.store}>
         <div className={styles.membershipGate}>
@@ -541,7 +571,6 @@ const ShopifyStore: React.FC = () => {
                 <CreditCard size={20} weight="bold" />
                 {subscribing ? 'Redirigiendo...' : 'Activar membresía'}
               </button>
-              {/* MercadoPago desactivado — solo Flow por ahora */}
             </div>
           )}
         </div>

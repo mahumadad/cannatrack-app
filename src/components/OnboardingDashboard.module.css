@@ -1,0 +1,157 @@
+.container {
+  padding: 20px 16px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #888;
+  margin: 0 0 24px;
+  text-align: center;
+}
+
+/* ─── Step tracker ─── */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 24px;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.step:last-child {
+  padding-bottom: 0;
+}
+
+/* Vertical connector line */
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 32px;
+  bottom: 0;
+  width: 2px;
+  background: #E0D5C8;
+}
+
+.step.completed:not(:last-child)::after {
+  background: #4CAF50;
+}
+
+.step.active:not(:last-child)::after {
+  background: linear-gradient(to bottom, #A68050, #E0D5C8);
+}
+
+.stepIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1;
+}
+
+.stepIcon.completed {
+  background: #4CAF50;
+  color: #fff;
+}
+
+.stepIcon.active {
+  background: #A68050;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(166, 128, 80, 0.15);
+}
+
+.stepIcon.pending {
+  background: #F5F0EB;
+  color: #B0A090;
+  border: 2px solid #E0D5C8;
+}
+
+.stepContent {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.stepTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 2px;
+}
+
+.step.pending .stepTitle {
+  color: #999;
+}
+
+.stepDesc {
+  font-size: 12px;
+  color: #888;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ─── CTA button ─── */
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.cta:active {
+  opacity: 0.8;
+}
+
+.ctaPrimary {
+  composes: cta;
+  background: #A68050;
+  color: #fff;
+}
+
+.ctaSecondary {
+  composes: cta;
+  background: #F5F0EB;
+  color: #A68050;
+}
+
+/* ─── Info box ─── */
+.infoBox {
+  background: #FFF8F0;
+  border: 1px solid #F0E0D0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #8B7355;
+  line-height: 1.5;
+  text-align: center;
+}
