@@ -9,7 +9,7 @@ import { useSolicitudCart } from '../hooks/useSolicitudCart';
 import { useSolicitudSteps } from '../hooks/useSolicitudSteps';
 import { ArrowLeft, ArrowRight, UploadSimple, ShoppingCart, Trash, CheckCircle, Pill, Warning, Star, Camera, PaperPlaneTilt, Plant, Leaf } from '@phosphor-icons/react';
 import styles from './SolicitudForm.module.css';
-import { formatCLP } from '../utils/formatters';
+import { formatCLP, decodeHtml } from '../utils/formatters';
 import type { MicrodosisOption, MacrodosisOption, Receta } from '../types';
 
 const SolicitudForm: React.FC = () => {
@@ -127,7 +127,14 @@ const SolicitudForm: React.FC = () => {
     ? ['', ...Array.from(new Set(catalog.macrodosis.map(m => m.category || '').filter(Boolean)))]
     : [''];
   const filteredMacro = catalog
-    ? catalog.macrodosis.filter(m => !macroCategory || m.category === macroCategory)
+    ? catalog.macrodosis
+        .filter(m => !macroCategory || m.category === macroCategory)
+        .sort((a, b) => {
+          // Sugerido por receta siempre primero
+          if (a.key === selectedMacro) return -1;
+          if (b.key === selectedMacro) return 1;
+          return 0;
+        })
     : [];
 
 
@@ -225,7 +232,16 @@ const SolicitudForm: React.FC = () => {
               </div>
             )}
 
-            {catalog.microdosis.map((m: MicrodosisOption) => {
+            {[...catalog.microdosis].sort((a, b) => {
+              // Receta match first
+              if (!recetaMicroConSaldo?.gramaje_micro) return 0;
+              const gm = recetaMicroConSaldo.gramaje_micro.replace(/\s/g, '').toLowerCase();
+              const aMatch = a.gramaje.replace(/\s/g, '').toLowerCase() === gm;
+              const bMatch = b.gramaje.replace(/\s/g, '').toLowerCase() === gm;
+              if (aMatch && !bMatch) return -1;
+              if (!aMatch && bMatch) return 1;
+              return 0;
+            }).map((m: MicrodosisOption) => {
               const isRecetaMatch = recetaMicroConSaldo?.gramaje_micro
                 && m.gramaje.replace(/\s/g, '').toLowerCase() === recetaMicroConSaldo.gramaje_micro.replace(/\s/g, '').toLowerCase();
               const needsUpdate = recetaMicroConSaldo?.gramaje_micro && !isRecetaMatch;
@@ -254,7 +270,7 @@ const SolicitudForm: React.FC = () => {
                   </div>
 
                   <div className={styles.microCardDose}>{m.gramaje} / cápsula</div>
-                  <div className={styles.microCardSpecies}>{m.description || 'Psilocybe Cubensis'}</div>
+                  <div className={styles.microCardSpecies}>{m.description ? decodeHtml(m.description) : 'Psilocybe Cubensis'}</div>
 
                   {/* Capsulas selector when selected */}
                   {isSelected && selectedGramajeData && (
@@ -375,7 +391,7 @@ const SolicitudForm: React.FC = () => {
                     </div>
                     <div className={styles.macroCardInfo}>
                       <p className={styles.macroCardTitle}>{m.label}</p>
-                      {m.description && <p className={styles.macroCardDesc}>{m.description}</p>}
+                      {m.description && <p className={styles.macroCardDesc}>{decodeHtml(m.description)}</p>}
                       <span className={styles.macroCardWeight}>{m.grams ? `${m.grams}g netos` : ''}</span>
                     </div>
                   </div>
@@ -505,7 +521,7 @@ const SolicitudForm: React.FC = () => {
                     <div className={styles.summaryItemInfo}>
                       <div className={styles.summaryItemName}>{item.displayLabel}</div>
                       <div className={styles.summaryItemSub}>
-                        {item.category === 'Microdosis' ? `${item.gramaje} · ${item.capsulas} cápsulas` : macroData?.description || item.category}
+                        {item.category === 'Microdosis' ? `${item.gramaje} · ${item.capsulas} cápsulas` : macroData?.description ? decodeHtml(macroData.description) : item.category}
                       </div>
                     </div>
                     <div className={styles.summaryItemRight}>

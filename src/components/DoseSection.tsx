@@ -20,6 +20,7 @@ interface DoseSectionProps {
   setShowAddDoseModal: React.Dispatch<React.SetStateAction<boolean>>;
   handleTakeDose: () => void;
   handleAddCustomDose: () => void;
+  isSaving: boolean;
   formatNextDoseDate: () => string;
   formatLastDoseDate: () => string;
   navigate: NavigateFunction;
@@ -48,6 +49,7 @@ const DoseSection: React.FC<DoseSectionProps> = ({
   setShowAddDoseModal,
   handleTakeDose,
   handleAddCustomDose,
+  isSaving,
   formatNextDoseDate,
   formatLastDoseDate,
   navigate,
@@ -389,8 +391,8 @@ const DoseSection: React.FC<DoseSectionProps> = ({
             <h2>¿Tomar dosis ahora?</h2>
             {protocol && <p className={styles.modalDoseInfo}>{protocol.dose}{protocol.unit}</p>}
             <div className={styles.modalButtons}>
-              <button onClick={() => setShowDoseModal(false)} className={styles.cancelButton}>Cancelar</button>
-              <button onClick={handleTakeDose} className={styles.confirmButton}>Sí, tomar</button>
+              <button onClick={() => setShowDoseModal(false)} className={styles.cancelButton} disabled={isSaving}>Cancelar</button>
+              <button onClick={handleTakeDose} className={styles.confirmButton} disabled={isSaving}>{isSaving ? 'Registrando…' : 'Sí, tomar'}</button>
             </div>
           </div>
         </div>
@@ -403,8 +405,8 @@ const DoseSection: React.FC<DoseSectionProps> = ({
             <h2>Registrar Dosis</h2>
             <DosePicker selectedDose={customDose.amount} onSelect={(val) => setCustomDose({ amount: val, unit: 'g' })} compact />
             <div className={styles.modalButtons}>
-              <button onClick={() => setShowAddDoseModal(false)} className={styles.cancelButton}>Cancelar</button>
-              <button onClick={handleAddCustomDose} className={styles.confirmButton}>Registrar</button>
+              <button onClick={() => setShowAddDoseModal(false)} className={styles.cancelButton} disabled={isSaving}>Cancelar</button>
+              <button onClick={handleAddCustomDose} className={styles.confirmButton} disabled={isSaving}>{isSaving ? 'Registrando…' : 'Registrar'}</button>
             </div>
           </div>
         </div>

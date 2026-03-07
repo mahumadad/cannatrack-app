@@ -481,6 +481,7 @@ const Dashboard: React.FC = () => {
         setShowAddDoseModal={setShowAddDoseModal}
         handleTakeDose={handleTakeDose}
         handleAddCustomDose={handleAddCustomDose}
+        isSaving={addDose.isPending}
         formatNextDoseDate={formatNextDoseDate}
         formatLastDoseDate={formatLastDoseDate}
         navigate={navigate}

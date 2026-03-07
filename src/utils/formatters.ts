@@ -12,6 +12,13 @@ export const formatDate = (dateStr: string): string => {
   return d.toLocaleDateString('es-CL');
 };
 
+/**
+ * Decode common HTML entities in a string.
+ * @example decodeHtml("Café &amp; Té") → "Café & Té"
+ */
+export const decodeHtml = (s: string): string =>
+  s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+
 /** Format a date string as "15 de enero de 2025" */
 export const formatDateLong = (dateStr: string): string => {
   const d = new Date(dateStr);

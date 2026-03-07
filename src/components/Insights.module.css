@@ -179,7 +179,7 @@
   justify-content: center;
   align-items: center;
   gap: 8px;
-  padding: 12px 0 4px;
+  padding: 4px 0 8px;
 }
 
 .dot {
@@ -738,6 +738,8 @@
   border: 1px solid var(--overlay-light);
   border-radius: var(--radius-md);
   padding: 14px;
+  display: flex;
+  flex-direction: column;
 }
 
 .insightHeader {
@@ -783,6 +785,7 @@
   color: var(--color-text-muted);
   line-height: 1.4;
   margin: 0;
+  flex: 1;
 }
 
 /* ===== Resumen Card (Stitch list style) ===== */

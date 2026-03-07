@@ -417,7 +417,57 @@ const Insights: React.FC = () => {
 
   // Build sections array — filter conditional ones
   const sections: React.ReactNode[] = [
-    /* 0: Bienestar General (trend chart + analysis) */
+    /* 0: Resumen (siempre, estilo Stitch list) */
+    <>
+      <h2 className={styles.cardTitle}>📊 Resumen {period === 'weekly' ? 'Semanal' : 'Mensual'}</h2>
+      <p className={styles.cardSubtitle}>Tu actividad en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
+      <div className={styles.resumenList}>
+        <div className={styles.resumenRow}>
+          <div className={styles.resumenLeft}>
+            <div className={styles.resumenIcon} style={{ background: 'rgba(34, 197, 94, 0.1)' }}>💊</div>
+            <div>
+              <p className={styles.resumenLabel}>Tomas Registradas</p>
+              <p className={styles.resumenSub}>{periodDoseCount} en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
+            </div>
+          </div>
+          <span className={styles.resumenValue}>{periodDoseCount}</span>
+        </div>
+        <div className={styles.resumenRow}>
+          <div className={styles.resumenLeft}>
+            <div className={styles.resumenIcon} style={{ background: 'rgba(234, 179, 8, 0.1)' }}>📝</div>
+            <div>
+              <p className={styles.resumenLabel}>Reflexiones</p>
+              <p className={styles.resumenSub}>{periodCheckinCount} en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
+            </div>
+          </div>
+          <span className={styles.resumenValue}>{periodCheckinCount}</span>
+        </div>
+        <div className={styles.resumenRow}>
+          <div className={styles.resumenLeft}>
+            <div className={styles.resumenIcon} style={{ background: 'rgba(59, 130, 246, 0.1)' }}>🌟</div>
+            <div>
+              <p className={styles.resumenLabel}>Bienestar General</p>
+              <p className={styles.resumenSub}>Puntuación promedio</p>
+            </div>
+          </div>
+          <span className={styles.resumenValue}>{wellbeingScore.toFixed(1)}</span>
+        </div>
+        {comparisonData && (
+          <div className={styles.resumenRow}>
+            <div className={styles.resumenLeft}>
+              <div className={styles.resumenIcon} style={{ background: 'rgba(76, 175, 80, 0.1)' }}>⚖️</div>
+              <div>
+                <p className={styles.resumenLabel}>Impacto de Dosis</p>
+                <p className={styles.resumenSub}>Con vs sin dosis</p>
+              </div>
+            </div>
+            <span className={styles.resumenValue}>{comparisonData.withDose.wellbeing} vs {comparisonData.withoutDose.wellbeing}</span>
+          </div>
+        )}
+      </div>
+    </>,
+
+    /* 1: Bienestar General (trend chart + analysis) */
     <>
       <div className={styles.bienestarHeader}>
         <p className={styles.bienestarLabel}>Bienestar General</p>
@@ -602,55 +652,6 @@ const Insights: React.FC = () => {
       </div>
     </>,
 
-    /* Resumen (siempre, estilo Stitch list) */
-    <>
-      <h2 className={styles.cardTitle}>📊 Resumen {period === 'weekly' ? 'Semanal' : 'Mensual'}</h2>
-      <p className={styles.cardSubtitle}>Tu actividad en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
-      <div className={styles.resumenList}>
-        <div className={styles.resumenRow}>
-          <div className={styles.resumenLeft}>
-            <div className={styles.resumenIcon} style={{ background: 'rgba(34, 197, 94, 0.1)' }}>💊</div>
-            <div>
-              <p className={styles.resumenLabel}>Tomas Registradas</p>
-              <p className={styles.resumenSub}>{periodDoseCount} en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
-            </div>
-          </div>
-          <span className={styles.resumenValue}>{periodDoseCount}</span>
-        </div>
-        <div className={styles.resumenRow}>
-          <div className={styles.resumenLeft}>
-            <div className={styles.resumenIcon} style={{ background: 'rgba(234, 179, 8, 0.1)' }}>📝</div>
-            <div>
-              <p className={styles.resumenLabel}>Reflexiones</p>
-              <p className={styles.resumenSub}>{periodCheckinCount} en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
-            </div>
-          </div>
-          <span className={styles.resumenValue}>{periodCheckinCount}</span>
-        </div>
-        <div className={styles.resumenRow}>
-          <div className={styles.resumenLeft}>
-            <div className={styles.resumenIcon} style={{ background: 'rgba(59, 130, 246, 0.1)' }}>🌟</div>
-            <div>
-              <p className={styles.resumenLabel}>Bienestar General</p>
-              <p className={styles.resumenSub}>Puntuación promedio</p>
-            </div>
-          </div>
-          <span className={styles.resumenValue}>{wellbeingScore.toFixed(1)}</span>
-        </div>
-        {comparisonData && (
-          <div className={styles.resumenRow}>
-            <div className={styles.resumenLeft}>
-              <div className={styles.resumenIcon} style={{ background: 'rgba(76, 175, 80, 0.1)' }}>⚖️</div>
-              <div>
-                <p className={styles.resumenLabel}>Impacto de Dosis</p>
-                <p className={styles.resumenSub}>Con vs sin dosis</p>
-              </div>
-            </div>
-            <span className={styles.resumenValue}>{comparisonData.withDose.wellbeing} vs {comparisonData.withoutDose.wellbeing}</span>
-          </div>
-        )}
-      </div>
-    </>
   ];
 
   return (
@@ -666,15 +667,15 @@ const Insights: React.FC = () => {
         <button className={`${styles.periodButton} ${period === 'monthly' ? styles.active : ''}`} onClick={() => setPeriod('monthly')}>Mes</button>
       </div>
 
-      <div className={styles.carouselContainer} ref={carouselRef} onScroll={handleCarouselScroll}>
-        {sections.map((section, i) => (
-          <div key={i} className={styles.card}>{section}</div>
-        ))}
-      </div>
-
       <div className={styles.dotsContainer}>
         {sections.map((_, i) => (
           <button key={i} className={`${styles.dot} ${activeCard === i ? styles.dotActive : ''}`} onClick={() => scrollToCard(i)} />
+        ))}
+      </div>
+
+      <div className={styles.carouselContainer} ref={carouselRef} onScroll={handleCarouselScroll}>
+        {sections.map((section, i) => (
+          <div key={i} className={styles.card}>{section}</div>
         ))}
       </div>
 
