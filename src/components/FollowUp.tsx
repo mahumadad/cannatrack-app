@@ -75,6 +75,9 @@ const FollowUp: React.FC = () => {
     { id: 'continuidad', title: 'Continuidad', icon: '🔮', description: 'Siguiente paso' }
   ];
 
+  // Track which month was last loaded to avoid resetting position on save-triggered refetches
+  const [loadedMonth, setLoadedMonth] = useState<string | null>(null);
+
   useEffect(() => {
     if (followUpData) {
       setFollowUpInfo(followUpData);
@@ -91,8 +94,14 @@ const FollowUp: React.FC = () => {
         setExistingFollowUp(null);
         setFormData({ ...defaultFormData });
       }
-      setCurrentSection(0);
-      setSubStep(0);
+
+      // Only reset position when switching months, not on save-triggered refetches
+      const dataMonth = followUpData.monthYear || followUpData.existing?.month_year;
+      if (dataMonth !== loadedMonth) {
+        setLoadedMonth(dataMonth || null);
+        setCurrentSection(0);
+        setSubStep(0);
+      }
     }
   }, [followUpData]);
 
