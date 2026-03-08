@@ -498,14 +498,14 @@ const ShopifyStore: React.FC = () => {
     return (
       <div className={styles.store}>
         <div className={styles.membershipGate}>
-          <CheckCircle size={48} weight="light" style={{ color: '#4CAF50', opacity: 0.8 }} />
-          <h2 style={{ fontSize: '18px', color: '#333', margin: '16px 0 8px' }}>
+          <CheckCircle size={48} weight="light" style={{ color: 'var(--color-success)', opacity: 0.8 }} />
+          <h2 style={{ fontSize: '18px', color: 'var(--color-text)', margin: '16px 0 8px' }}>
             Suscripción procesada
           </h2>
-          <p style={{ fontSize: '14px', color: '#666', textAlign: 'center', maxWidth: '300px', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', textAlign: 'center', maxWidth: '300px', lineHeight: 1.6 }}>
             Tu suscripción fue creada exitosamente. Estamos verificando tu pago.
           </p>
-          <p style={{ fontSize: '14px', color: '#666', textAlign: 'center', maxWidth: '300px', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', textAlign: 'center', maxWidth: '300px', lineHeight: 1.6 }}>
             Recibirás un correo con la confirmación y un enlace para acceder a DromeApp.
           </p>
         </div>
@@ -534,13 +534,13 @@ const ShopifyStore: React.FC = () => {
     return (
       <div className={styles.store}>
         <div className={styles.membershipGate}>
-          <ShoppingBag size={48} weight="light" style={{ color: '#A68050', opacity: 0.5 }} />
-          <h2 style={{ fontSize: '18px', color: '#333', margin: '16px 0 8px' }}>
+          <ShoppingBag size={48} weight="light" style={{ color: 'var(--color-primary)', opacity: 0.5 }} />
+          <h2 style={{ fontSize: '18px', color: 'var(--color-text)', margin: '16px 0 8px' }}>
             {membershipStatus === 'pending_payment' ? 'Suscripción pendiente' :
              membershipStatus === 'expired' ? 'Tu membresía ha expirado' :
              'Membresía requerida'}
           </h2>
-          <p style={{ fontSize: '14px', color: '#666', textAlign: 'center', maxWidth: '300px', lineHeight: 1.6 }}>
+          <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', textAlign: 'center', maxWidth: '300px', lineHeight: 1.6 }}>
             {membershipStatus === 'pending_payment'
               ? 'Tu inscripción fue aprobada. Activa tu suscripción para acceder al dispensario.'
               : membershipStatus === 'expired'
@@ -554,7 +554,7 @@ const ShopifyStore: React.FC = () => {
                 disabled={subscribing}
                 style={{
                   padding: '14px 24px',
-                  backgroundColor: '#A68050',
+                  backgroundColor: 'var(--color-primary)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '8px',
@@ -583,13 +583,13 @@ const ShopifyStore: React.FC = () => {
     <div className={styles.store}>
       {showWarning && (
         <div style={{
-          background: '#FFF3E0',
-          border: '1px solid #FFE082',
+          background: 'var(--color-warning-bg)',
+          border: '1px solid var(--color-border)',
           borderRadius: '10px',
           padding: '12px 16px',
           marginBottom: '16px',
           fontSize: '13px',
-          color: '#E65100',
+          color: 'var(--color-warning-text)',
           fontWeight: 500
         }}>
           Tu membresia vence pronto. Renuevala para mantener acceso al dispensario.
@@ -789,7 +789,7 @@ const ShopifyStore: React.FC = () => {
                     <div className={styles.recetaCardHeader} onClick={() => setExpandedRecetaId(isRecetaExpanded ? null : receta.id)}>
                       <Prescription size={24} weight="duotone" />
                       <h3>Receta Activa{receta.medico_nombre ? ` — ${receta.medico_nombre}` : ''}</h3>
-                      {isRecetaExpanded ? <CaretUp size={16} weight="bold" style={{ color: '#999', marginLeft: 'auto' }} /> : <CaretDown size={16} weight="bold" style={{ color: '#999', marginLeft: 'auto' }} />}
+                      {isRecetaExpanded ? <CaretUp size={16} weight="bold" style={{ color: 'var(--color-text-muted)', marginLeft: 'auto' }} /> : <CaretDown size={16} weight="bold" style={{ color: 'var(--color-text-muted)', marginLeft: 'auto' }} />}
                     </div>
 
                     {receta.total_micro_autorizado > 0 && (

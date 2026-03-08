@@ -56,7 +56,7 @@
 .toggleButton.active {
   background: white;
   color: var(--color-primary);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Nav arrows */
@@ -217,7 +217,7 @@
   background: white;
   border: 1.5px solid rgba(193, 125, 74, 0.15);
   transition: all var(--transition-fast) ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: var(--shadow-card);
 }
 
 .monthDayCard .dayNumber {

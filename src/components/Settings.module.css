@@ -468,7 +468,7 @@
   background-color: white;
   transition: all var(--transition-normal);
   border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .toggle input:checked + .toggleSlider {
@@ -508,11 +508,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--overlay-modal);
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  z-index: 200;
+  z-index: var(--z-modal);
   padding: 0;
   animation: fadeInModal 0.2s ease;
 }

@@ -163,7 +163,7 @@ input[type="range"]::-moz-range-thumb {
   left: 0;
   right: 0;
   z-index: var(--z-toast, 300);
-  background: #ef4444;
+  background: var(--color-danger);
   color: white;
   text-align: center;
   padding: calc(4px + var(--safe-area-top, 0px)) 16px 4px;

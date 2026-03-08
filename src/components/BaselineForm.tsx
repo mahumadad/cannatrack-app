@@ -315,9 +315,9 @@ const BaselineForm: React.FC = () => {
               </div>
               <div className={styles.scoreGrid} style={{ gridTemplateColumns: '1fr 1fr' }}>
                 <div className={styles.scoreBox}>
-                  <span className={styles.scoreBoxNumber} style={{ color: panas.positiveAffect >= 28 ? '#4CAF50' : '#FF9800' }}>{panas.positiveAffect}</span>
+                  <span className={styles.scoreBoxNumber} style={{ color: panas.positiveAffect >= 28 ? '#2e7d32' : '#f57c00' }}>{panas.positiveAffect}</span>
                   <span className={styles.scoreBoxLabel}>Positivo</span>
-                  <span className={styles.scoreBoxSeverity} style={{ color: panas.positiveAffect >= 38 ? '#4CAF50' : panas.positiveAffect >= 28 ? '#FF9800' : '#F44336' }}>{panas.paLabel}</span>
+                  <span className={styles.scoreBoxSeverity} style={{ color: panas.positiveAffect >= 38 ? '#2e7d32' : panas.positiveAffect >= 28 ? '#f57c00' : '#d32f2f' }}>{panas.paLabel}</span>
                 </div>
                 <div className={styles.scoreBox}>
                   <span className={styles.scoreBoxNumber} style={{ color: getSeverityColor(panas.naLabel) }}>{panas.negativeAffect}</span>

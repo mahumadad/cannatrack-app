@@ -235,7 +235,7 @@ const Insights: React.FC = () => {
                   {hoveredRadarField === field && (
                     <div className={styles.radarTooltip}>
                       <strong>{info.label}</strong><br />
-                      <span style={{ color: '#4CAF50' }}>Con: {withDose[field]}</span> / <span style={{ color: '#9E9E9E' }}>Sin: {withoutDose[field]}</span>
+                      <span style={{ color: 'var(--color-success)' }}>Con: {withDose[field]}</span> / <span style={{ color: 'var(--color-text-muted)' }}>Sin: {withoutDose[field]}</span>
                     </div>
                   )}
                 </div>
@@ -361,7 +361,7 @@ const Insights: React.FC = () => {
             </ResponsiveContainer>
           </div>
         ) : (
-          <p style={{ textAlign: 'center', color: '#6B5E50', padding: '20px 0', fontSize: '14px' }}>
+          <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: '20px 0', fontSize: '14px' }}>
             No hay métricas comparables aún. Completa todas las secciones de tu próximo follow-up.
           </p>
         )}
@@ -377,7 +377,7 @@ const Insights: React.FC = () => {
                   <span className={styles.evolutionChangeEmoji}>{metric.emoji}</span>
                   <span className={styles.evolutionChangeLabel}>{metric.label}</span>
                   <span className={styles.evolutionChangeValues}>Sin datos</span>
-                  <span className={styles.evolutionChangeArrow} style={{ color: '#6B5E50' }}>—</span>
+                  <span className={styles.evolutionChangeArrow} style={{ color: 'var(--color-text-secondary)' }}>—</span>
                 </div>
               );
             }
@@ -390,7 +390,7 @@ const Insights: React.FC = () => {
                 <span className={styles.evolutionChangeEmoji}>{metric.emoji}</span>
                 <span className={styles.evolutionChangeLabel}>{metric.label}</span>
                 <span className={styles.evolutionChangeValues}>{baseVal} → {lastVal}</span>
-                <span className={styles.evolutionChangeArrow} style={{ color: unchanged ? '#6B5E50' : improved ? '#4CAF50' : '#F44336' }}>
+                <span className={styles.evolutionChangeArrow} style={{ color: unchanged ? 'var(--color-text-secondary)' : improved ? 'var(--color-success)' : 'var(--color-danger)' }}>
                   {unchanged ? '—' : diff > 0 ? `↑ ${pctChange}%` : `↓ ${pctChange}%`}
                 </span>
               </div>
@@ -408,7 +408,7 @@ const Insights: React.FC = () => {
         <div className={styles.tooltip}>
           <p className={styles.tooltipLabel}>{label}</p>
           <p style={{ margin: '4px 0' }}>Bienestar: <strong>{data.wellbeing}</strong>/10</p>
-          {data.isDose && <p style={{ color: '#FF6B6B', margin: '4px 0', fontSize: '12px' }}>💊 Día de dosis</p>}
+          {data.isDose && <p style={{ color: 'var(--color-danger)', margin: '4px 0', fontSize: '12px' }}>💊 Día de dosis</p>}
         </div>
       );
     }

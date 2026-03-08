@@ -100,12 +100,12 @@ export const calculatePSS = (data: ScoringData): PSSResult | null => {
 
 export const getSeverityColor = (severity: string): string => {
   switch (severity) {
-    case 'Normal': case 'Bajo': case 'Bajo (favorable)': return '#4CAF50';
-    case 'Leve': case 'Promedio': return '#FF9800';
-    case 'Moderado': case 'Alto (desfavorable)': return '#F57C00';
-    case 'Severo': case 'Alto': return '#F44336';
-    case 'Muy severo': return '#D32F2F';
-    default: return '#6B5E50';
+    case 'Normal': case 'Bajo': case 'Bajo (favorable)': return '#2e7d32'; // --color-success
+    case 'Leve': case 'Promedio': return '#f57c00'; // --color-warning
+    case 'Moderado': case 'Alto (desfavorable)': return '#e65100'; // --color-warning-text
+    case 'Severo': case 'Alto': return '#d32f2f'; // --color-danger
+    case 'Muy severo': return '#c62828'; // --color-danger-dark
+    default: return '#6B5B4E'; // --color-text-secondary
   }
 };
 

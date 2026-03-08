@@ -270,7 +270,7 @@ const MisRecetas: React.FC = () => {
                       {isMicro && <span className={styles.tipoBadge}>Micro</span>}
                       {isMacro && <span className={styles.tipoBadge}>Macro</span>}
                     </div>
-                    {isExpanded ? <CaretUp size={16} weight="bold" style={{ color: '#999' }} /> : <CaretDown size={16} weight="bold" style={{ color: '#999' }} />}
+                    {isExpanded ? <CaretUp size={16} weight="bold" style={{ color: 'var(--color-text-muted)' }} /> : <CaretDown size={16} weight="bold" style={{ color: 'var(--color-text-muted)' }} />}
                   </div>
                 </div>
 

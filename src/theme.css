@@ -77,6 +77,12 @@
   --shadow-card: 0 2px 8px rgba(64, 45, 33, 0.06);
   --shadow-md: 0 2px 8px rgba(64, 45, 33, 0.08), 0 4px 16px rgba(64, 45, 33, 0.04);
   --shadow-lg: 0 4px 12px rgba(64, 45, 33, 0.1), 0 8px 32px rgba(64, 45, 33, 0.06);
+  --shadow-toast: 0 4px 20px rgba(64, 45, 33, 0.2);
+  --shadow-dialog: 0 8px 32px rgba(64, 45, 33, 0.18);
+
+  /* ═══ Overlays de fondo modal ═══ */
+  --overlay-modal: rgba(64, 45, 33, 0.55);
+  --overlay-dark: rgba(64, 45, 33, 0.9);
 
   /* ═══ Z-index scale ═══ */
   --z-base: 1;
@@ -114,6 +120,12 @@
   --color-warning-text: #E65100;
   --color-danger-text: #C62828;
   --color-info-text: #1565C0;
+
+  /* ═══ Toast gradient stops (dark variants de semánticos) ═══ */
+  --color-success-dark: #1b5e20;
+  --color-warning-dark: #e65100;
+  --color-info-dark: #0d47a1;
+  --color-danger-light: #ef9a9a;
 
   /* ═══ Step accent colors (solicitud flow) ═══ */
   --step-green: #14b858;
