@@ -221,6 +221,20 @@
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;
+  accent-color: var(--color-primary);
+  background: var(--color-border);
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+}
+
+.slider::-moz-range-track {
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
 }
 
 .slider::-webkit-slider-thumb {
