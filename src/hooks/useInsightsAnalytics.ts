@@ -3,7 +3,7 @@ import { toLocalDateString, normalizeDate } from '../utils/dateHelpers';
 import { calcWellbeing } from '../utils/wellbeing';
 import { calculateDASS, calculatePANAS, calculatePSS } from '../utils/followUpScoring';
 import { useCheckins, useDoses, useBaseline, useFollowUpsCompleted } from './queries';
-import type { InsightsData, ComparisonData, ComparisonAverages, Checkin, DoseLog } from '../types';
+import type { InsightsData, ComparisonData, ComparisonAverages, Checkin, DoseLog, Baseline, FollowUp } from '../types';
 
 export interface PeriodAverages {
   [key: string]: string | number | undefined;
@@ -28,19 +28,27 @@ interface InsightCard {
   description: string;
 }
 
+// Punto de datos del gráfico de evolución: label + métricas normalizadas + raw
+// La forma es dinámica (depende de qué escalas existen), por eso se mantiene como
+// Record con discriminante de tipo explícito en lugar de `any`.
+type EvolutionDataPoint = Record<string, string | number | null>;
+
 interface EvolutionMetric {
   label: string;
   emoji: string;
   color: string;
   lowerIsBetter: boolean;
   normalize: (v: number) => number;
-  extract: (data: Record<string, any>) => number | null;
+  extract: (data: Baseline | FollowUp) => number | null;
 }
+
+// Punto de datos semanal: label + promedio de cada campo (string por .toFixed(1))
+type WeeklyDataPoint = { label: string } & Record<string, string | number>;
 
 export interface UseInsightsAnalyticsReturn {
   loading: boolean;
   insightsData: InsightsData | null;
-  weeklyData: Record<string, any>[];
+  weeklyData: WeeklyDataPoint[];
   periodAverages: PeriodAverages | null;
   comparisonData: ComparisonData | null;
   wellbeingScore: number;
@@ -53,10 +61,10 @@ export interface UseInsightsAnalyticsReturn {
   // Evolution
   showEvolution: boolean;
   evolutionMetrics: Record<string, EvolutionMetric>;
-  chartData: Record<string, any>[];
+  chartData: EvolutionDataPoint[];
   availableMetrics: string[];
-  baselineData: Record<string, any> | null;
-  completedFollowUps: Record<string, any>[];
+  baselineData: Baseline | null;
+  completedFollowUps: FollowUp[];
 }
 
 const radarFields = ['mood', 'anxiety', 'energy', 'sleep', 'focus', 'sociability', 'rumination', 'functionality', 'productivity', 'connection'];
@@ -88,15 +96,15 @@ export function useInsightsAnalytics(
   const loading = loadingCheckins || loadingDoses;
 
   const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
-  const [weeklyData, setWeeklyData] = useState<Record<string, any>[]>([]);
+  const [weeklyData, setWeeklyData] = useState<WeeklyDataPoint[]>([]);
   const [periodAverages, setPeriodAverages] = useState<PeriodAverages | null>(null);
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
-  const [baselineData, setBaselineData] = useState<Record<string, any> | null>(null);
-  const [completedFollowUps, setCompletedFollowUps] = useState<Record<string, any>[]>([]);
+  const [baselineData, setBaselineData] = useState<Baseline | null>(null);
+  const [completedFollowUps, setCompletedFollowUps] = useState<FollowUp[]>([]);
 
   useEffect(() => {
     if (rawBaseline?.is_locked) setBaselineData(rawBaseline);
-    if (Array.isArray(rawFollowUps) && rawFollowUps.length > 0) setCompletedFollowUps(rawFollowUps);
+    if (Array.isArray(rawFollowUps) && rawFollowUps.length > 0) setCompletedFollowUps(rawFollowUps as FollowUp[]);
   }, [rawBaseline, rawFollowUps]);
 
   // Build insights data from raw checkins/doses
@@ -110,12 +118,12 @@ export function useInsightsAnalytics(
     const doses = rawDoses;
 
     const last7Days = checkins.slice(0, 7).reverse();
-    const emotional = last7Days.map((c: any) => ({
+    const emotional = last7Days.map((c: Checkin) => ({
       day: new Date(c.date).toLocaleDateString('es-ES', { weekday: 'short' }),
-      ...Object.keys(allFields).reduce((acc: any, key: string) => ({ ...acc, [key]: c[key] || 5 }), {})
+      ...Object.keys(allFields).reduce<Record<string, number>>((acc, key) => ({ ...acc, [key]: (c[key] as number | undefined) ?? 5 }), {})
     }));
 
-    const calcAvg = (field: string) => (checkins.reduce((sum: number, c: any) => sum + (c[field] || 5), 0) / checkins.length).toFixed(1);
+    const calcAvg = (field: string) => (checkins.reduce((sum: number, c: Checkin) => sum + ((c[field] as number | undefined) ?? 5), 0) / checkins.length).toFixed(1);
 
     setInsightsData({
       emotional,
@@ -140,9 +148,9 @@ export function useInsightsAnalytics(
         const weekLabel = firstDate.getMonth() === lastDate.getMonth()
           ? `${formatDay(firstDate)}-${formatDay(lastDate)} ${formatMonth(lastDate)}`
           : `${formatDay(firstDate)} ${formatMonth(firstDate)}-${formatDay(lastDate)} ${formatMonth(lastDate)}`;
-        const weekPoint: Record<string, any> = { label: weekLabel };
+        const weekPoint: WeeklyDataPoint = { label: weekLabel };
         Object.keys(allFields).forEach(field => {
-          weekPoint[field] = (weekCheckins.reduce((s: number, c: any) => s + (c[field] || 5), 0) / weekCheckins.length).toFixed(1);
+          weekPoint[field] = (weekCheckins.reduce((s: number, c: Checkin) => s + ((c[field] as number | undefined) ?? 5), 0) / weekCheckins.length).toFixed(1);
         });
         weeks.push(weekPoint);
       }
@@ -168,7 +176,7 @@ export function useInsightsAnalytics(
       return;
     }
 
-    const calcAvg = (arr: any[], field: string) => (arr.reduce((s: number, c: any) => s + (parseFloat(c[field]) || 5), 0) / arr.length).toFixed(1);
+    const calcAvg = (arr: Checkin[], field: string) => (arr.reduce((s: number, c: Checkin) => s + (parseFloat(String(c[field] ?? 5)) || 5), 0) / arr.length).toFixed(1);
 
     const avgs: PeriodAverages = { totalCheckins: 0 };
     allFieldKeys.forEach(field => {
@@ -197,7 +205,7 @@ export function useInsightsAnalytics(
     const withoutDose = filteredCheckins.filter(c => !doseDates.has(normalizeDate(c.date)));
 
     if (withDose.length > 0 && withoutDose.length > 0) {
-      const calcAvg = (arr: Checkin[], field: string) => (arr.reduce((s: number, c: any) => s + (c[field] || 5), 0) / arr.length).toFixed(1);
+      const calcAvg = (arr: Checkin[], field: string) => (arr.reduce((s: number, c: Checkin) => s + ((c[field] as number | undefined) ?? 5), 0) / arr.length).toFixed(1);
 
       const avgWithDose: ComparisonAverages = { count: 0, wellbeing: '0' };
       const avgWithoutDose: ComparisonAverages = { count: 0, wellbeing: '0' };
@@ -219,6 +227,22 @@ export function useInsightsAnalytics(
     }
   }, [period, insightsData?.checkins, insightsData?.doses]);
 
+  // Helper: extrae el valor numérico de un campo desde PeriodAverages o InsightsData
+  // PeriodAverages indexa por nombre corto ("mood"), InsightsData por "avgMood"
+  const resolveAvg = (avgs: PeriodAverages | InsightsData, field: string): string | number | undefined => {
+    const avgKey = `avg${field.charAt(0).toUpperCase()}${field.slice(1)}`;
+    // PeriodAverages tiene índice de string, InsightsData tiene avgXxx
+    const fromPeriod = (avgs as PeriodAverages)[field];
+    const fromInsights = (avgs as InsightsData)[avgKey as keyof InsightsData];
+    return (fromPeriod ?? fromInsights) as string | number | undefined;
+  };
+
+  // Helper: convierte Checkin al mapa que espera calcWellbeing (index string → number|undefined)
+  const checkinToWellbeing = (c: Checkin): Record<string, string | number | undefined> =>
+    Object.fromEntries(
+      Object.entries(c).map(([k, v]) => [k, v as string | number | undefined])
+    );
+
   // Derived values (computed from state, no side effects)
   const derivedData = useMemo(() => {
     if (!insightsData) {
@@ -231,25 +255,25 @@ export function useInsightsAnalytics(
         periodDoseCount: 0,
         periodCheckinCount: 0,
         showEvolution: false,
-        chartData: [] as Record<string, any>[],
+        chartData: [] as EvolutionDataPoint[],
         availableMetrics: [] as string[],
       };
     }
 
-    const avgs: any = periodAverages || insightsData;
+    const avgs: PeriodAverages | InsightsData = periodAverages ?? insightsData;
 
     // Wellbeing score
     const wellbeingScore = calcWellbeing({
-      mood: avgs.avgMood || avgs.mood,
-      energy: avgs.avgEnergy || avgs.energy,
-      anxiety: avgs.avgAnxiety || avgs.anxiety,
-      focus: avgs.avgFocus || avgs.focus,
-      sleep: avgs.avgSleep || avgs.sleep,
-      sociability: avgs.avgSociability || avgs.sociability,
-      rumination: avgs.avgRumination || avgs.rumination,
-      functionality: avgs.avgFunctionality || avgs.functionality,
-      productivity: avgs.avgProductivity || avgs.productivity,
-      connection: avgs.avgConnection || avgs.connection
+      mood: resolveAvg(avgs, 'mood'),
+      energy: resolveAvg(avgs, 'energy'),
+      anxiety: resolveAvg(avgs, 'anxiety'),
+      focus: resolveAvg(avgs, 'focus'),
+      sleep: resolveAvg(avgs, 'sleep'),
+      sociability: resolveAvg(avgs, 'sociability'),
+      rumination: resolveAvg(avgs, 'rumination'),
+      functionality: resolveAvg(avgs, 'functionality'),
+      productivity: resolveAvg(avgs, 'productivity'),
+      connection: resolveAvg(avgs, 'connection'),
     });
 
     // Trend data
@@ -258,12 +282,12 @@ export function useInsightsAnalytics(
     cutoff.setDate(cutoff.getDate() - days);
     const cutoffStr = toLocalDateString(cutoff);
     const periodCheckins = insightsData.checkins
-      .filter((c: any) => normalizeDate(c.date) > cutoffStr)
+      .filter((c: Checkin) => normalizeDate(c.date) > cutoffStr)
       .reverse();
-    const doseDates = new Set(insightsData.doses.map((d: any) => normalizeDate(d.date)));
-    const trendData: TrendDataPoint[] = periodCheckins.map((c: any) => ({
+    const doseDates = new Set(insightsData.doses.map((d: DoseLog) => normalizeDate(d.date)));
+    const trendData: TrendDataPoint[] = periodCheckins.map((c: Checkin) => ({
       day: new Date(c.date).toLocaleDateString('es-ES', { weekday: 'short' }),
-      wellbeing: parseFloat(calcWellbeing(c).toFixed(1)),
+      wellbeing: parseFloat(calcWellbeing(checkinToWellbeing(c)).toFixed(1)),
       isDose: doseDates.has(normalizeDate(c.date))
     }));
 
@@ -273,15 +297,15 @@ export function useInsightsAnalytics(
     const prevCutoff = new Date(now); prevCutoff.setDate(now.getDate() - days * 2);
     const cutoffStr2 = toLocalDateString(cutoff2);
     const prevCutoffStr = toLocalDateString(prevCutoff);
-    const current = insightsData.checkins.filter((c: any) => normalizeDate(c.date) > cutoffStr2);
-    const prev = insightsData.checkins.filter((c: any) => {
+    const current = insightsData.checkins.filter((c: Checkin) => normalizeDate(c.date) > cutoffStr2);
+    const prev = insightsData.checkins.filter((c: Checkin) => {
       const d = normalizeDate(c.date);
       return d > prevCutoffStr && d <= cutoffStr2;
     });
     const wellbeingChange = (current.length > 0 && prev.length > 0)
       ? (() => {
-          const currentAvg = current.reduce((sum: number, c: any) => sum + calcWellbeing(c), 0) / current.length;
-          const prevAvg = prev.reduce((sum: number, c: any) => sum + calcWellbeing(c), 0) / prev.length;
+          const currentAvg = current.reduce((sum: number, c: Checkin) => sum + calcWellbeing(checkinToWellbeing(c)), 0) / current.length;
+          const prevAvg = prev.reduce((sum: number, c: Checkin) => sum + calcWellbeing(checkinToWellbeing(c)), 0) / prev.length;
           return prevAvg !== 0 ? Math.round(((currentAvg - prevAvg) / prevAvg) * 100) : 0;
         })()
       : null;
@@ -323,8 +347,7 @@ export function useInsightsAnalytics(
       { field: 'productivity', icon: '📈', bg: 'rgba(236, 72, 153, 0.1)', label: 'Productividad' },
     ];
     const insightCards: InsightCard[] = insightDefs.map(def => {
-      const avgKey = `avg${def.field.charAt(0).toUpperCase() + def.field.slice(1)}`;
-      const val = parseFloat(String(avgs[avgKey] || avgs[def.field] || '5'));
+      const val = parseFloat(String(resolveAvg(avgs, def.field) ?? '5'));
       const numericValue = `${val.toFixed(1)}/10`;
       let statusLabel = numericValue;
       let statusColor = 'var(--color-text)';
@@ -408,16 +431,16 @@ export function useInsightsAnalytics(
     // Period counts
     const cutoff3 = new Date(); cutoff3.setDate(cutoff3.getDate() - days);
     const cutoffStr3 = toLocalDateString(cutoff3);
-    const periodDoseCount = insightsData.doses.filter((d: any) => normalizeDate(d.date) > cutoffStr3).length;
-    const periodCheckinCount = insightsData.checkins.filter((c: any) => normalizeDate(c.date) > cutoffStr3).length;
+    const periodDoseCount = insightsData.doses.filter((d: DoseLog) => normalizeDate(d.date) > cutoffStr3).length;
+    const periodCheckinCount = insightsData.checkins.filter((c: Checkin) => normalizeDate(c.date) > cutoffStr3).length;
 
     // Evolution
     const showEvolution = period === 'monthly' && !!baselineData && completedFollowUps.length > 0;
-    let chartData: Record<string, any>[] = [];
+    let chartData: EvolutionDataPoint[] = [];
     let availableMetrics: string[] = [];
 
     if (showEvolution && baselineData) {
-      const allDataPoints = [baselineData, ...completedFollowUps];
+      const allDataPoints: Array<Baseline | FollowUp> = [baselineData, ...completedFollowUps];
       availableMetrics = Object.keys(EVOLUTION_METRICS).filter(key => {
         const metric = EVOLUTION_METRICS[key];
         const baseVal = metric.extract(baselineData);
@@ -426,7 +449,8 @@ export function useInsightsAnalytics(
       });
 
       chartData = allDataPoints.map((dp, idx) => {
-        const point: Record<string, any> = { label: idx === 0 ? 'Baseline' : (dp.monthName || `Mes ${idx}`) };
+        const monthName = (dp as FollowUp).month_year;
+        const point: EvolutionDataPoint = { label: idx === 0 ? 'Baseline' : (monthName ?? `Mes ${idx}`) };
         Object.entries(EVOLUTION_METRICS).forEach(([key, metric]) => {
           const raw = metric.extract(dp);
           if (raw !== null) point[key] = metric.normalize(raw);
