@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { requestNotificationPermission, getNotificationPermission, startNotificationScheduler, stopNotificationScheduler } from '../utils/notifications';
+import { subscribeToPush, unsubscribeFromPush } from '../utils/pushNotifications';
 import storage, { STORAGE_KEYS } from '../utils/storage';
 
 interface NotificationPrefs {
@@ -49,6 +50,10 @@ export function useNotificationSettings(
             setNotificationsEnabled(true);
             savePreferences({ notificationsEnabled: true });
             startNotificationScheduler();
+            // Subscribe to Web Push for background notifications
+            subscribeToPush().catch(() => {
+              // Non-critical: local notifications still work
+            });
           } else {
             onWarning('Notificaciones bloqueadas. Activalas en la configuracion de tu navegador.');
             setNotificationsEnabled(false);
@@ -58,6 +63,8 @@ export function useNotificationSettings(
           setNotificationsEnabled(false);
           savePreferences({ notificationsEnabled: false });
           stopNotificationScheduler();
+          // Unsubscribe from Web Push
+          unsubscribeFromPush().catch(() => {});
         }
         break;
       case 'dose':

@@ -14,32 +14,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['logo-camellos.png', 'imagotipo.png', 'icon-192.png', 'icon-512.png', 'icon-180.png', 'favicon-32.png'],
       manifest: false,
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        skipWaiting: true,
-        clientsClaim: true,
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api\//],
-        // Limpiar caches viejos al actualizar SW
-        cleanupOutdatedCaches: true,
-        // Fix #14: NO cachear endpoints de API sensibles
-        // Solo cachear assets estaticos, no datos de usuario
-        runtimeCaching: [
-          {
-            // Solo cachear assets estaticos (imagenes, fuentes)
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|woff2|woff|ttf)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'static-assets',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 dias
-              }
-            }
-          }
-          // Fix #14: Eliminado el cache de /api/ - datos de salud NO deben cachearse
-          // en el Service Worker por privacidad
-        ]
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}']
       }
     })
   ],
