@@ -222,7 +222,7 @@ function App() {
         processMutationQueue(api).then(({ processed }) => {
           setPendingCount(getMutationQueueLength());
           if (processed > 0) {
-            console.log(`[OfflineQueue] ${processed} cambios sincronizados`);
+            // sincronización silenciosa — no loguear en producción
           }
         });
       } else {
