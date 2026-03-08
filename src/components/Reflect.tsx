@@ -363,7 +363,7 @@ const Reflect: React.FC = () => {
             type="range" min="0" max="10" value={value}
             onChange={(e) => handleChange(field, parseInt(e.target.value))}
             className={styles.slider}
-            style={{ background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${Number(value) * 10}%, #e5e7eb ${Number(value) * 10}%, #e5e7eb 100%)` }}
+            style={{ background: `linear-gradient(to right, #A68050 0%, #A68050 ${Number(value) * 10}%, #DBC4A8 ${Number(value) * 10}%, #DBC4A8 100%)` }}
           />
         </div>
         <div className={styles.sliderLabels}>
