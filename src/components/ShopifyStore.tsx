@@ -221,7 +221,7 @@ const ShopifyStore: React.FC = () => {
           </div>
           <div className={styles.orderRight}>
             <span className={styles.orderTotal}>{formatCLP(sol.total_estimado)}</span>
-            <span className={`${styles.statusBadge} ${styles.statusPendingPayment}`}>Suscripción pendiente</span>
+            <span className={`${styles.statusBadge} ${styles.statusPendingPayment}`}>Pago pendiente</span>
           </div>
         </div>
 
