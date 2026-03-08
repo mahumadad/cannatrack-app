@@ -142,9 +142,13 @@ const Settings: React.FC = () => {
     if (type === 'dose') {
       setDoseReminder(tempTime);
       savePreferences({ doseReminder: tempTime });
+      // Sync to backend for server-side push reminders (fire-and-forget)
+      api.patch('/api/profile/reminders', { doseReminderTime: tempTime }).catch(() => {});
     } else {
       setReflectionReminder(tempTime);
       savePreferences({ reflectionReminder: tempTime });
+      // Sync to backend for server-side push reminders (fire-and-forget)
+      api.patch('/api/profile/reminders', { reflectionReminderTime: tempTime }).catch(() => {});
     }
     setShowTimeModal(null);
   };

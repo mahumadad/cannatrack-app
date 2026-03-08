@@ -88,7 +88,7 @@ const getHeaders = (method: string = 'GET'): Record<string, string> => {
   }
 
   // Incluir CSRF token en mutaciones
-  if (['POST', 'PUT', 'DELETE'].includes(method.toUpperCase())) {
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
     const csrfToken = getCsrfToken();
     if (csrfToken) {
       h['x-csrf-token'] = csrfToken;
@@ -147,12 +147,13 @@ interface ApiClient {
   get: (path: string, options?: RequestOptions) => Promise<any>;
   post: (path: string, body: unknown, options?: RequestOptions) => Promise<any>;
   put: (path: string, body: unknown, options?: RequestOptions) => Promise<any>;
+  patch: (path: string, body: unknown, options?: RequestOptions) => Promise<any>;
   delete: (path: string, options?: RequestOptions) => Promise<any>;
 }
 
 /** Wrap a mutation call — if offline + network error, queue for later */
 const withOfflineQueue = async (
-  method: 'POST' | 'PUT' | 'DELETE',
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   path: string,
   body: unknown,
   fn: () => Promise<any>
@@ -191,6 +192,17 @@ const api: ApiClient = {
       const response = await fetchWithRetry(`${config.API_URL}${path}`, {
         method: 'PUT',
         headers: getHeaders('PUT'),
+        body: JSON.stringify(body)
+      });
+      return handleResponse(response, options);
+    });
+  },
+
+  patch: async (path: string, body: unknown, options?: RequestOptions): Promise<any> => {
+    return withOfflineQueue('PATCH', path, body, async () => {
+      const response = await fetchWithRetry(`${config.API_URL}${path}`, {
+        method: 'PATCH',
+        headers: getHeaders('PATCH'),
         body: JSON.stringify(body)
       });
       return handleResponse(response, options);

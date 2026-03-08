@@ -8,7 +8,7 @@ import storage, { STORAGE_KEYS } from './storage';
  */
 
 interface QueuedMutation {
-  method: 'POST' | 'PUT' | 'DELETE';
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   path: string;
   body: unknown;
   queuedAt: number; // timestamp
@@ -31,7 +31,7 @@ const saveQueue = (queue: QueuedMutation[]): void => {
 /**
  * Add a failed mutation to the offline queue.
  */
-export const queueMutation = (method: 'POST' | 'PUT' | 'DELETE', path: string, body: unknown): void => {
+export const queueMutation = (method: 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, body: unknown): void => {
   const queue = getQueue();
   queue.push({ method, path, body, queuedAt: Date.now() });
   saveQueue(queue);
@@ -46,6 +46,7 @@ export const processMutationQueue = async (
   apiFn: {
     post: (path: string, body: unknown) => Promise<unknown>;
     put: (path: string, body: unknown) => Promise<unknown>;
+    patch: (path: string, body: unknown) => Promise<unknown>;
     delete: (path: string) => Promise<unknown>;
   }
 ): Promise<{ processed: number; failed: number; discarded: number }> => {
@@ -70,6 +71,8 @@ export const processMutationQueue = async (
         await apiFn.post(item.path, item.body);
       } else if (item.method === 'PUT') {
         await apiFn.put(item.path, item.body);
+      } else if (item.method === 'PATCH') {
+        await apiFn.patch(item.path, item.body);
       } else if (item.method === 'DELETE') {
         await apiFn.delete(item.path);
       }
