@@ -729,10 +729,10 @@ const FollowUp: React.FC = () => {
                 <div className={styles.scoreRow}>
                   <span className={styles.scoreLabel}>Positivo</span>
                   <div className={styles.scoreBarContainer}>
-                    <div className={styles.scoreBar} style={{ width: `${(panas.positiveAffect / 50) * 100}%`, backgroundColor: panas.positiveAffect >= 28 ? '#2e7d32' : '#f57c00' }} />
+                    <div className={styles.scoreBar} style={{ width: `${(panas.positiveAffect / 50) * 100}%`, backgroundColor: panas.positiveAffect >= 28 ? '#5a7a3a' : '#c07a28' }} />
                   </div>
                   <span className={styles.scoreValue}>{panas.positiveAffect}/50</span>
-                  <span className={styles.scoreSeverity} style={{ color: panas.positiveAffect >= 38 ? '#2e7d32' : panas.positiveAffect >= 28 ? '#f57c00' : '#d32f2f' }}>{panas.paLabel}</span>
+                  <span className={styles.scoreSeverity} style={{ color: panas.positiveAffect >= 38 ? '#5a7a3a' : panas.positiveAffect >= 28 ? '#c07a28' : '#b84c3a' }}>{panas.paLabel}</span>
                 </div>
                 <div className={styles.scoreRow}>
                   <span className={styles.scoreLabel}>Negativo</span>

@@ -190,7 +190,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: #E8F5E9;
+  background: var(--color-success-bg);
   display: flex;
   align-items: center;
   justify-content: center;

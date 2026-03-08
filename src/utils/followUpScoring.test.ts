@@ -132,13 +132,13 @@ describe('calculatePSS', () => {
 
 // ─── getSeverityColor ──────────────────────────────────────────
 describe('getSeverityColor', () => {
-  it('Normal → verde', () => expect(getSeverityColor('Normal')).toBe('#2e7d32'));
-  it('Bajo → verde', () => expect(getSeverityColor('Bajo')).toBe('#2e7d32'));
-  it('Leve → naranja', () => expect(getSeverityColor('Leve')).toBe('#f57c00'));
-  it('Moderado → naranja oscuro', () => expect(getSeverityColor('Moderado')).toBe('#e65100'));
-  it('Severo → rojo', () => expect(getSeverityColor('Severo')).toBe('#d32f2f'));
-  it('Muy severo → rojo oscuro', () => expect(getSeverityColor('Muy severo')).toBe('#c62828'));
-  it('desconocido → gris', () => expect(getSeverityColor('???')).toBe('#6B5B4E'));
+  it('Normal → oliva', () => expect(getSeverityColor('Normal')).toBe('#5a7a3a'));
+  it('Bajo → oliva', () => expect(getSeverityColor('Bajo')).toBe('#5a7a3a'));
+  it('Leve → ámbar', () => expect(getSeverityColor('Leve')).toBe('#c07a28'));
+  it('Moderado → ámbar oscuro', () => expect(getSeverityColor('Moderado')).toBe('#8f5a1a'));
+  it('Severo → terracota', () => expect(getSeverityColor('Severo')).toBe('#b84c3a'));
+  it('Muy severo → terracota oscuro', () => expect(getSeverityColor('Muy severo')).toBe('#8f3226'));
+  it('desconocido → gris cálido', () => expect(getSeverityColor('???')).toBe('#6B5B4E'));
 });
 
 // ─── Label Maps ────────────────────────────────────────────────

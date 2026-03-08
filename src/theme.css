@@ -17,12 +17,13 @@
   --color-text-muted: var(--color-chamois);
   --color-border: var(--color-arena);
   --color-border-light: #EBE5DC;
-  --color-danger: #d32f2f;
-  --color-danger-dark: #c62828;
-  --color-success: #2e7d32;
-  --color-success-light: #e8f5e9;
-  --color-warning: #f57c00;
-  --color-info: #1565C0;
+  /* Semánticos armónicos con la paleta C&D (desaturados, temperatura cálida) */
+  --color-danger: #b84c3a;       /* terracota: rojo cálido, terroso */
+  --color-danger-dark: #8f3226;  /* terracota oscuro */
+  --color-success: #5a7a3a;      /* oliva: verde cálido, no-MD */
+  --color-success-light: #eaf2e0;/* fondo oliva muy claro */
+  --color-warning: #c07a28;      /* ámbar tostado: más terroso que naranja MD */
+  --color-info: #4a6f8a;         /* azul-pizarra: cálido, no eléctrico */
 
   /* ═══ Overlays (primary con opacidad) ═══ */
   --overlay-lightest: rgba(165, 127, 80, 0.04);
@@ -109,30 +110,32 @@
   --gradient-primary: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
   --gradient-progress: linear-gradient(90deg, var(--color-primary-light) 0%, #C17D4A 100%);
 
-  /* ═══ Status backgrounds ═══ */
-  --color-success-bg: #E8F5E9;
-  --color-warning-bg: #FFF3E0;
-  --color-danger-bg: #FFEBEE;
-  --color-info-bg: #E3F2FD;
+  /* ═══ Status backgrounds (cálidos, armónicos con marfil/arena) ═══ */
+  --color-success-bg: #edf3e3;   /* oliva muy claro */
+  --color-warning-bg: #faf0e0;   /* ámbar muy claro */
+  --color-danger-bg: #f5e8e5;    /* terracota muy claro */
+  --color-info-bg: #e8f0f5;      /* pizarra muy claro */
 
   /* ═══ Status text ═══ */
-  --color-success-text: #2E7D32;
-  --color-warning-text: #E65100;
-  --color-danger-text: #C62828;
-  --color-info-text: #1565C0;
+  --color-success-text: #4a6830; /* oliva oscuro legible */
+  --color-warning-text: #8f5a1a; /* ámbar oscuro legible */
+  --color-danger-text: #8f3226;  /* terracota oscuro legible */
+  --color-info-text: #355a72;    /* pizarra oscuro legible */
 
   /* ═══ Toast gradient stops (dark variants de semánticos) ═══ */
-  --color-success-dark: #1b5e20;
-  --color-warning-dark: #e65100;
-  --color-info-dark: #0d47a1;
-  --color-danger-light: #ef9a9a;
+  --color-success-dark: #3d5427; /* oliva más oscuro */
+  --color-success-mid: #c8d9b0;  /* oliva medio (segundo stop gradiente bg) */
+  --color-warning-dark: #8f5a1a; /* ámbar oscuro */
+  --color-info-dark: #2d4d62;    /* pizarra muy oscuro */
+  --color-danger-light: #d4856f; /* terracota claro */
+  --color-danger-mid: #ddb0a8;   /* terracota medio (segundo stop gradiente bg) */
 
-  /* ═══ Step accent colors (solicitud flow) ═══ */
-  --step-green: #14b858;
-  --step-green-light: #f0fdf4;
-  --step-purple: #5048e5;
-  --step-purple-light: #f0efff;
-  --step-brown: #a57f50;
+  /* ═══ Step accent colors (solicitud flow) — armónicos con paleta C&D ═══ */
+  --step-green: #5a7a3a;         /* oliva (= success, unificado) */
+  --step-green-light: #edf3e3;   /* fondo oliva claro */
+  --step-purple: #7a4f6d;        /* ciruela: cálido, entre marrón y violeta */
+  --step-purple-light: #f2eaf0;  /* fondo ciruela muy claro */
+  --step-brown: #a57f50;         /* chamois (= primario, sin cambio) */
   --step-brown-light: #fbfaf9;
 
   /* ═══ Header sticky (unificado) ═══ */
