@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { useToast } from './Toast';
@@ -76,7 +76,9 @@ const FollowUp: React.FC = () => {
   ];
 
   // Track which month was last loaded to avoid resetting position on save-triggered refetches
-  const [loadedMonth, setLoadedMonth] = useState<string | null>(null);
+  const loadedMonthRef = useRef<string | null>(null);
+  // Guard: skip position reset when refetch is triggered by a save
+  const savingRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (followUpData) {
@@ -89,19 +91,27 @@ const FollowUp: React.FC = () => {
 
       if (followUpData.existing) {
         setExistingFollowUp(followUpData.existing);
-        setFormData({ ...defaultFormData, ...followUpData.existing });
+        // Only overwrite form data on initial load or month switch, not after save
+        if (!savingRef.current) {
+          setFormData({ ...defaultFormData, ...followUpData.existing });
+        }
       } else {
         setExistingFollowUp(null);
-        setFormData({ ...defaultFormData });
+        if (!savingRef.current) {
+          setFormData({ ...defaultFormData });
+        }
       }
 
       // Only reset position when switching months, not on save-triggered refetches
       const dataMonth = followUpData.monthYear || followUpData.existing?.month_year;
-      if (dataMonth !== loadedMonth) {
-        setLoadedMonth(dataMonth || null);
+      if (dataMonth !== loadedMonthRef.current && !savingRef.current) {
+        loadedMonthRef.current = dataMonth || null;
         setCurrentSection(0);
         setSubStep(0);
       }
+
+      // Clear the saving guard after processing the refetch
+      savingRef.current = false;
     }
   }, [followUpData]);
 
@@ -117,6 +127,7 @@ const FollowUp: React.FC = () => {
   }, [currentSection, existingFollowUp]);
 
   const switchMonth = (newMonthYear: string) => {
+    loadedMonthRef.current = null; // allow position reset on month change
     setMonthYear(newMonthYear);
   };
 
@@ -194,6 +205,7 @@ const FollowUp: React.FC = () => {
     }
 
     setSaving(true);
+    savingRef.current = true;
     try {
       const isLastSection = currentSection === sections.length - 1 && goNext;
 
