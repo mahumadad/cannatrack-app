@@ -335,7 +335,7 @@ const MisRecetas: React.FC = () => {
                                 className={styles.recetaImageBtn}
                                 onClick={(e) => { e.stopPropagation(); setLightboxUrl(receta.archivo_micro_url!); }}
                               >
-                                <Eye size={14} weight="bold" /> Ver receta
+                                <Eye size={14} weight="bold" /> {sameFile ? 'Ver receta' : 'Ver receta micro'}
                               </button>
                             </div>
                           )}
@@ -359,7 +359,7 @@ const MisRecetas: React.FC = () => {
                                 className={styles.recetaImageBtn}
                                 onClick={(e) => { e.stopPropagation(); setLightboxUrl(receta.archivo_macro_url!); }}
                               >
-                                <Eye size={14} weight="bold" /> Ver receta
+                                <Eye size={14} weight="bold" /> Ver receta macro
                               </button>
                             </div>
                           )}
