@@ -214,10 +214,10 @@
   font-size: var(--text-sm);
   font-weight: 700;
   color: var(--color-text);
-  background: white;
-  border: 1.5px solid rgba(193, 125, 74, 0.15);
+  background: linear-gradient(168deg, #FFFFFF 0%, var(--color-marfil) 100%);
+  border: 1.5px solid rgba(193, 125, 74, 0.12);
   transition: all var(--transition-fast) ease;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 1px 4px rgba(64, 45, 33, 0.06);
 }
 
 .monthDayCard .dayNumber {
@@ -229,7 +229,7 @@
 
 /* Today — filled primary circle with ring */
 .dayNumberToday {
-  background: var(--color-primary) !important;
+  background: var(--gradient-primary) !important;
   color: white !important;
   border-color: var(--color-primary) !important;
   box-shadow: 0 0 0 3px rgba(193, 125, 74, 0.15), 0 4px 12px rgba(193, 125, 74, 0.25) !important;
@@ -289,14 +289,14 @@
   background: var(--color-primary);
 }
 
-/* Dose missed — red */
+/* Dose missed — terracotta */
 .dotMissed {
-  background: #EF5350;
+  background: #b84c3a;
 }
 
-/* Dose scheduled — blue accent */
+/* Dose scheduled — olive */
 .dotScheduled {
-  background: #60A5FA;
+  background: #5a7a3a;
 }
 
 /* Checkin — primary lighter */

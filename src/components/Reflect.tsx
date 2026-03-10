@@ -205,7 +205,7 @@ const Reflect: React.FC = () => {
     const progress = (score / 100) * circumference;
     const offset = circumference - progress;
 
-    const getColor = (s: number) => s >= 70 ? '#4CAF50' : s >= 40 ? '#FFC107' : '#F44336';
+    const getColor = (s: number) => s >= 70 ? '#5a7a3a' : s >= 40 ? '#b88a2a' : '#b84c3a';
     const getLabel = (s: number) => s >= 70 ? 'Bien' : s >= 40 ? 'Regular' : 'Difícil';
     const getStatusClass = (s: number) => {
       if (s >= 80) return styles.wellbeingStatusExcellent;
@@ -277,7 +277,7 @@ const Reflect: React.FC = () => {
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
           {circles.map((r, i) => <circle key={i} cx={center} cy={center} r={r} fill="none" stroke="#E8C9A1" strokeWidth="1" opacity={0.6} />)}
           {axes.map((a, i) => <line key={i} x1={center} y1={center} x2={a.endX} y2={a.endY} stroke="#E8C9A1" strokeWidth="1" opacity={0.6} />)}
-          <polygon points={polygonPoints} fill="rgba(193, 125, 74, 0.35)" stroke="#C17D4A" strokeWidth="2.5" />
+          <polygon points={polygonPoints} fill="rgba(166, 128, 80, 0.25)" stroke="#A68050" strokeWidth="2.5" />
           {radarFields.map((f, i) => {
             const p = getPoint(i, data[f] || 5);
             const isHovered = hoveredDot === f;
@@ -285,7 +285,7 @@ const Reflect: React.FC = () => {
             return (
               <g key={f}>
                 <circle
-                  cx={p.x} cy={p.y} r={isHovered ? 8 : 5} fill="#C17D4A"
+                  cx={p.x} cy={p.y} r={isHovered ? 8 : 5} fill="#A68050"
                   style={{ cursor: 'pointer', transition: 'r 0.15s ease' }}
                   onMouseEnter={() => setHoveredDot(f)}
                   onMouseLeave={() => setHoveredDot(null)}
@@ -294,7 +294,7 @@ const Reflect: React.FC = () => {
                 {isHovered && (
                   <g>
                     <rect x={p.x - 40} y={p.y - 32} width={80} height={24} rx={6}
-                      fill="#4A3F35" />
+                      fill="#402D21" />
                     <text x={p.x} y={p.y - 16} textAnchor="middle" fill="white"
                       fontSize="11" fontWeight="600">
                       {fieldLabels[f].label}: {value}/10
@@ -446,7 +446,7 @@ const Reflect: React.FC = () => {
       <div className={styles.header}>
         <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button>
         <h1 className={styles.title}>Seguimiento Diario</h1>
-        <div style={{ width: 36 }}></div>
+        <div className={styles.headerSpacer}></div>
       </div>
       <div className={styles.loadingContainer}>
         <div className={styles.loadingSpinner}></div>
@@ -460,7 +460,7 @@ const Reflect: React.FC = () => {
       <div className={styles.header}>
         <button className={styles.backButton} onClick={goBack}><ArrowLeft size={20} weight="bold" /></button>
         <h1 className={styles.title}>Seguimiento Diario</h1>
-        <div style={{ width: 36 }}></div>
+        <div className={styles.headerSpacer}></div>
       </div>
 
       {isSummaryView ? (

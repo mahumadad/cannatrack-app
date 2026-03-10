@@ -100,9 +100,10 @@
 /* Task Cards (Baseline & Follow-up) */
 .taskCard {
   margin: 12px 20px;
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  background: linear-gradient(168deg, #FFFFFF 0%, var(--color-marfil) 60%, var(--color-surface-warm) 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--overlay-10);
   overflow: hidden;
   display: flex;
   cursor: pointer;
@@ -234,12 +235,12 @@
 .heroCard {
   position: relative;
   overflow: hidden;
-  background: var(--color-surface);
+  background: linear-gradient(168deg, #FFFFFF 0%, var(--color-marfil) 60%, var(--color-surface-warm) 100%);
   margin: 0 16px;
   padding: 0;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--overlay-light);
+  box-shadow: 0 4px 16px rgba(64, 45, 33, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--overlay-10);
   animation: scaleIn 0.3s ease;
 }
 
@@ -640,12 +641,12 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  background: white;
+  background: linear-gradient(168deg, #FFFFFF 0%, var(--color-marfil) 80%);
   padding: 16px 12px;
-  border-radius: var(--radius-md);
-  border: none;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--overlay-10);
   cursor: pointer;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   transition: all var(--transition-normal);
 }
 
@@ -681,8 +682,8 @@
 }
 
 .modalContent {
-  background: white;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: linear-gradient(168deg, #FFFFFF 0%, var(--color-marfil) 80%);
+  border-radius: 20px 20px 0 0;
   padding: 12px 24px calc(24px + var(--safe-area-bottom));
   max-width: 100%;
   width: 100%;
@@ -950,7 +951,7 @@
 .addButton:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(193, 125, 74, 0.3); }
 
 /* Checkin Summary */
-.checkinSummary { background: var(--color-surface-warm); padding: 16px; border-radius: var(--radius-md); }
+.checkinSummary { background: linear-gradient(168deg, var(--color-surface-warm) 0%, var(--color-marfil) 100%); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--overlay-10); }
 .checkinStats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
 .checkinStats span { 
   font-size: var(--text-sm); 
@@ -1363,12 +1364,12 @@
 /* ============ PRESCRIPTION CARD ============ */
 .prescriptionCard {
   position: relative;
-  background: var(--color-surface);
+  background: linear-gradient(168deg, #FFFFFF 0%, var(--color-marfil) 60%, var(--color-surface-warm) 100%);
   margin: 16px 16px;
   padding: 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--overlay-light);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--overlay-10);
+  box-shadow: 0 2px 8px rgba(64, 45, 33, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
