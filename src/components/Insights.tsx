@@ -120,7 +120,7 @@ const Insights: React.FC = () => {
                 strokeDasharray={circumference} strokeDashoffset={offset}
                 strokeLinecap="round" transform="rotate(-90 60 60)" style={{ transition: 'stroke-dashoffset 0.8s ease' }} />
             </svg>
-            <span className={styles.gaugeValue} style={{ fontSize: '28px' }}>{score.toFixed(1)}</span>
+            <span className={styles.gaugeValueLarge}>{score.toFixed(1)}</span>
           </div>
           <span className={styles.gaugeLabel}>Bienestar General</span>
         </div>
@@ -143,7 +143,7 @@ const Insights: React.FC = () => {
               strokeDasharray={circumference} strokeDashoffset={offset}
               strokeLinecap="round" transform="rotate(-90 45 45)" style={{ transition: 'stroke-dashoffset 0.8s ease' }} />
           </svg>
-          <span className={styles.gaugeValue} style={{ fontSize: '20px' }}>{score}</span>
+          <span className={styles.gaugeValueMedium}>{score}</span>
         </div>
         <span className={styles.compareGaugeLabel}>{label}</span>
         <span className={styles.compareGaugeDays}>{days} días</span>
@@ -203,21 +203,21 @@ const Insights: React.FC = () => {
             })}
 
             {/* Without Dose polygon (gray, behind) */}
-            <path d={createPath(withoutDose)} fill="rgba(158, 158, 158, 0.2)" stroke="#9E9E9E" strokeWidth="2" />
+            <path d={createPath(withoutDose)} fill="rgba(165, 127, 80, 0.15)" stroke="#c4b5a0" strokeWidth="2" />
             
             {/* With Dose polygon (green, in front) */}
-            <path d={createPath(withDose)} fill="rgba(76, 175, 80, 0.2)" stroke="#4CAF50" strokeWidth="2" />
+            <path d={createPath(withDose)} fill="rgba(90, 122, 58, 0.2)" stroke="#5a7a3a" strokeWidth="2" />
 
             {/* Data points - Without Dose */}
             {radarFields.map((field, i) => {
               const point = getPoint(i, parseFloat(String(withoutDose[field])) || 5, radarFields.length);
-              return <circle key={`wo-${i}`} cx={point.x} cy={point.y} r="4" fill="#9E9E9E" />;
+              return <circle key={`wo-${i}`} cx={point.x} cy={point.y} r="4" fill="#c4b5a0" />;
             })}
 
             {/* Data points - With Dose */}
             {radarFields.map((field, i) => {
               const point = getPoint(i, parseFloat(String(withDose[field])) || 5, radarFields.length);
-              return <circle key={`w-${i}`} cx={point.x} cy={point.y} r="4" fill="#4CAF50" />;
+              return <circle key={`w-${i}`} cx={point.x} cy={point.y} r="4" fill="#5a7a3a" />;
             })}
           </svg>
 
@@ -235,7 +235,7 @@ const Insights: React.FC = () => {
                   {hoveredRadarField === field && (
                     <div className={styles.radarTooltip}>
                       <strong>{info.label}</strong><br />
-                      <span style={{ color: 'var(--color-success)' }}>Con: {withDose[field]}</span> / <span style={{ color: 'var(--color-text-muted)' }}>Sin: {withoutDose[field]}</span>
+                      <span style={{ color: '#5a7a3a' }}>Con: {withDose[field]}</span> / <span style={{ color: '#c4b5a0' }}>Sin: {withoutDose[field]}</span>
                     </div>
                   )}
                 </div>
@@ -253,7 +253,7 @@ const Insights: React.FC = () => {
         <div className={styles.header}>
           <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
           <h1 className={styles.title}>Análisis y Tendencias</h1>
-          <div style={{ width: 36 }}></div>
+          <div className={styles.headerSpacer}></div>
         </div>
         <div className={styles.loading}>
           <div className={styles.loadingSpinner}></div>
@@ -269,7 +269,7 @@ const Insights: React.FC = () => {
         <div className={styles.header}>
           <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
           <h1 className={styles.title}>Análisis y Tendencias</h1>
-          <div style={{ width: 36 }}></div>
+          <div className={styles.headerSpacer}></div>
         </div>
         <div className={styles.noData}>
           <EmptyChart size={100} />
@@ -361,7 +361,7 @@ const Insights: React.FC = () => {
             </ResponsiveContainer>
           </div>
         ) : (
-          <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: '20px 0', fontSize: '14px' }}>
+          <p className={styles.noMetricsMessage}>
             No hay métricas comparables aún. Completa todas las secciones de tu próximo follow-up.
           </p>
         )}
@@ -424,7 +424,7 @@ const Insights: React.FC = () => {
       <div className={styles.resumenList}>
         <div className={styles.resumenRow}>
           <div className={styles.resumenLeft}>
-            <div className={styles.resumenIcon} style={{ background: 'rgba(34, 197, 94, 0.1)' }}>💊</div>
+            <div className={`${styles.resumenIcon} ${styles.resumenIconDosis}`}>💊</div>
             <div>
               <p className={styles.resumenLabel}>Tomas Registradas</p>
               <p className={styles.resumenSub}>{periodDoseCount} en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
@@ -434,7 +434,7 @@ const Insights: React.FC = () => {
         </div>
         <div className={styles.resumenRow}>
           <div className={styles.resumenLeft}>
-            <div className={styles.resumenIcon} style={{ background: 'rgba(234, 179, 8, 0.1)' }}>📝</div>
+            <div className={`${styles.resumenIcon} ${styles.resumenIconReflexion}`}>📝</div>
             <div>
               <p className={styles.resumenLabel}>Reflexiones</p>
               <p className={styles.resumenSub}>{periodCheckinCount} en {period === 'weekly' ? 'la semana' : 'el mes'}</p>
@@ -444,7 +444,7 @@ const Insights: React.FC = () => {
         </div>
         <div className={styles.resumenRow}>
           <div className={styles.resumenLeft}>
-            <div className={styles.resumenIcon} style={{ background: 'rgba(59, 130, 246, 0.1)' }}>🌟</div>
+            <div className={`${styles.resumenIcon} ${styles.resumenIconBienestar}`}>🌟</div>
             <div>
               <p className={styles.resumenLabel}>Bienestar General</p>
               <p className={styles.resumenSub}>Puntuación promedio</p>
@@ -455,7 +455,7 @@ const Insights: React.FC = () => {
         {comparisonData && (
           <div className={styles.resumenRow}>
             <div className={styles.resumenLeft}>
-              <div className={styles.resumenIcon} style={{ background: 'rgba(76, 175, 80, 0.1)' }}>⚖️</div>
+              <div className={`${styles.resumenIcon} ${styles.resumenIconImpacto}`}>⚖️</div>
               <div>
                 <p className={styles.resumenLabel}>Impacto de Dosis</p>
                 <p className={styles.resumenSub}>Con vs sin dosis</p>
@@ -500,7 +500,7 @@ const Insights: React.FC = () => {
                 dot={(props: any) => {
                   const { cx, cy, payload, index } = props;
                   if (payload.isDose) {
-                    return <circle key={`dose-${index}`} cx={cx} cy={cy} r={5} fill="#FF6B6B" stroke="white" strokeWidth={2} />;
+                    return <circle key={`dose-${index}`} cx={cx} cy={cy} r={5} fill="#b84c3a" stroke="white" strokeWidth={2} />;
                   }
                   return <circle key={`no-${index}`} cx={cx} cy={cy} r={3} fill="#D4A574" stroke="white" strokeWidth={1.5} />;
                 }}
@@ -510,13 +510,13 @@ const Insights: React.FC = () => {
           </ResponsiveContainer>
         </div>
       ) : (
-        <p style={{ textAlign: 'center', color: '#6B5E50', padding: '20px 0', fontSize: '14px' }}>
+        <p className={styles.noMetricsMessage}>
           Necesitas al menos 2 reflexiones para ver la tendencia.
         </p>
       )}
       <div className={styles.chartLegendRow}>
         <div className={styles.legendItem}>
-          <span className={styles.legendDot} style={{ background: '#FF6B6B' }} />
+          <span className={styles.legendDot} style={{ background: '#b84c3a' }} />
           <span>Día de Dosis</span>
         </div>
         <div className={styles.legendItem}>
@@ -589,7 +589,7 @@ const Insights: React.FC = () => {
         <MiniGauge value={avgs.avgMood || avgs.mood} label="Ánimo" emoji="😊" color="#FF9800" fieldKey="mood" />
         <MiniGauge value={avgs.avgEnergy || avgs.energy} label="Energía" emoji="⚡" color="#2196F3" fieldKey="energy" />
         <MiniGauge value={avgs.avgAnxiety || avgs.anxiety} label="Ansiedad" emoji="😰" color="#F44336" fieldKey="anxiety" />
-        <MiniGauge value={avgs.avgFocus || avgs.focus} label="Enfoque" emoji="🎯" color="#4CAF50" fieldKey="focus" />
+        <MiniGauge value={avgs.avgFocus || avgs.focus} label="Enfoque" emoji="🎯" color="#5a7a3a" fieldKey="focus" />
         <MiniGauge value={avgs.avgSleep || avgs.sleep} label="Sueño" emoji="😴" color="#9C27B0" fieldKey="sleep" />
         <MiniGauge value={avgs.avgSociability || avgs.sociability} label="Social" emoji="👥" color="#00BCD4" fieldKey="sociability" />
         <MiniGauge value={avgs.avgRumination || avgs.rumination} label="Rumiación" emoji="🌀" color="#795548" fieldKey="rumination" />
@@ -605,8 +605,8 @@ const Insights: React.FC = () => {
         <h2 className={styles.cardTitle}>⚖️ Comparación: Con vs Sin Dosis</h2>
         <p className={styles.cardSubtitle}>Bienestar promedio según días de microdosis</p>
         <div className={styles.compareGauges}>
-          <ComparisonGauge score={comparisonData.withDose.wellbeing} label="Con Dosis" color="#4CAF50" days={comparisonData.withDose.count} />
-          <ComparisonGauge score={comparisonData.withoutDose.wellbeing} label="Sin Dosis" color="#9E9E9E" days={comparisonData.withoutDose.count} />
+          <ComparisonGauge score={comparisonData.withDose.wellbeing} label="Con Dosis" color="#5a7a3a" days={comparisonData.withDose.count} />
+          <ComparisonGauge score={comparisonData.withoutDose.wellbeing} label="Sin Dosis" color="#c4b5a0" days={comparisonData.withoutDose.count} />
         </div>
       </>,
 
@@ -616,11 +616,11 @@ const Insights: React.FC = () => {
         <ComparisonRadarChart withDose={comparisonData.withDose} withoutDose={comparisonData.withoutDose} />
         <div className={styles.radarLegend}>
           <div className={styles.legendItem}>
-            <span className={styles.legendDot} style={{ background: '#4CAF50' }}></span>
+            <span className={styles.legendDot} style={{ background: '#5a7a3a' }}></span>
             <span>Con Dosis</span>
           </div>
           <div className={styles.legendItem}>
-            <span className={styles.legendDot} style={{ background: '#9E9E9E' }}></span>
+            <span className={styles.legendDot} style={{ background: '#c4b5a0' }}></span>
             <span>Sin Dosis</span>
           </div>
         </div>
@@ -659,7 +659,7 @@ const Insights: React.FC = () => {
       <div className={styles.header}>
         <button className={styles.backButton} onClick={() => navigate(-1)}><ArrowLeft size={20} weight="bold" /></button>
         <h1 className={styles.title}>Análisis y Tendencias</h1>
-        <div style={{ width: 36 }}></div>
+        <div className={styles.headerSpacer}></div>
       </div>
 
       <div className={styles.periodToggle}>
