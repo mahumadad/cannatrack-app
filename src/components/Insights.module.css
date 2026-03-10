@@ -189,7 +189,9 @@
   max-width: calc(100vw - 40px);
   scroll-snap-align: center;
   flex-shrink: 0;
-  overflow-y: visible;
+  overflow: visible;
+  overflow-x: clip;
+  box-sizing: border-box;
   animation: cardSlideUp 0.4s var(--ease-out) both;
 }
 
@@ -536,9 +538,9 @@
 /* ===== Mini Gauges ===== */
 .miniGaugesGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px 8px;
-  padding: 16px 8px;
+  grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
+  gap: 12px 6px;
+  padding: 12px 4px;
   background: var(--overlay-lightest);
   border-radius: var(--radius-md);
   margin-top: 12px;
@@ -852,7 +854,8 @@
 .insightsGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 10px;
+  max-width: 100%;
 }
 
 .insightCard {
@@ -863,9 +866,11 @@
   );
   border: 1px solid var(--overlay-10);
   border-radius: var(--radius-md);
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
@@ -916,9 +921,11 @@
 .insightDesc {
   font-size: 11px;
   color: var(--color-text-secondary);
-  line-height: 1.5;
+  line-height: 1.4;
   margin: 0;
   flex: 1;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* ===== Resumen Card (Warm Organic) ===== */
